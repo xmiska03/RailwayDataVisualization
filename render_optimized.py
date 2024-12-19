@@ -2,16 +2,10 @@ from pypcd4 import PointCloud
 import numpy as np
 import csv
 import cv2
-import matplotlib.pyplot as plt
 from scipy.spatial.transform import Rotation
 
 IMAGE_MAX_X = 2048
 IMAGE_MAX_Y = 1536
-
-PROJECTION_MATRIX = np.array([[1, 0, 0, 0], \
-                              [0, 1, 0, 0], \
-                              [0, 0, 1, 0], \
-                              [0, 0, 1, 0]])
 
 
 def load_csv_into_nparray(file_address):
@@ -23,22 +17,26 @@ def load_csv_into_nparray(file_address):
 
 def create_image(pc_nparray):
     # create a new black image
-    img = np.zeros(shape=(IMAGE_MAX_Y, IMAGE_MAX_X), dtype=np.uint16)
+    img = np.zeros(shape=(IMAGE_MAX_Y, IMAGE_MAX_X), dtype=np.uint32)
+
+    # retype the coordinates (and intensity) to int
+    pc_nparray = pc_nparray.astype(int)
+
+    # filter out the points that are out of bounds
+    filter_array = [(0 <= point[0] < IMAGE_MAX_X and 0 <= point[1] < IMAGE_MAX_Y) for point in pc_nparray]
+    pc_nparray = pc_nparray[filter_array]
+ 
+    # multiply intensity
+    intensity_array = pc_nparray[:, 3] * 1000
+
+    # revert the axes
+    img_x_array = IMAGE_MAX_X - 1 - pc_nparray[:, 0]
+    img_y_array = IMAGE_MAX_Y - 1 - pc_nparray[:, 1]
 
     # plot the points into the image
-    for point in pc_nparray:
-        if (point[3] > 0):  # if intensity > 0
-            x = int(point[0])
-            y = int(point[1])
+    np.add.at(img, (img_y_array, img_x_array), intensity_array)
 
-            if (x < 0 or x >= IMAGE_MAX_X or y < 0 or y >= IMAGE_MAX_Y):
-                continue
-            intensity = point[3]
-            # add intensity to pixel value, prevent overflow of int16
-            if (32767 - img[IMAGE_MAX_Y-y-1][IMAGE_MAX_X-x-1] > intensity):
-                img[IMAGE_MAX_Y-y-1][IMAGE_MAX_X-x-1] += intensity * 1000
-            else:
-                img[IMAGE_MAX_Y-y-1][IMAGE_MAX_X-x-1] = 32767
+    img = np.clip(img, 0, 32767).astype(np.uint16)
     return img
 
 
@@ -58,7 +56,7 @@ def generate_frame(pc_nparray, position, outdir):
     # apply rotation
     pc_nparray = pc_nparray @ rot_matrix_4x4.T
 
-    # filter out point that are behind the camera
+    # filter out the points that are behind the camera
     filter_array = [(row[2] > 0) for row in pc_nparray]
     pc_nparray = pc_nparray[filter_array]
 
@@ -73,7 +71,7 @@ def generate_frame(pc_nparray, position, outdir):
     # create image
     img = create_image(pc_nparray)
 
-    #print(cv2.getBuildInformation())
+    # write image to file
     cv2.imwrite(f"{outdir}/{position}.png", img)
 
 
@@ -96,6 +94,7 @@ frames_cnt = trans_nparray.shape[0]
 
 
 # generate 500 images
-for i in range(0, frames_cnt, 501):
-    generate_frame(pc_nparray, i, "optimized")
+for i in range(0, frames_cnt, 1):
+    pc_nparray_copy = pc_nparray[:, :]
+    generate_frame(pc_nparray_copy, i, "optimized")
     print("Generated", i)

@@ -1,2 +1,2 @@
 clean:
-	rm generated/*
+	rm generated/* optimized/*

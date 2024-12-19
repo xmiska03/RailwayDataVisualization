@@ -2,7 +2,6 @@ from pypcd4 import PointCloud
 import numpy as np
 import csv
 import cv2
-import matplotlib.pyplot as plt
 from scipy.spatial.transform import Rotation
 
 IMAGE_MAX_X = 2048
@@ -35,7 +34,7 @@ def create_image(pc_array):
                 continue
             intensity = point[3]
             # add intensity to pixel value, prevent overflow of int16
-            if (32767 - img[IMAGE_MAX_Y-y-1][IMAGE_MAX_X-x-1] > intensity):
+            if (32767 - img[IMAGE_MAX_Y-y-1][IMAGE_MAX_X-x-1] > intensity * 1000):
                 img[IMAGE_MAX_Y-y-1][IMAGE_MAX_X-x-1] += intensity * 1000
             else:
                 img[IMAGE_MAX_Y-y-1][IMAGE_MAX_X-x-1] = 32767
@@ -120,6 +119,6 @@ rot_array = load_csv_into_nparray("data/rot.csv")
 INTRINSIC_MATRIX = load_csv_into_nparray("data/K.csv")
 
 # generate 500 images
-for i in range(0, trans_array.shape[0], 1):
+for i in range(0, trans_array.shape[0], 50):
     generate_frame(i)
     print("Generated", i)
