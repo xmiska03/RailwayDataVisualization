@@ -32,5 +32,5 @@ view_state = pydeck.ViewState(target=[5.7, -0.08 - 1.3, -0.07], controller=True,
 view = pydeck.View(type="OrbitView", controller=True, near=5, fovy=20)
 
 r = pydeck.Deck(point_cloud_layer, initial_view_state=view_state, views=[view])
-r.to_html("output/pc.html", css_background_color="#add8e6")
+r.to_html("output/pc_pydeck.html", css_background_color="#add8e6")
 
