@@ -10,7 +10,7 @@ IMAGE_MAX_Y = 1536
 PROJECTION_MATRIX = np.array([[1, 0, 0, 0], \
                               [0, 1, 0, 0], \
                               [0, 0, 1, 0], \
-                              [0, 0, 1, 1]])
+                              [0, 0, 1, 0]])
 
 
 def load_csv_into_nparray(file_address):
@@ -52,7 +52,7 @@ def generate_frame(position):
     for i in range(pc_array.shape[0]):
         # transform from world space to view space
         point3 = np.array(pc_array[i][0:3])
-        #point3[0] += 1.5
+        #point3[0] += 1.3
         #point3[1] -= 1
         #point3[2] -= 5
         point3[0] -= trans_array[position][0]
