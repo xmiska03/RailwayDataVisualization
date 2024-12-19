@@ -95,7 +95,7 @@ def generate_frame(position):
                 img[y][x] = 20000"""
 
     #print(cv2.getBuildInformation())
-    cv2.imwrite(f"generated/{position}.png", img)
+    cv2.imwrite(f"output/generated/{position}.png", img)
     
     # show the image
     #plt.imshow(img, cmap = "gray")

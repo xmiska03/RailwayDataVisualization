@@ -72,7 +72,7 @@ def generate_frame(pc_nparray, position, outdir):
     img = create_image(pc_nparray)
 
     # write image to file
-    cv2.imwrite(f"{outdir}/{position}.png", img)
+    cv2.imwrite(f"output/{outdir}/{position}.png", img)
 
 
 # load point cloud
