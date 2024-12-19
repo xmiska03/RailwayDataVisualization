@@ -95,6 +95,6 @@ frames_cnt = trans_nparray.shape[0]
 
 # generate 500 images
 for i in range(0, frames_cnt, 1):
-    pc_nparray_copy = pc_nparray[:, :]
+    pc_nparray_copy = np.copy(pc_nparray)
     generate_frame(pc_nparray_copy, i, "optimized")
     print("Generated", i)
