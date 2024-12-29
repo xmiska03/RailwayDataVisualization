@@ -25,12 +25,15 @@ point_cloud_layer = pydeck.Layer(
     get_normal=[0, 0, 0],
     auto_highlight=True,
     pickable=True,
-    point_size=16,
+    point_size=25,
 )
 
-view_state = pydeck.ViewState(target=[5.7, -0.08 - 1.3, -0.07], controller=True, rotation_orbit=90, rotation_x=0, zoom=10)
-view = pydeck.View(type="OrbitView", controller=True, near=5, far=300, fovy=20)
+#view_state = pydeck.ViewState(target=[5.7, -0.08 - 1.3, -0.07], controller=True, rotation_orbit=90, rotation_x=0, zoom=10)
+#view = pydeck.View(type="OrbitView", controller=True, near=5, far=300, fovy=50)
+
+view_state = pydeck.ViewState(position=[5.7, -0.08 - 1.3, -0.07], bearing=90, controller=True)
+view = pydeck.View(type="FirstPersonView", controller=True, fovy=20)
 
 r = pydeck.Deck(point_cloud_layer, initial_view_state=view_state, views=[view])
-r.to_html("output/pc_pydeck.html", css_background_color="#add8e6")
+r.to_html("output/pydeck/pc_pydeck.html", css_background_color="#add8e6")
 
