@@ -7,11 +7,13 @@ import numpy as np
 from pypcd4 import PointCloud
 import csv
 from scipy.spatial.transform import Rotation
+import re
 
 
 # visualization parameters
 POINT_SIZE = 40
-TARGET = [0, -0.5, 1.5]
+#TARGET = [0, -0.5, 1.5]
+TARGET = [0, 0, 0]
 ROTATION_ORBIT = 89.5
 ROTATION_X = 5
 ZOOM = 10
@@ -26,18 +28,50 @@ def load_csv_into_nparray(file_address):
     
 
 def calculate_transformation_matrix(trans_nparray, rot_nparray, position):
+    trans_matrix = np.array([
+        [1, 0, 0, -trans_nparray[position][2]],
+        [0, 1, 0, -trans_nparray[position][0]],
+        [0, 0, 1, -trans_nparray[position][1]],
+        [0, 0, 0, 1]
+    ])
     rotation = Rotation.from_euler("xyz", rot_nparray[position], degrees=True)
     rot_mat_3x3 = rotation.as_matrix()
-    rot_mat_3x3 = [
-        [1, 0, 0],
-        [0, 1, 0],
-        [0, 0, 1]
-    ]
-    return [
-        [rot_mat_3x3[2][2], rot_mat_3x3[2][0], rot_mat_3x3[2][1], -trans_nparray[position][2]],
-        [rot_mat_3x3[0][2], rot_mat_3x3[0][0], rot_mat_3x3[0][1], -trans_nparray[position][0]],
-        [rot_mat_3x3[1][2], rot_mat_3x3[1][0], rot_mat_3x3[1][1], -trans_nparray[position][1]]
-    ]
+    rot_matrix = np.array([
+        [rot_mat_3x3[2][2], rot_mat_3x3[2][0], rot_mat_3x3[2][1], 0],
+        [rot_mat_3x3[0][2], rot_mat_3x3[0][0], rot_mat_3x3[0][1], 0],
+        [rot_mat_3x3[1][2], rot_mat_3x3[1][0], rot_mat_3x3[1][1], 0],
+        [0, 0, 0, 1]
+    ])
+    return rot_matrix @ trans_matrix
+
+# a function to change the tranformation of the point cloud quickly
+def replace_transformation(pydeck_json, new_transf_string):
+    # finds the current point cloud transformation in the JSON representation 
+    # of the Pydeck visualization ("getPosition": "@@=[...]") and replaces it 
+    # with the new transformation
+
+    search_length = 700        # it should be in the last 700 characters
+    search_substring = pydeck_json[-search_length:]
+
+    # find the substring "getPosition": "@@=["
+    target = '"getPosition": "@@=['
+    start_index = search_substring.find(target)
+
+    if start_index != -1:
+        # find the closing bracket
+        opening_bracket_index = start_index + len(target)
+        closing_bracket_index = search_substring.find(']', opening_bracket_index)
+
+        if closing_bracket_index != -1:
+            # replace the transformation
+            modified_substring = (
+                search_substring[:opening_bracket_index]
+                + new_transf_string
+                + search_substring[closing_bracket_index:]
+            )
+            return pydeck_json[:-search_length] + modified_substring
+
+    return pydeck_json
 
 
 # load point cloud
@@ -104,8 +138,8 @@ app.layout = html.Div(children=
             style={"textAlign": "center", "color": "black"}
         ),
         dcc.Slider(
-            0, frames_cnt-1, 1, value=0, 
-            marks={0:'0', (frames_cnt-1):f'{frames_cnt}'}, 
+            0, frames_cnt-1, 20, value=0, 
+            #marks={0:'0', (frames_cnt-1):f'{frames_cnt}'}, 
             id='camera-position-slider'
         ),
         html.Div(
@@ -149,28 +183,13 @@ def shift_camera(new_pos):
     # calculate the new transformation matrix
     transf_mat = calculate_transformation_matrix(trans_nparray, rot_nparray, new_pos)
 
-    point_cloud_layer = pdk.Layer(
-        "PointCloudLayer",
-        data=pc_df,
-        get_position=[
-        f"x * {transf_mat[0][0]} + y * {transf_mat[0][1]} + z * {transf_mat[0][2]} + {transf_mat[0][3]}", 
-        f"x * {transf_mat[1][0]} + y * {transf_mat[1][1]} + z * {transf_mat[1][2]} + {transf_mat[1][3]}", 
-        f"x * {transf_mat[2][0]} + y * {transf_mat[2][1]} + z * {transf_mat[2][2]} + {transf_mat[2][3]}"
-    ],
-        get_color=["intensity * 6", 0, "255 - intensity * 6", 125],
-        get_normal=[0, 0, 0],
-        auto_highlight=True,
-        pickable=True,
-        point_size=POINT_SIZE,
-    )
-    deck = pdk.Deck(
-        initial_view_state=view_state,
-        views=[view],
-        layers=[point_cloud_layer],
-        map_provider=None,
-        map_style=None
-    )
-    return deck.to_json()
+    new_transf_str = f"x * {transf_mat[0][0]} + y * {transf_mat[0][1]} + z * {transf_mat[0][2]} + {transf_mat[0][3]}, x * {transf_mat[1][0]} + y * {transf_mat[1][1]} + z * {transf_mat[1][2]} + {transf_mat[1][3]}, x * {transf_mat[2][0]} + y * {transf_mat[2][1]} + z * {transf_mat[2][2]} + {transf_mat[2][3]}"
+
+    new_json = replace_transformation(deck_json, new_transf_str)
+
+    print(new_transf_str)
+
+    return new_json
 
 if __name__ == "__main__":
     app.run(debug=True)
