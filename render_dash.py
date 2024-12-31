@@ -5,27 +5,68 @@ import pydeck as pdk
 import pandas as pd
 import numpy as np
 from pypcd4 import PointCloud
+import csv
+from scipy.spatial.transform import Rotation
 
 
 # visualization parameters
 POINT_SIZE = 40
-TARGET = [5.7, -0.08 - 0.8, -0.07 + 1]
-ROTATION_ORBIT = 90
+TARGET = [0, -0.5, 1.5]
+ROTATION_ORBIT = 89.5
+ROTATION_X = 5
 ZOOM = 10
 FOVY = 30
+
+
+def load_csv_into_nparray(file_address):
+    with open(file_address, 'r') as f:
+        reader = csv.reader(f)
+        data = list(reader)
+        return np.array(data, dtype=float)
+    
+
+def calculate_transformation_matrix(trans_nparray, rot_nparray, position):
+    rotation = Rotation.from_euler("xyz", rot_nparray[position], degrees=True)
+    rot_mat_3x3 = rotation.as_matrix()
+    rot_mat_3x3 = [
+        [1, 0, 0],
+        [0, 1, 0],
+        [0, 0, 1]
+    ]
+    return [
+        [rot_mat_3x3[2][2], rot_mat_3x3[2][0], rot_mat_3x3[2][1], -trans_nparray[position][2]],
+        [rot_mat_3x3[0][2], rot_mat_3x3[0][0], rot_mat_3x3[0][1], -trans_nparray[position][0]],
+        [rot_mat_3x3[1][2], rot_mat_3x3[1][0], rot_mat_3x3[1][1], -trans_nparray[position][1]]
+    ]
 
 
 # load point cloud
 pc = PointCloud.from_path("data/scans.pcd")
 pc_nparray = pc.numpy(("x", "y", "z", "intensity"))
 
+# load data about camera positions (order of the columns: y, z, x)
+trans_nparray = load_csv_into_nparray("data/trans.csv")
+rot_nparray = load_csv_into_nparray("data/rot.csv")
+
+# number of frames to generate (500 in example data)
+frames_cnt = trans_nparray.shape[0]
+
+# calculate the initial transformation matrix
+transf_mat = calculate_transformation_matrix(trans_nparray, rot_nparray, 0)
+
 # create a pandas DataFrame
 pc_df = pd.DataFrame(pc_nparray, columns=["x", "y", "z", "intensity"])
 
+
+# visualize the point cloud using Pydeck
 point_cloud_layer = pdk.Layer(
     "PointCloudLayer",
     data=pc_df,
-    get_position=["x", "y", "z"],
+    get_position=[
+        f"x * {transf_mat[0][0]} + y * {transf_mat[0][1]} + z * {transf_mat[0][2]} + {transf_mat[0][3]}", 
+        f"x * {transf_mat[1][0]} + y * {transf_mat[1][1]} + z * {transf_mat[1][2]} + {transf_mat[1][3]}", 
+        f"x * {transf_mat[2][0]} + y * {transf_mat[2][1]} + z * {transf_mat[2][2]} + {transf_mat[2][3]}"
+    ],
     get_color=["intensity * 6", 0, "255 - intensity * 6", 125],
     get_normal=[0, 0, 0],
     auto_highlight=True,
@@ -33,7 +74,13 @@ point_cloud_layer = pdk.Layer(
     point_size=POINT_SIZE,
 )
 
-view_state = pdk.ViewState(target=TARGET, rotation_orbit=ROTATION_ORBIT, controller=True, zoom=ZOOM)
+view_state = pdk.ViewState(
+    target=TARGET,
+    rotation_orbit=ROTATION_ORBIT,
+    rotation_x=ROTATION_X,
+    controller=True,
+    zoom=ZOOM
+)
 view = pdk.View(type="OrbitView", controller=True, fovy=FOVY)
 
 deck = pdk.Deck(
@@ -46,6 +93,7 @@ deck = pdk.Deck(
 
 deck_json = deck.to_json()    # creates a string
 
+
 # create a Dash app
 app = dash.Dash(__name__)
 
@@ -55,7 +103,11 @@ app.layout = html.Div(children=
             "Vizualizace dat z mobilního mapovacího systému",
             style={"textAlign": "center", "color": "black"}
         ),
-        dcc.Slider(0, 500, 1, value=0, marks={0:'0', 500:'500'}, id='camera-position-slider'),
+        dcc.Slider(
+            0, frames_cnt-1, 1, value=0, 
+            marks={0:'0', (frames_cnt-1):f'{frames_cnt}'}, 
+            id='camera-position-slider'
+        ),
         html.Div(
             [
                 dash_deck.DeckGL(
@@ -94,9 +146,23 @@ app.layout = html.Div(children=
     Input(component_id='camera-position-slider', component_property='value')
 )
 def shift_camera(new_pos):
-    new_target = TARGET[:]
-    new_target[0] += new_pos * 0.5
-    view_state=pdk.ViewState(target=new_target, rotation_orbit=ROTATION_ORBIT, controller=True, zoom=ZOOM)
+    # calculate the new transformation matrix
+    transf_mat = calculate_transformation_matrix(trans_nparray, rot_nparray, new_pos)
+
+    point_cloud_layer = pdk.Layer(
+        "PointCloudLayer",
+        data=pc_df,
+        get_position=[
+        f"x * {transf_mat[0][0]} + y * {transf_mat[0][1]} + z * {transf_mat[0][2]} + {transf_mat[0][3]}", 
+        f"x * {transf_mat[1][0]} + y * {transf_mat[1][1]} + z * {transf_mat[1][2]} + {transf_mat[1][3]}", 
+        f"x * {transf_mat[2][0]} + y * {transf_mat[2][1]} + z * {transf_mat[2][2]} + {transf_mat[2][3]}"
+    ],
+        get_color=["intensity * 6", 0, "255 - intensity * 6", 125],
+        get_normal=[0, 0, 0],
+        auto_highlight=True,
+        pickable=True,
+        point_size=POINT_SIZE,
+    )
     deck = pdk.Deck(
         initial_view_state=view_state,
         views=[view],
