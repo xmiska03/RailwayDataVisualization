@@ -7,17 +7,17 @@ import numpy as np
 from pypcd4 import PointCloud
 import csv
 from scipy.spatial.transform import Rotation
-import re
 
 
 # visualization parameters
-POINT_SIZE = 40
-#TARGET = [0, -0.5, 1.5]
-TARGET = [0, 0, 0]
-ROTATION_ORBIT = 89.5
-ROTATION_X = 5
+POINT_SIZE = 50
+TARGET = [0, -0.3, 1.0]      # move the camera left/right, up/down
+ROTATION_ORBIT = 91.5        # turn the camera left/right
+ROTATION_X = 4.1             # turn the camera up/down
 ZOOM = 10
-FOVY = 30
+FOVY = 21                    # focal length
+FAR = 300                    # far plane
+TRANSPARENCY = 90
 
 
 def load_csv_into_nparray(file_address):
@@ -101,7 +101,16 @@ point_cloud_layer = pdk.Layer(
         f"x * {transf_mat[1][0]} + y * {transf_mat[1][1]} + z * {transf_mat[1][2]} + {transf_mat[1][3]}", 
         f"x * {transf_mat[2][0]} + y * {transf_mat[2][1]} + z * {transf_mat[2][2]} + {transf_mat[2][3]}"
     ],
-    get_color=["intensity * 6", 0, "255 - intensity * 6", 125],
+    get_color=["intensity > 6 ? 7 * (intensity - 6) : 0",  # 6 is the average
+               "intensity > 6 ? 255 - 7 * (intensity - 6) : 51 * (intensity - 6)",
+               "intensity > 6 ? 0 : 255 - 51 * (intensity - 6)",
+               TRANSPARENCY
+    ],
+    #get_color=["intensity > 9 ? 255 : 0",
+    #           "(intensity > 5 && intensity <= 9) ? 255 : 0",
+    #           "intensity <= 5 ? 255 : 0",
+    #           125     # alpha
+    #],
     get_normal=[0, 0, 0],
     auto_highlight=True,
     pickable=True,
@@ -115,7 +124,7 @@ view_state = pdk.ViewState(
     controller=True,
     zoom=ZOOM
 )
-view = pdk.View(type="OrbitView", controller=True, fovy=FOVY)
+view = pdk.View(type="OrbitView", controller=True, fovy=FOVY, far=FAR)
 
 deck = pdk.Deck(
     initial_view_state=view_state,
@@ -142,6 +151,16 @@ app.layout = html.Div(children=
             #marks={0:'0', (frames_cnt-1):f'{frames_cnt}'}, 
             id='camera-position-slider'
         ),
+        html.Div("Vybraná pozice: 0", id="camera-position-label"),
+        html.Div("Zobrazení vrstev:"),
+        dcc.Checklist(
+            options=[
+                {'label': 'záber z kamery', 'value': 'pic'},
+                {'label': 'mračno bodů', 'value': 'pcl'}
+            ],
+            value=['pic', 'pcl'],
+            id='layers-checklist'
+        ),
         html.Div(
             [
                 dash_deck.DeckGL(
@@ -149,11 +168,11 @@ app.layout = html.Div(children=
                 style={"height": "80vh", 
                     "width": "80vw", 
                     "marginLeft": "0%", 
-                    "marginTop": "7%"},
+                    "marginTop": "10.5%"},
                 id="point-cloud-visualization"
                 ),
             ], style = {
-                "backgroundImage": "url(/assets/rails_photo.png)",
+                "backgroundImage": "url(/assets/rails_photo_0.png)",
                 "backgroundSize": "cover",
                 "backgroundRepeat": "no-repeat",
                 "backgroundPosition": "center",
@@ -177,6 +196,7 @@ app.layout = html.Div(children=
 # the logic of the app
 @callback(
     Output(component_id='point-cloud-visualization', component_property='data'),
+    Output(component_id='camera-position-label', component_property='children'),
     Input(component_id='camera-position-slider', component_property='value')
 )
 def shift_camera(new_pos):
@@ -186,10 +206,7 @@ def shift_camera(new_pos):
     new_transf_str = f"x * {transf_mat[0][0]} + y * {transf_mat[0][1]} + z * {transf_mat[0][2]} + {transf_mat[0][3]}, x * {transf_mat[1][0]} + y * {transf_mat[1][1]} + z * {transf_mat[1][2]} + {transf_mat[1][3]}, x * {transf_mat[2][0]} + y * {transf_mat[2][1]} + z * {transf_mat[2][2]} + {transf_mat[2][3]}"
 
     new_json = replace_transformation(deck_json, new_transf_str)
-
-    print(new_transf_str)
-
-    return new_json
+    return new_json, f"Vybraná pozice: {new_pos}"
 
 if __name__ == "__main__":
     app.run(debug=True)
