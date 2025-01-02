@@ -1,5 +1,5 @@
 import dash
-from dash import html, dcc, callback, Output, Input
+from dash import html, dcc, callback, Output, Input, Patch
 import dash_deck
 import pydeck as pdk
 import pandas as pd
@@ -16,17 +16,18 @@ ROTATION_ORBIT = 91.5        # turn the camera left/right
 ROTATION_X = 4.1             # turn the camera up/down
 ZOOM = 10
 FOVY = 21                    # focal length
-FAR = 300                    # far plane
+FAR_PLANE = 300
 TRANSPARENCY = 90
 
 
+# loads a csv file into a numpy array
 def load_csv_into_nparray(file_address):
     with open(file_address, 'r') as f:
         reader = csv.reader(f)
         data = list(reader)
         return np.array(data, dtype=float)
     
-
+# creates transformation matrix from translation and rotation data
 def calculate_transformation_matrix(trans_nparray, rot_nparray, position):
     trans_matrix = np.array([
         [1, 0, 0, -trans_nparray[position][2]],
@@ -44,34 +45,15 @@ def calculate_transformation_matrix(trans_nparray, rot_nparray, position):
     ])
     return rot_matrix @ trans_matrix
 
-# a function to change the tranformation of the point cloud quickly
-def replace_transformation(pydeck_json, new_transf_string):
-    # finds the current point cloud transformation in the JSON representation 
-    # of the Pydeck visualization ("getPosition": "@@=[...]") and replaces it 
-    # with the new transformation
-
-    search_length = 700        # it should be in the last 700 characters
-    search_substring = pydeck_json[-search_length:]
-
-    # find the substring "getPosition": "@@=["
-    target = '"getPosition": "@@=['
-    start_index = search_substring.find(target)
-
-    if start_index != -1:
-        # find the closing bracket
-        opening_bracket_index = start_index + len(target)
-        closing_bracket_index = search_substring.find(']', opening_bracket_index)
-
-        if closing_bracket_index != -1:
-            # replace the transformation
-            modified_substring = (
-                search_substring[:opening_bracket_index]
-                + new_transf_string
-                + search_substring[closing_bracket_index:]
-            )
-            return pydeck_json[:-search_length] + modified_substring
-
-    return pydeck_json
+# creates transformation function to pass to pydeck
+def create_transformation_string(transf_mat):
+    return (f"x * {transf_mat[0][0]} + y * {transf_mat[0][1]} + z * {transf_mat[0][2]} "
+            f"+ {transf_mat[0][3]}, "
+            f"x * {transf_mat[1][0]} + y * {transf_mat[1][1]} + z * {transf_mat[1][2]} "
+            f"+ {transf_mat[1][3]}, "
+            f"x * {transf_mat[2][0]} + y * {transf_mat[2][1]} + z * {transf_mat[2][2]} "
+            f"+ {transf_mat[2][3]}"
+    )
 
 
 # load point cloud
@@ -85,56 +67,51 @@ rot_nparray = load_csv_into_nparray("data/rot.csv")
 # number of frames to generate (500 in example data)
 frames_cnt = trans_nparray.shape[0]
 
-# calculate the initial transformation matrix
-transf_mat = calculate_transformation_matrix(trans_nparray, rot_nparray, 0)
+# pre-calculate all transformation strings
+transf_strings = []
+for i in range(frames_cnt):
+    transf_mat = calculate_transformation_matrix(trans_nparray, rot_nparray, i)
+    transf_strings.append(create_transformation_string(transf_mat))
 
 # create a pandas DataFrame
 pc_df = pd.DataFrame(pc_nparray, columns=["x", "y", "z", "intensity"])
 
+# prepare the visualization of the point cloud using Deck.GL
+point_cloud_layer = {
+    "@@type": "PointCloudLayer",
+    "autoHighlight": True,
+    "data": pc_df.to_dict(orient="records"),
+    "getColor": (
+        "@@=[intensity > 6 ? 7 * (intensity - 6) : 0, "
+        "intensity > 6 ? 255 - 7 * (intensity - 6) : 51 * (intensity - 6), "
+        f"intensity > 6 ? 0 : 255 - 51 * (intensity - 6), {TRANSPARENCY}]"
+    ),
+    "getNormal": [0, 0, 0],
+    "getPosition": f"@@=[{transf_strings[0]}]",
+    "pickable": True,
+    "pointSize": POINT_SIZE
+}
 
-# visualize the point cloud using Pydeck
-point_cloud_layer = pdk.Layer(
-    "PointCloudLayer",
-    data=pc_df,
-    get_position=[
-        f"x * {transf_mat[0][0]} + y * {transf_mat[0][1]} + z * {transf_mat[0][2]} + {transf_mat[0][3]}", 
-        f"x * {transf_mat[1][0]} + y * {transf_mat[1][1]} + z * {transf_mat[1][2]} + {transf_mat[1][3]}", 
-        f"x * {transf_mat[2][0]} + y * {transf_mat[2][1]} + z * {transf_mat[2][2]} + {transf_mat[2][3]}"
-    ],
-    get_color=["intensity > 6 ? 7 * (intensity - 6) : 0",  # 6 is the average
-               "intensity > 6 ? 255 - 7 * (intensity - 6) : 51 * (intensity - 6)",
-               "intensity > 6 ? 0 : 255 - 51 * (intensity - 6)",
-               TRANSPARENCY
-    ],
-    #get_color=["intensity > 9 ? 255 : 0",
-    #           "(intensity > 5 && intensity <= 9) ? 255 : 0",
-    #           "intensity <= 5 ? 255 : 0",
-    #           125     # alpha
-    #],
-    get_normal=[0, 0, 0],
-    auto_highlight=True,
-    pickable=True,
-    point_size=POINT_SIZE,
-)
+view_state = {
+    "controller": True,
+    "rotationOrbit": ROTATION_ORBIT,
+    "rotationX": ROTATION_X,
+    "target": TARGET,
+    "zoom": ZOOM
+}
 
-view_state = pdk.ViewState(
-    target=TARGET,
-    rotation_orbit=ROTATION_ORBIT,
-    rotation_x=ROTATION_X,
-    controller=True,
-    zoom=ZOOM
-)
-view = pdk.View(type="OrbitView", controller=True, fovy=FOVY, far=FAR)
+view = {
+    "@@type": "OrbitView",
+    "controller": True,
+    "far": FAR_PLANE,
+    "fovy": FOVY
+}
 
-deck = pdk.Deck(
-    initial_view_state=view_state,
-    views=[view],
-    layers=[point_cloud_layer],
-    map_provider=None,
-    map_style=None
-)
-
-deck_json = deck.to_json()    # creates a string
+deck_dict = {
+    "initialViewState": view_state,
+    "views": [view],
+    "layers": [point_cloud_layer],
+}
 
 
 # create a Dash app
@@ -147,8 +124,8 @@ app.layout = html.Div(children=
             style={"textAlign": "center", "color": "black"}
         ),
         dcc.Slider(
-            0, frames_cnt-1, 20, value=0, 
-            #marks={0:'0', (frames_cnt-1):f'{frames_cnt}'}, 
+            0, frames_cnt-1, 1, value=0, 
+            marks={0:'0', 100:'100', 200:'200', 300:'300', 400:'400', (frames_cnt-1):f'{frames_cnt}'}, 
             id='camera-position-slider'
         ),
         html.Div("Vybraná pozice: 0", id="camera-position-label"),
@@ -164,7 +141,7 @@ app.layout = html.Div(children=
         html.Div(
             [
                 dash_deck.DeckGL(
-                data=deck_json,
+                data=deck_dict,
                 style={"height": "80vh", 
                     "width": "80vw", 
                     "marginLeft": "0%", 
@@ -200,13 +177,10 @@ app.layout = html.Div(children=
     Input(component_id='camera-position-slider', component_property='value')
 )
 def shift_camera(new_pos):
-    # calculate the new transformation matrix
-    transf_mat = calculate_transformation_matrix(trans_nparray, rot_nparray, new_pos)
-
-    new_transf_str = f"x * {transf_mat[0][0]} + y * {transf_mat[0][1]} + z * {transf_mat[0][2]} + {transf_mat[0][3]}, x * {transf_mat[1][0]} + y * {transf_mat[1][1]} + z * {transf_mat[1][2]} + {transf_mat[1][3]}, x * {transf_mat[2][0]} + y * {transf_mat[2][1]} + z * {transf_mat[2][2]} + {transf_mat[2][3]}"
-
-    new_json = replace_transformation(deck_json, new_transf_str)
-    return new_json, f"Vybraná pozice: {new_pos}"
+    # change the transformation function in Deck.GL visualization
+    patched_dict = Patch()
+    patched_dict["layers"][0]["getPosition"] = f"@@=[{transf_strings[new_pos]}]"
+    return patched_dict, f"Vybraná pozice: {new_pos}"
 
 if __name__ == "__main__":
     app.run(debug=True)
