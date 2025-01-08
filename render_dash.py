@@ -1,7 +1,5 @@
-import dash
-from dash import html, dcc, callback, Output, Input, Patch
+from dash import Dash, html, dcc, callback, Output, Input, Patch, clientside_callback
 import dash_deck
-import pydeck as pdk
 import pandas as pd
 import numpy as np
 from pypcd4 import PointCloud
@@ -18,6 +16,8 @@ ZOOM = 10
 FOVY = 21                    # focal length
 FAR_PLANE = 300
 TRANSPARENCY = 90
+ANIMATION_SPEED = 15         # frames per second
+ANIMATION_FRAMES_STEP = 1
 
 
 # loads a csv file into a numpy array
@@ -59,6 +59,8 @@ def create_transformation_string(transf_mat):
 # load point cloud
 pc = PointCloud.from_path("data/scans.pcd")
 pc_nparray = pc.numpy(("x", "y", "z", "intensity"))
+
+pc_nparray = pc_nparray[:20000]
 
 # load data about camera positions (order of the columns: y, z, x)
 trans_nparray = load_csv_into_nparray("data/trans.csv")
@@ -113,12 +115,39 @@ deck_dict = {
     "layers": [point_cloud_layer],
 }
 
+point_cloud_layer2 = {
+    "@@type": "PointCloudLayer",
+    "autoHighlight": True,
+    "data": pc_df.to_dict(orient="records"),
+    "getColor": (
+        "@@=[intensity > 6 ? 7 * (intensity - 6) : 0, "
+        "intensity > 6 ? 255 - 7 * (intensity - 6) : 51 * (intensity - 6), "
+        f"intensity > 6 ? 0 : 255 - 51 * (intensity - 6), {TRANSPARENCY}]"
+    ),
+    "getNormal": [0, 0, 0],
+    "getPosition": f"@@=[{transf_strings[30]}]",
+    "pickable": True,
+    "pointSize": POINT_SIZE
+}
+
+deck_dict2 = {
+    "initialViewState": view_state,
+    "views": [view],
+    "layers": [point_cloud_layer2],
+}
+
 
 # create a Dash app
-app = dash.Dash(__name__)
+app = Dash(__name__)
 
 app.layout = html.Div(children=
     [
+        dcc.Interval(
+            id="animation-interval", 
+            interval=1000/ANIMATION_SPEED, 
+            n_intervals=0,   # begin from 0
+            max_intervals=frames_cnt/ANIMATION_FRAMES_STEP
+        ),
         html.H1(
             "Vizualizace dat z mobilního mapovacího systému",
             style={"textAlign": "center", "color": "black"}
@@ -126,9 +155,10 @@ app.layout = html.Div(children=
         dcc.Slider(
             0, frames_cnt-1, 1, value=0, 
             marks={0:'0', 100:'100', 200:'200', 300:'300', 400:'400', (frames_cnt-1):f'{frames_cnt}'}, 
-            id='camera-position-slider'
+            id='camera-position-slider',
+            updatemode='drag'
         ),
-        html.Div("Vybraná pozice: 0", id="camera-position-label"),
+        html.Div("Vybraná pozice: 0", id='camera-position-label'),
         html.Div("Zobrazení vrstev:"),
         dcc.Checklist(
             options=[
@@ -171,16 +201,38 @@ app.layout = html.Div(children=
 
 
 # the logic of the app
+
+# animation
+@callback(
+    Output(component_id='camera-position-slider', component_property='value'),
+    Output(component_id='point-cloud-visualization', component_property='data'),
+    Output(component_id='camera-position-label', component_property='children'),
+    Input("animation-interval", "n_intervals"),
+)
+def shift_camera(n_intervals):
+    new_pos = ANIMATION_FRAMES_STEP * n_intervals
+    if new_pos >= frames_cnt:
+        new_pos = 0    # end of animation, return to the beginning
+    
+    # change the transformation function in Deck.GL visualization
+    patched_dict = Patch()
+    patched_dict["layers"][0]["getPosition"] = f"@@=[{transf_strings[new_pos]}]"
+    return new_pos, patched_dict, f"Vybraná pozice: {new_pos}"
+
+"""
+# shift by slider
 @callback(
     Output(component_id='point-cloud-visualization', component_property='data'),
     Output(component_id='camera-position-label', component_property='children'),
-    Input(component_id='camera-position-slider', component_property='value')
+    Input(component_id='camera-position-slider', component_property='value'),
+    prevent_initial_call=True
 )
 def shift_camera(new_pos):
     # change the transformation function in Deck.GL visualization
     patched_dict = Patch()
     patched_dict["layers"][0]["getPosition"] = f"@@=[{transf_strings[new_pos]}]"
     return patched_dict, f"Vybraná pozice: {new_pos}"
+"""
 
 if __name__ == "__main__":
     app.run(debug=True)
