@@ -16,8 +16,8 @@ ZOOM = 10
 FOVY = 21                    # focal length
 FAR_PLANE = 300
 TRANSPARENCY = 90
-ANIMATION_SPEED = 15         # frames per second
-ANIMATION_FRAMES_STEP = 1
+ANIMATION_SPEED = 1         # frames per second
+ANIMATION_FRAMES_STEP = 10
 
 
 # loads a csv file into a numpy array
@@ -60,7 +60,7 @@ def create_transformation_string(transf_mat):
 pc = PointCloud.from_path("data/scans.pcd")
 pc_nparray = pc.numpy(("x", "y", "z", "intensity"))
 
-pc_nparray = pc_nparray[:20000]
+#pc_nparray = pc_nparray[:20000]
 
 # load data about camera positions (order of the columns: y, z, x)
 trans_nparray = load_csv_into_nparray("data/trans.csv")
@@ -81,21 +81,20 @@ pc_df = pd.DataFrame(pc_nparray, columns=["x", "y", "z", "intensity"])
 # prepare the visualization of the point cloud using Deck.GL
 point_cloud_layer = {
     "@@type": "PointCloudLayer",
-    "autoHighlight": True,
     "data": pc_df.to_dict(orient="records"),
     "getColor": (
         "@@=[intensity > 6 ? 7 * (intensity - 6) : 0, "
         "intensity > 6 ? 255 - 7 * (intensity - 6) : 51 * (intensity - 6), "
         f"intensity > 6 ? 0 : 255 - 51 * (intensity - 6), {TRANSPARENCY}]"
     ),
-    "getNormal": [0, 0, 0],
     "getPosition": f"@@=[{transf_strings[0]}]",
-    "pickable": True,
-    "pointSize": POINT_SIZE
+    "pointSize": POINT_SIZE,
+    "transitions": {
+        "getPosition": 1000
+      }
 }
 
 view_state = {
-    "controller": True,
     "rotationOrbit": ROTATION_ORBIT,
     "rotationX": ROTATION_X,
     "target": TARGET,
@@ -104,7 +103,6 @@ view_state = {
 
 view = {
     "@@type": "OrbitView",
-    "controller": True,
     "far": FAR_PLANE,
     "fovy": FOVY
 }
@@ -114,28 +112,6 @@ deck_dict = {
     "views": [view],
     "layers": [point_cloud_layer],
 }
-
-point_cloud_layer2 = {
-    "@@type": "PointCloudLayer",
-    "autoHighlight": True,
-    "data": pc_df.to_dict(orient="records"),
-    "getColor": (
-        "@@=[intensity > 6 ? 7 * (intensity - 6) : 0, "
-        "intensity > 6 ? 255 - 7 * (intensity - 6) : 51 * (intensity - 6), "
-        f"intensity > 6 ? 0 : 255 - 51 * (intensity - 6), {TRANSPARENCY}]"
-    ),
-    "getNormal": [0, 0, 0],
-    "getPosition": f"@@=[{transf_strings[30]}]",
-    "pickable": True,
-    "pointSize": POINT_SIZE
-}
-
-deck_dict2 = {
-    "initialViewState": view_state,
-    "views": [view],
-    "layers": [point_cloud_layer2],
-}
-
 
 # create a Dash app
 app = Dash(__name__)
