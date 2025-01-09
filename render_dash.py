@@ -1,4 +1,4 @@
-from dash import Dash, html, dcc, callback, Output, Input, Patch, ctx
+from dash import Dash, html, dcc, callback, Output, Input, Patch, ctx, clientside_callback
 import dash_deck
 import pandas as pd
 import numpy as np
@@ -11,12 +11,12 @@ from scipy.spatial.transform import Rotation
 POINT_SIZE = 50
 TARGET = [0, -0.3, 1.0]      # move the camera left/right, up/down
 ROTATION_ORBIT = 91.8        # turn the camera left/right
-ROTATION_X = 4.0            # turn the camera up/down
+ROTATION_X = 4.0             # turn the camera up/down
 ZOOM = 10
 FOVY = 21                    # focal length
 FAR_PLANE = 200
-TRANSPARENCY = 90
-ANIMATION_SPEED = 1         # frames per second
+OPACITY = 0.5
+ANIMATION_SPEED = 2         # frames per second
 ANIMATION_FRAMES_STEP = 10
 BACKGROUND_IMAGE = "url(/assets/rails_photo_0.png)"
 
@@ -55,12 +55,25 @@ def create_transformation_string(transf_mat):
             f"+ {transf_mat[2][3]}"
     )
 
+def intensity_to_colors(pc_nparray):
+    #"getColor": (
+    #    "@@=[intensity > 6 ? 7 * (intensity - 6) : 0, "
+    #    "intensity > 6 ? 255 - 7 * (intensity - 6) : 51 * (intensity - 6), "
+    #    f"intensity > 6 ? 0 : 255 - 51 * (intensity - 6), 225]"
+    #),
+    red = np.where(pc_nparray[:, 3] > 6, 7 * (pc_nparray[:, 3] - 6), 0)
+    green = np.where(pc_nparray[:, 3] > 6, 255 - 7 * (pc_nparray[:, 3] - 6), 51 * (pc_nparray[:, 3]))
+    blue = np.where(pc_nparray[:, 3] > 6, 0, 255 - 51 * (pc_nparray[:, 3]))
+    return np.column_stack((pc_nparray[:, :3], red, green, blue))
 
 # load point cloud
 pc = PointCloud.from_path("data/scans.pcd")
 pc_nparray = pc.numpy(("x", "y", "z", "intensity"))
 
 #pc_nparray = pc_nparray[:20000]
+
+# pre-count colors
+pc_nparray = intensity_to_colors(pc_nparray)
 
 # load data about camera positions (order of the columns: y, z, x)
 trans_nparray = load_csv_into_nparray("data/trans.csv")
@@ -76,24 +89,20 @@ for i in range(frames_cnt):
     transf_strings.append(create_transformation_string(transf_mat))
 
 # create a pandas DataFrame
-pc_df = pd.DataFrame(pc_nparray, columns=["x", "y", "z", "intensity"])
+pc_df = pd.DataFrame(pc_nparray, columns=["x", "y", "z", "r", "g", "b"])
 
 # prepare the visualization of the point cloud using Deck.GL
 point_cloud_layer = {
     "@@type": "PointCloudLayer",
     "data": pc_df.to_dict(orient="records"),
-    #"getColor": [0, "intensity", "intensity"],
-    "getColor": (
-        "@@=[intensity > 6 ? 7 * (intensity - 6) : 0, "
-        "intensity > 6 ? 255 - 7 * (intensity - 6) : 51 * (intensity - 6), "
-        f"intensity > 6 ? 0 : 255 - 51 * (intensity - 6), {TRANSPARENCY}]"
-    ),
+    "getColor": "@@=[r, g, b]",
     "getPosition": f"@@=[{transf_strings[0]}]",
     #"getPosition": f"@@=[x, y, z]",
     "pointSize": POINT_SIZE,
+    "opacity": OPACITY,
     "visible": True,
     #"transitions": {
-    #    "target": 1000
+    #    "getPosition": 1000
     #}
 }
 
@@ -126,6 +135,10 @@ app.layout = html.Div(children=
             interval=1000/ANIMATION_SPEED, 
             n_intervals=0,   # begin from 0
             max_intervals=frames_cnt/ANIMATION_FRAMES_STEP
+        ),
+        dcc.Store(
+            id='point-cloud-store',
+            data=deck_dict
         ),
         html.H1(
             "Vizualizace dat z mobilního mapovacího systému",
@@ -200,7 +213,7 @@ def shift_camera(n_intervals):
     # change the transformation function in Deck.GL visualization
     patched_data = Patch()
     #patched_data["initialViewState"]["target"] = [0.5*new_pos, -0.3, 1.0]
-    patched_dict["layers"][0]["getPosition"] = f"@@=[{transf_strings[new_pos]}]"
+    patched_data["layers"][0]["getPosition"] = f"@@=[{transf_strings[new_pos]}]"
     return new_pos, patched_data, f"Vybraná pozice: {new_pos}"
 
 """
