@@ -1,4 +1,4 @@
-from dash import Dash, html, dcc, callback, Output, Input, Patch, clientside_callback
+from dash import Dash, html, dcc, callback, Output, Input, Patch, ctx
 import dash_deck
 import pandas as pd
 import numpy as np
@@ -10,15 +10,15 @@ from scipy.spatial.transform import Rotation
 # visualization parameters
 POINT_SIZE = 50
 TARGET = [0, -0.3, 1.0]      # move the camera left/right, up/down
-ROTATION_ORBIT = 91.5        # turn the camera left/right
-ROTATION_X = 4.1             # turn the camera up/down
+ROTATION_ORBIT = 91.8        # turn the camera left/right
+ROTATION_X = 4.0            # turn the camera up/down
 ZOOM = 10
 FOVY = 21                    # focal length
-FAR_PLANE = 300
+FAR_PLANE = 200
 TRANSPARENCY = 90
 ANIMATION_SPEED = 1         # frames per second
 ANIMATION_FRAMES_STEP = 10
-
+BACKGROUND_IMAGE = "url(/assets/rails_photo_0.png)"
 
 # loads a csv file into a numpy array
 def load_csv_into_nparray(file_address):
@@ -82,16 +82,19 @@ pc_df = pd.DataFrame(pc_nparray, columns=["x", "y", "z", "intensity"])
 point_cloud_layer = {
     "@@type": "PointCloudLayer",
     "data": pc_df.to_dict(orient="records"),
+    #"getColor": [0, "intensity", "intensity"],
     "getColor": (
         "@@=[intensity > 6 ? 7 * (intensity - 6) : 0, "
         "intensity > 6 ? 255 - 7 * (intensity - 6) : 51 * (intensity - 6), "
         f"intensity > 6 ? 0 : 255 - 51 * (intensity - 6), {TRANSPARENCY}]"
     ),
     "getPosition": f"@@=[{transf_strings[0]}]",
+    #"getPosition": f"@@=[x, y, z]",
     "pointSize": POINT_SIZE,
-    "transitions": {
-        "getPosition": 1000
-      }
+    "visible": True,
+    #"transitions": {
+    #    "target": 1000
+    #}
 }
 
 view_state = {
@@ -151,18 +154,21 @@ app.layout = html.Div(children=
                 style={"height": "80vh", 
                     "width": "80vw", 
                     "marginLeft": "0%", 
-                    "marginTop": "10.5%"},
+                    "marginTop": "0%"},
                 id="point-cloud-visualization"
                 ),
-            ], style = {
-                "backgroundImage": "url(/assets/rails_photo_0.png)",
+            ], 
+            id = "pcl-visualization-div",
+            style = {
+                "backgroundImage": BACKGROUND_IMAGE,
                 "backgroundSize": "cover",
                 "backgroundRepeat": "no-repeat",
                 "backgroundPosition": "center",
                 "height": "80vh",
                 "width": "80vw",
                 "margin": "0",
-                "padding": "0",  
+                "padding": "0",
+                "position": "relative" 
             }
 
         )
@@ -172,12 +178,13 @@ app.layout = html.Div(children=
         "width": "80vw",
         "margin": "0",
         "padding": "0",
+        "fontSize": "14px"
     },
 )
 
 
 # the logic of the app
-
+"""
 # animation
 @callback(
     Output(component_id='camera-position-slider', component_property='value'),
@@ -191,24 +198,48 @@ def shift_camera(n_intervals):
         new_pos = 0    # end of animation, return to the beginning
     
     # change the transformation function in Deck.GL visualization
-    patched_dict = Patch()
+    patched_data = Patch()
+    #patched_data["initialViewState"]["target"] = [0.5*new_pos, -0.3, 1.0]
     patched_dict["layers"][0]["getPosition"] = f"@@=[{transf_strings[new_pos]}]"
-    return new_pos, patched_dict, f"Vybraná pozice: {new_pos}"
+    return new_pos, patched_data, f"Vybraná pozice: {new_pos}"
 
 """
 # shift by slider
 @callback(
     Output(component_id='point-cloud-visualization', component_property='data'),
+    Output(component_id='pcl-visualization-div', component_property='style'),
     Output(component_id='camera-position-label', component_property='children'),
     Input(component_id='camera-position-slider', component_property='value'),
+    Input(component_id='layers-checklist', component_property='value'),
     prevent_initial_call=True
 )
-def shift_camera(new_pos):
-    # change the transformation function in Deck.GL visualization
-    patched_dict = Patch()
-    patched_dict["layers"][0]["getPosition"] = f"@@=[{transf_strings[new_pos]}]"
-    return patched_dict, f"Vybraná pozice: {new_pos}"
-"""
+def change_view(new_pos, layers):
+    patched_data = Patch()
+    patched_style = Patch()
+    new_label = f"Vybraná pozice: {new_pos}"
+
+    triggered_id = ctx.triggered_id
+    if triggered_id == 'camera-position-slider':
+        # change the transformation function in Deck.GL visualization
+        patched_data["layers"][0]["getPosition"] = f"@@=[{transf_strings[new_pos]}]"
+        #patched_data["initialViewState"]["target"] = [0.5*new_pos, -0.3, 1.0]
+    
+    elif triggered_id == 'layers-checklist':
+        # change the visibility of layers:
+        
+        # point cloud layer
+        if 'pcl' in layers:
+            patched_data["layers"][0]["visible"] = True
+        else:
+            patched_data["layers"][0]["visible"] = False
+        
+        # background image layer
+        if 'pic' in layers:
+            patched_style["backgroundImage"] = BACKGROUND_IMAGE
+        else:
+            patched_style["backgroundImage"] = "none"
+        
+    return patched_data, patched_style, new_label
 
 if __name__ == "__main__":
     app.run(debug=True)
