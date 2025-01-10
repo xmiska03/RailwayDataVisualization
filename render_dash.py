@@ -137,20 +137,32 @@ app.layout = html.Div(children=
             max_intervals=frames_cnt/ANIMATION_FRAMES_STEP
         ),
         dcc.Store(
-            id='point-cloud-store',
-            data=deck_dict
+            id='current-frame-store',
+            data=0
         ),
+        
         html.H1(
             "Vizualizace dat z mobilního mapovacího systému",
             style={"textAlign": "center", "color": "black"}
         ),
+        
         dcc.Slider(
             0, frames_cnt-1, 1, value=0, 
             marks={0:'0', 100:'100', 200:'200', 300:'300', 400:'400', (frames_cnt-1):f'{frames_cnt}'}, 
             id='camera-position-slider',
             updatemode='drag'
         ),
-        html.Div("Vybraná pozice: 0", id='camera-position-label'),
+        
+        html.Button('Přehrát', id='play-button'),
+        html.Button('Zastavit', id='stop-button'),
+        
+        html.Div("Pozice kamery: "),
+        dcc.Input(
+            "0",
+            id="camera-position-input",
+            type="number",
+        ),
+    
         html.Div("Zobrazení vrstev:"),
         dcc.Checklist(
             options=[
@@ -217,12 +229,11 @@ def shift_camera(n_intervals):
     return new_pos, patched_data, f"Vybraná pozice: {new_pos}"
 
 """
-# shift by slider
+# react to changed frame or layers visibility
 @callback(
     Output(component_id='point-cloud-visualization', component_property='data'),
     Output(component_id='pcl-visualization-div', component_property='style'),
-    Output(component_id='camera-position-label', component_property='children'),
-    Input(component_id='camera-position-slider', component_property='value'),
+    Input(component_id='current-frame-store', component_property='data'),
     Input(component_id='layers-checklist', component_property='value'),
     prevent_initial_call=True
 )
@@ -232,7 +243,7 @@ def change_view(new_pos, layers):
     new_label = f"Vybraná pozice: {new_pos}"
 
     triggered_id = ctx.triggered_id
-    if triggered_id == 'camera-position-slider':
+    if triggered_id == 'current-frame-store':
         # change the transformation function in Deck.GL visualization
         patched_data["layers"][0]["getPosition"] = f"@@=[{transf_strings[new_pos]}]"
         #patched_data["initialViewState"]["target"] = [0.5*new_pos, -0.3, 1.0]
@@ -252,7 +263,27 @@ def change_view(new_pos, layers):
         else:
             patched_style["backgroundImage"] = "none"
         
-    return patched_data, patched_style, new_label
+    return patched_data, patched_style
+    
+# change frame
+@callback(
+    Output('current-frame-store', 'data'),
+    Output('camera-position-input', 'value'),
+    Output(component_id='camera-position-slider', component_property='value'),
+    Input('camera-position-input', 'value'),
+    Input('camera-position-slider', 'value'),
+    prevent_initial_call=True
+)
+def change_frame(input_val, slider_val):
+    triggered_id = ctx.triggered_id
+    if triggered_id == 'camera-position-input':   # frame changed by input field
+        if isinstance(input_val, int):
+            input_val_int = np.clip(input_val, 0, 499)
+            return input_val_int, input_val_int, input_val_int
+        else:
+            return slider_val, input_val, slider_val
+    elif triggered_id == 'camera-position-slider':   # frame changed by slider
+        return slider_val, slider_val, slider_val
 
 if __name__ == "__main__":
     app.run(debug=True)
