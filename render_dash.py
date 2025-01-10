@@ -169,12 +169,19 @@ app.layout = html.Div(children=
         html.Div("Zobrazení vrstev:"),
         dcc.Checklist(
             options=[
-                {'label': 'záber z kamery', 'value': 'pic'},
+                {'label': 'záber z kamery', 'value': 'pic'}
+            ],
+            value=['pic'],
+            id='camera-picture-checkbox'
+        ),
+        dcc.Checklist(
+            options=[
                 {'label': 'mračno bodů', 'value': 'pcl'}
             ],
-            value=['pic', 'pcl'],
-            id='layers-checklist'
+            value=['pcl'],
+            id='point-cloud-checkbox'
         ),
+        
         html.Div(
             [
                 dash_deck.DeckGL(
@@ -198,7 +205,6 @@ app.layout = html.Div(children=
                 "padding": "0",
                 "position": "relative" 
             }
-
         )
     ],
     style={
@@ -211,8 +217,9 @@ app.layout = html.Div(children=
 )
 
 
-# the logic of the app
-# change frame by input, slider or as a part of the animation
+# callbacks - the logic of the app
+
+# change frame by the input field, slider or as a part of the animation
 @callback(
     Output('current-frame-store', 'data'),
     Output('camera-position-input', 'value'),
@@ -238,44 +245,8 @@ def change_frame(input_val, slider_val, interval_val):
         if new_pos >= frames_cnt:
             new_pos = 0    # end of animation, return to the beginning
         return new_pos, new_pos, new_pos
-    
 
-# react to changed frame or layers visibility
-@callback(
-    Output('point-cloud-visualization', 'data'),
-    Output('pcl-visualization-div', 'style'),
-    Input('current-frame-store', 'data'),
-    Input('layers-checklist', 'value'),
-    prevent_initial_call=True
-)
-def change_view(new_pos, layers):
-    patched_data = Patch()
-    patched_style = Patch()
-
-    triggered_id = ctx.triggered_id
-    if triggered_id == 'current-frame-store':
-        # change the transformation function in Deck.GL visualization
-        patched_data["layers"][0]["getPosition"] = f"@@=[{transf_strings[new_pos]}]"
-        #patched_data["initialViewState"]["target"] = [0.5*new_pos, -0.3, 1.0]
-    
-    elif triggered_id == 'layers-checklist':
-        # change the visibility of layers:
-        
-        # point cloud layer
-        if 'pcl' in layers:
-            patched_data["layers"][0]["visible"] = True
-        else:
-            patched_data["layers"][0]["visible"] = False
-        
-        # background image layer
-        if 'pic' in layers:
-            patched_style["backgroundImage"] = BACKGROUND_IMAGE
-        else:
-            patched_style["backgroundImage"] = "none"
-        
-    return patched_data, patched_style
-
-# play/pause animation
+# play/pause the animation
 @callback(
     Output('animation-interval', 'n_intervals'),
     Output('animation-interval', 'disabled'),
@@ -293,21 +264,43 @@ def control_animation(curr_pos, btn1, btn2):
         # stop animation
         return int(curr_pos/ANIMATION_FRAMES_STEP), True
 
-"""
+# turn the background image on/off
 @callback(
-    Output(component_id='camera-position-slider', component_property='value'),
-    Output(component_id='point-cloud-visualization', component_property='data'),
-    Output(component_id='camera-position-label', component_property='children'),
-    
+    Output('pcl-visualization-div', 'style'),
+    Input('camera-picture-checkbox', 'value'),
 )
-def shift_camera(n_intervals):
+def change_background(layers):
+    patched_style = Patch()
+    if 'pic' in layers:
+        patched_style["backgroundImage"] = BACKGROUND_IMAGE
+    else:
+        patched_style["backgroundImage"] = "none"
+    return patched_style
 
-    # change the transformation function in Deck.GL visualization
+# react to changed frame number or point cloud layer visibility
+@callback(
+    Output('point-cloud-visualization', 'data'),
+    Input('current-frame-store', 'data'),
+    Input('point-cloud-checkbox', 'value'),
+    prevent_initial_call=True
+)
+def change_point_cloud(new_pos, layers):
     patched_data = Patch()
-    #patched_data["initialViewState"]["target"] = [0.5*new_pos, -0.3, 1.0]
-    patched_data["layers"][0]["getPosition"] = f"@@=[{transf_strings[new_pos]}]"
-    return new_pos, patched_data, f"Vybraná pozice: {new_pos}"
-"""
+
+    triggered_id = ctx.triggered_id
+    if triggered_id == 'current-frame-store':
+        # change the transformation function in Deck.GL visualization
+        patched_data["layers"][0]["getPosition"] = f"@@=[{transf_strings[new_pos]}]"
+        #patched_data["initialViewState"]["target"] = [0.5*new_pos, -0.3, 1.0]
+    
+    elif triggered_id == 'point-cloud-checkbox':
+        # change the visibility of point cloud layer
+        if 'pcl' in layers:
+            patched_data["layers"][0]["visible"] = True
+        else:
+            patched_data["layers"][0]["visible"] = False
+        
+    return patched_data
 
 if __name__ == "__main__":
     app.run(debug=True)
