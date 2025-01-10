@@ -10,15 +10,14 @@ from scipy.spatial.transform import Rotation
 # visualization parameters
 POINT_SIZE = 50
 TARGET = [0, -0.3, 1.0]      # move the camera left/right, up/down
-ROTATION_ORBIT = 91.8        # turn the camera left/right
-ROTATION_X = 4.0             # turn the camera up/down
+ROTATION_ORBIT = 92        # turn the camera left/right
+ROTATION_X = 4.7             # turn the camera up/down
 ZOOM = 10
-FOVY = 21                    # focal length
-FAR_PLANE = 200
-OPACITY = 0.5
-ANIMATION_SPEED = 2         # frames per second
-ANIMATION_FRAMES_STEP = 10
-BACKGROUND_IMAGE = "url(/assets/rails_photo_0.png)"
+FOVY = 28                    # focal length
+FAR_PLANE = 300
+OPACITY = 0.3
+ANIMATION_SPEED = 1         # frames per second
+ANIMATION_FRAMES_STEP = 20
 
 # loads a csv file into a numpy array
 def load_csv_into_nparray(file_address):
@@ -110,13 +109,15 @@ view_state = {
     "rotationOrbit": ROTATION_ORBIT,
     "rotationX": ROTATION_X,
     "target": TARGET,
-    "zoom": ZOOM
+    "zoom": ZOOM,
+    "controller": True
 }
 
 view = {
     "@@type": "OrbitView",
     "far": FAR_PLANE,
-    "fovy": FOVY
+    "fovy": FOVY,
+    "controller": True
 }
 
 deck_dict = {
@@ -195,7 +196,7 @@ app.layout = html.Div(children=
             ], 
             id = "pcl-visualization-div",
             style = {
-                "backgroundImage": BACKGROUND_IMAGE,
+                "backgroundImage": "url(/assets/video_frames/frame_0.jpg)",
                 "backgroundSize": "cover",
                 "backgroundRepeat": "no-repeat",
                 "backgroundPosition": "center",
@@ -264,17 +265,22 @@ def control_animation(curr_pos, btn1, btn2):
         # stop animation
         return int(curr_pos/ANIMATION_FRAMES_STEP), True
 
-# turn the background image on/off
+# change the background image (or turn it off/on)
 @callback(
     Output('pcl-visualization-div', 'style'),
+    Input('current-frame-store', 'data'),
     Input('camera-picture-checkbox', 'value'),
 )
-def change_background(layers):
+def change_background(new_pos, layers):
     patched_style = Patch()
-    if 'pic' in layers:
-        patched_style["backgroundImage"] = BACKGROUND_IMAGE
+    triggered_id = ctx.triggered_id
+    if triggered_id == 'camera-picture-checkbox':
+        if 'pic' in layers:
+            patched_style["backgroundImage"] = f"url(/assets/video_frames/frame_{new_pos}.jpg)"
+        else:
+            patched_style["backgroundImage"] = "none"
     else:
-        patched_style["backgroundImage"] = "none"
+        patched_style["backgroundImage"] = f"url(/assets/video_frames/frame_{new_pos}.jpg)"
     return patched_style
 
 # react to changed frame number or point cloud layer visibility
