@@ -1,4 +1,4 @@
-from dash import Dash, html, dcc, callback, Output, Input, Patch, ctx, clientside_callback
+from dash import Dash, html, dcc, callback, Output, Input, State, Patch, ctx, clientside_callback
 import dash_deck
 import pandas as pd
 import numpy as np
@@ -134,7 +134,8 @@ app.layout = html.Div(children=
             id="animation-interval", 
             interval=1000/ANIMATION_SPEED, 
             n_intervals=0,   # begin from 0
-            max_intervals=frames_cnt/ANIMATION_FRAMES_STEP
+            max_intervals=frames_cnt/ANIMATION_FRAMES_STEP,
+            disabled=True
         ),
         dcc.Store(
             id='current-frame-store',
@@ -161,6 +162,8 @@ app.layout = html.Div(children=
             "0",
             id="camera-position-input",
             type="number",
+            min=0,
+            max=frames_cnt-1
         ),
     
         html.Div("Zobrazení vrstev:"),
@@ -209,38 +212,45 @@ app.layout = html.Div(children=
 
 
 # the logic of the app
-"""
-# animation
+# change frame by input, slider or as a part of the animation
 @callback(
-    Output(component_id='camera-position-slider', component_property='value'),
-    Output(component_id='point-cloud-visualization', component_property='data'),
-    Output(component_id='camera-position-label', component_property='children'),
+    Output('current-frame-store', 'data'),
+    Output('camera-position-input', 'value'),
+    Output('camera-position-slider', 'value'),
+    Input('camera-position-input', 'value'),
+    Input('camera-position-slider', 'value'),
     Input("animation-interval", "n_intervals"),
+    prevent_initial_call=True
 )
-def shift_camera(n_intervals):
-    new_pos = ANIMATION_FRAMES_STEP * n_intervals
-    if new_pos >= frames_cnt:
-        new_pos = 0    # end of animation, return to the beginning
+def change_frame(input_val, slider_val, interval_val):
+    triggered_id = ctx.triggered_id
+    if triggered_id == 'camera-position-input':   # frame changed by input field
+        if isinstance(input_val, int):
+            return input_val, input_val, input_val
+        else:
+            return slider_val, input_val, slider_val
     
-    # change the transformation function in Deck.GL visualization
-    patched_data = Patch()
-    #patched_data["initialViewState"]["target"] = [0.5*new_pos, -0.3, 1.0]
-    patched_data["layers"][0]["getPosition"] = f"@@=[{transf_strings[new_pos]}]"
-    return new_pos, patched_data, f"Vybraná pozice: {new_pos}"
+    elif triggered_id == 'camera-position-slider':   # frame changed by slider
+        return slider_val, slider_val, slider_val
+    
+    elif triggered_id == 'animation-interval':   # frame changed as a part of the animation
+        new_pos = ANIMATION_FRAMES_STEP * interval_val
+        if new_pos >= frames_cnt:
+            new_pos = 0    # end of animation, return to the beginning
+        return new_pos, new_pos, new_pos
+    
 
-"""
 # react to changed frame or layers visibility
 @callback(
-    Output(component_id='point-cloud-visualization', component_property='data'),
-    Output(component_id='pcl-visualization-div', component_property='style'),
-    Input(component_id='current-frame-store', component_property='data'),
-    Input(component_id='layers-checklist', component_property='value'),
+    Output('point-cloud-visualization', 'data'),
+    Output('pcl-visualization-div', 'style'),
+    Input('current-frame-store', 'data'),
+    Input('layers-checklist', 'value'),
     prevent_initial_call=True
 )
 def change_view(new_pos, layers):
     patched_data = Patch()
     patched_style = Patch()
-    new_label = f"Vybraná pozice: {new_pos}"
 
     triggered_id = ctx.triggered_id
     if triggered_id == 'current-frame-store':
@@ -264,26 +274,40 @@ def change_view(new_pos, layers):
             patched_style["backgroundImage"] = "none"
         
     return patched_data, patched_style
-    
-# change frame
+
+# play/pause animation
 @callback(
-    Output('current-frame-store', 'data'),
-    Output('camera-position-input', 'value'),
-    Output(component_id='camera-position-slider', component_property='value'),
-    Input('camera-position-input', 'value'),
-    Input('camera-position-slider', 'value'),
+    Output('animation-interval', 'n_intervals'),
+    Output('animation-interval', 'disabled'),
+    State('current-frame-store', 'data'),
+    Input('play-button', 'n_clicks'),
+    Input('stop-button', 'n_clicks'),
     prevent_initial_call=True
 )
-def change_frame(input_val, slider_val):
+def control_animation(curr_pos, btn1, btn2):
     triggered_id = ctx.triggered_id
-    if triggered_id == 'camera-position-input':   # frame changed by input field
-        if isinstance(input_val, int):
-            input_val_int = np.clip(input_val, 0, 499)
-            return input_val_int, input_val_int, input_val_int
-        else:
-            return slider_val, input_val, slider_val
-    elif triggered_id == 'camera-position-slider':   # frame changed by slider
-        return slider_val, slider_val, slider_val
+    if triggered_id == 'play-button':
+        # start animation from the current position
+        return int(curr_pos/ANIMATION_FRAMES_STEP)+1, False
+    if triggered_id == 'stop-button':
+        # stop animation
+        return int(curr_pos/ANIMATION_FRAMES_STEP), True
+
+"""
+@callback(
+    Output(component_id='camera-position-slider', component_property='value'),
+    Output(component_id='point-cloud-visualization', component_property='data'),
+    Output(component_id='camera-position-label', component_property='children'),
+    
+)
+def shift_camera(n_intervals):
+
+    # change the transformation function in Deck.GL visualization
+    patched_data = Patch()
+    #patched_data["initialViewState"]["target"] = [0.5*new_pos, -0.3, 1.0]
+    patched_data["layers"][0]["getPosition"] = f"@@=[{transf_strings[new_pos]}]"
+    return new_pos, patched_data, f"Vybraná pozice: {new_pos}"
+"""
 
 if __name__ == "__main__":
     app.run(debug=True)
