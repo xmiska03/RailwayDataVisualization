@@ -10,13 +10,13 @@ from scipy.spatial.transform import Rotation
 # visualization parameters
 POINT_SIZE = 50
 TARGET = [0, -0.3, 1.0]      # move the camera left/right, up/down
-ROTATION_ORBIT = 92        # turn the camera left/right
+ROTATION_ORBIT = 92          # turn the camera left/right
 ROTATION_X = 4.7             # turn the camera up/down
 ZOOM = 10
 FOVY = 28                    # focal length
 FAR_PLANE = 300
 OPACITY = 0.3
-ANIMATION_SPEED = 1         # frames per second
+ANIMATION_SPEED = 1          # frames per second
 ANIMATION_FRAMES_STEP = 20
 
 # loads a csv file into a numpy array
@@ -55,11 +55,6 @@ def create_transformation_string(transf_mat):
     )
 
 def intensity_to_colors(pc_nparray):
-    #"getColor": (
-    #    "@@=[intensity > 6 ? 7 * (intensity - 6) : 0, "
-    #    "intensity > 6 ? 255 - 7 * (intensity - 6) : 51 * (intensity - 6), "
-    #    f"intensity > 6 ? 0 : 255 - 51 * (intensity - 6), 225]"
-    #),
     red = np.where(pc_nparray[:, 3] > 6, 7 * (pc_nparray[:, 3] - 6), 0)
     green = np.where(pc_nparray[:, 3] > 6, 255 - 7 * (pc_nparray[:, 3] - 6), 51 * (pc_nparray[:, 3]))
     blue = np.where(pc_nparray[:, 3] > 6, 0, 255 - 51 * (pc_nparray[:, 3]))
@@ -69,7 +64,7 @@ def intensity_to_colors(pc_nparray):
 pc = PointCloud.from_path("data/scans.pcd")
 pc_nparray = pc.numpy(("x", "y", "z", "intensity"))
 
-#pc_nparray = pc_nparray[:20000]
+#pc_nparray = pc_nparray[::10]
 
 # pre-count colors
 pc_nparray = intensity_to_colors(pc_nparray)
@@ -182,24 +177,23 @@ app.layout = html.Div(children=
             value=['pcl'],
             id='point-cloud-checkbox'
         ),
-        
         html.Div(
             [
+                html.Img(
+                    src="/assets/video_frames/frame_0.jpg",
+                    id="background-img",
+                    style={'width': '100%', 'height': 'auto'}
+                ),
                 dash_deck.DeckGL(
                 data=deck_dict,
                 style={"height": "80vh", 
                     "width": "80vw", 
                     "marginLeft": "0%", 
-                    "marginTop": "0%"},
+                    "marginTop": "4%"},
                 id="point-cloud-visualization"
                 ),
-            ], 
-            id = "pcl-visualization-div",
+            ],
             style = {
-                "backgroundImage": "url(/assets/video_frames/frame_0.jpg)",
-                "backgroundSize": "cover",
-                "backgroundRepeat": "no-repeat",
-                "backgroundPosition": "center",
                 "height": "80vh",
                 "width": "80vw",
                 "margin": "0",
@@ -267,21 +261,15 @@ def control_animation(curr_pos, btn1, btn2):
 
 # change the background image (or turn it off/on)
 @callback(
-    Output('pcl-visualization-div', 'style'),
+    Output('background-img', 'src'),
     Input('current-frame-store', 'data'),
     Input('camera-picture-checkbox', 'value'),
 )
 def change_background(new_pos, layers):
-    patched_style = Patch()
-    triggered_id = ctx.triggered_id
-    if triggered_id == 'camera-picture-checkbox':
-        if 'pic' in layers:
-            patched_style["backgroundImage"] = f"url(/assets/video_frames/frame_{new_pos}.jpg)"
-        else:
-            patched_style["backgroundImage"] = "none"
+    if 'pic' in layers:
+        return f"/assets/video_frames/frame_{new_pos}.jpg"
     else:
-        patched_style["backgroundImage"] = f"url(/assets/video_frames/frame_{new_pos}.jpg)"
-    return patched_style
+        return "none"
 
 # react to changed frame number or point cloud layer visibility
 @callback(
