@@ -1,5 +1,6 @@
 from dash import Dash, html, dcc, callback, Output, Input, State, Patch, ctx, clientside_callback
 import dash_deck
+import dash_bootstrap_components as dbc
 import pandas as pd
 import numpy as np
 from pypcd4 import PointCloud
@@ -11,12 +12,12 @@ from scipy.spatial.transform import Rotation
 POINT_SIZE = 16
 TARGET = [0, -0.3, 1.0]      # move the camera left/right, up/down
 ROTATION_ORBIT = 92          # turn the camera left/right
-ROTATION_X = 4.7             # turn the camera up/down
+ROTATION_X = 4.3             # turn the camera up/down
 ZOOM = 9
 FOVY = 24                    # focal length
 FAR_PLANE = 300
 OPACITY = 0.7
-ANIMATION_SPEED = 2          # frames per second
+ANIMATION_SPEED = 1          # frames per second
 ANIMATION_FRAMES_STEP = 10
 
 # loads a csv file into a numpy array
@@ -122,7 +123,94 @@ deck_dict = {
 }
 
 # create a Dash app
-app = Dash(__name__)
+app = Dash(__name__, external_stylesheets=[dbc.themes.CYBORG, "https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css"])
+
+down_panel = [
+    dbc.Col(dbc.Button(html.I(className="bi bi-play-fill"), id='play-button'), width=1),
+    dbc.Col(dbc.Button(html.I(className="bi bi-pause-fill"), id='stop-button'), width=1),
+    dbc.Col(dcc.Slider(
+        0, frames_cnt-1, 1, value=0, 
+        marks={0:'0', 100:'100', 200:'200', 300:'300', 400:'400', (frames_cnt-1):f'{frames_cnt}'}, 
+        id='camera-position-slider',
+        updatemode='drag'
+    ), width=10)
+]
+
+camera_position_widget = [
+    dbc.Col(html.Div("Pozice kamery: "), width=5),
+    dbc.Col(dbc.Input(
+        value="0",
+        id="camera-position-input",
+        type="number",
+        min=0,
+        max=frames_cnt-1
+    ), width=5)
+]
+
+point_size_widget = [
+    dbc.Col(html.Div("Velikost bodů: "), width=5),
+    dbc.Col(dbc.Input(
+        value=f"{POINT_SIZE}",
+        id="point-size-input",
+        type="number",
+        min=1,
+        max=50
+    ), width=5)
+]
+
+point_opacity_widget = [
+    dbc.Col(html.Div("Průhlednost bodů: "), width=5),
+    dbc.Col(dbc.Input(
+        value=f"{OPACITY}",
+        id="point-opacity-input",
+        type="number",
+        min=0,
+        max=1,
+        step=0.1
+    ), width=5)
+]
+
+right_panel = [
+    dbc.Row(camera_position_widget),
+    dbc.Row(html.Div("Zobrazení vrstev:")),
+    dbc.Row(dcc.Checklist(
+            options=[{'label': ' záber z kamery', 'value': 'pic'}],
+            value=['pic'],
+            id='camera-picture-checkbox'
+        )
+    ),
+    dbc.Row(dcc.Checklist(
+            options=[{'label': ' mračno bodů', 'value': 'pcl'}],
+            value=['pcl'],
+            id='point-cloud-checkbox'
+        )
+    ),
+    dbc.Placeholder(color="black", size="xs"),
+    dbc.Row(point_size_widget),
+    dbc.Placeholder(color="black", size="xs"),
+    dbc.Row(point_opacity_widget)
+]
+
+visualization = html.Div(
+    [
+        html.Img(
+            src="/assets/video_frames/frame_0.jpg",
+            id="background-img",
+            style={'width': '100%', 'height': 'auto'}
+        ),
+        dash_deck.DeckGL(
+        data=deck_dict,
+        style={"height": "60vh", 
+            "width": "60vw", 
+            "marginLeft": "4.5%", 
+            "marginTop": "6%"},
+        id="point-cloud-visualization"
+        ),
+    ],
+    style = {
+        "position": "relative" 
+    }
+)
 
 app.layout = html.Div(children=
     [
@@ -137,77 +225,25 @@ app.layout = html.Div(children=
             id='current-frame-store',
             data=0
         ),
-        
-        html.H1(
+
+        html.H4(
             "Vizualizace dat z mobilního mapovacího systému",
-            style={"textAlign": "center", "color": "black"}
+            style={"textAlign": "center", "padding":"10px"}
         ),
-        
-        dcc.Slider(
-            0, frames_cnt-1, 1, value=0, 
-            marks={0:'0', 100:'100', 200:'200', 300:'300', 400:'400', (frames_cnt-1):f'{frames_cnt}'}, 
-            id='camera-position-slider',
-            updatemode='drag'
-        ),
-        
-        html.Button('Přehrát', id='play-button'),
-        html.Button('Zastavit', id='stop-button'),
-        
-        html.Div("Pozice kamery: "),
-        dcc.Input(
-            "0",
-            id="camera-position-input",
-            type="number",
-            min=0,
-            max=frames_cnt-1
-        ),
-    
-        html.Div("Zobrazení vrstev:"),
-        dcc.Checklist(
-            options=[
-                {'label': 'záber z kamery', 'value': 'pic'}
-            ],
-            value=['pic'],
-            id='camera-picture-checkbox'
-        ),
-        dcc.Checklist(
-            options=[
-                {'label': 'mračno bodů', 'value': 'pcl'}
-            ],
-            value=['pcl'],
-            id='point-cloud-checkbox'
-        ),
-        html.Div(
+        dbc.Row(
             [
-                html.Img(
-                    src="/assets/video_frames/frame_0.jpg",
-                    id="background-img",
-                    style={'width': '100%', 'height': 'auto'}
-                ),
-                dash_deck.DeckGL(
-                data=deck_dict,
-                style={"height": "80vh", 
-                    "width": "80vw", 
-                    "marginLeft": "0%", 
-                    "marginTop": "4%"},
-                id="point-cloud-visualization"
-                ),
+                dbc.Col([
+                    visualization,
+                    dbc.Placeholder(color="black"),
+                    dbc.Row(down_panel, justify="start", align="end")
+                ], width=8),
+                dbc.Col(right_panel, width=3)
             ],
-            style = {
-                "height": "80vh",
-                "width": "80vw",
-                "margin": "0",
-                "padding": "0",
-                "position": "relative" 
-            }
+            justify="center"
         )
     ],
     style={
-        "height": "100vh",
-        "width": "80vw",
-        "margin": "0",
-        "padding": "0",
-        "fontSize": "14px"
+        "fontSize": "16px"
     },
 )
 
@@ -271,14 +307,16 @@ def change_background(new_pos, layers):
     else:
         return "none"
 
-# react to changed frame number or point cloud layer visibility
+# react to changed frame number, point cloud layer visibility or visualization parameters
 @callback(
     Output('point-cloud-visualization', 'data'),
     Input('current-frame-store', 'data'),
     Input('point-cloud-checkbox', 'value'),
+    Input('point-size-input', 'value'),
+    Input('point-opacity-input', 'value'),
     prevent_initial_call=True
 )
-def change_point_cloud(new_pos, layers):
+def change_point_cloud(new_pos, layers, point_size, point_opacity):
     patched_data = Patch()
 
     triggered_id = ctx.triggered_id
@@ -293,7 +331,13 @@ def change_point_cloud(new_pos, layers):
             patched_data["layers"][0]["visible"] = True
         else:
             patched_data["layers"][0]["visible"] = False
-        
+    
+    elif triggered_id == 'point-size-input':
+        patched_data["layers"][0]["pointSize"] = point_size
+
+    elif triggered_id == 'point-opacity':
+        patched_data["layers"][0]["opacity"] = point_opacity 
+
     return patched_data
 
 if __name__ == "__main__":
