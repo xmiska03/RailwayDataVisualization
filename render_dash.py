@@ -8,16 +8,16 @@ from scipy.spatial.transform import Rotation
 
 
 # visualization parameters
-POINT_SIZE = 50
+POINT_SIZE = 16
 TARGET = [0, -0.3, 1.0]      # move the camera left/right, up/down
 ROTATION_ORBIT = 92          # turn the camera left/right
 ROTATION_X = 4.7             # turn the camera up/down
-ZOOM = 10
-FOVY = 28                    # focal length
+ZOOM = 9
+FOVY = 24                    # focal length
 FAR_PLANE = 300
-OPACITY = 0.3
-ANIMATION_SPEED = 1          # frames per second
-ANIMATION_FRAMES_STEP = 20
+OPACITY = 0.7
+ANIMATION_SPEED = 2          # frames per second
+ANIMATION_FRAMES_STEP = 10
 
 # loads a csv file into a numpy array
 def load_csv_into_nparray(file_address):
