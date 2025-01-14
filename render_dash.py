@@ -127,7 +127,6 @@ app = Dash(__name__, external_stylesheets=[dbc.themes.CYBORG, "https://cdn.jsdel
 
 down_panel = [
     dbc.Col(dbc.Button(html.I(className="bi bi-play-fill"), id='play-button'), width=1),
-    dbc.Col(dbc.Button(html.I(className="bi bi-pause-fill"), id='stop-button'), width=1),
     dbc.Col(dcc.Slider(
         0, frames_cnt-1, 1, value=0, 
         marks={0:'0', 100:'100', 200:'200', 300:'300', 400:'400', (frames_cnt-1):f'{frames_cnt}'}, 
@@ -225,6 +224,10 @@ app.layout = html.Div(children=
             id='current-frame-store',
             data=0
         ),
+        dcc.Store(
+            id='animation-running-store',
+            data=False
+        ),
 
         html.H4(
             "Vizualizace dat z mobilního mapovacího systému",
@@ -235,7 +238,7 @@ app.layout = html.Div(children=
                 dbc.Col([
                     visualization,
                     dbc.Placeholder(color="black"),
-                    dbc.Row(down_panel, justify="start", align="end")
+                    dbc.Row(down_panel, justify="center", align="end")    
                 ], width=8),
                 dbc.Col(right_panel, width=3)
             ],
@@ -281,19 +284,23 @@ def change_frame(input_val, slider_val, interval_val):
 @callback(
     Output('animation-interval', 'n_intervals'),
     Output('animation-interval', 'disabled'),
+    Output('play-button', 'children'),
+    Output('animation-running-store', 'data'),
     State('current-frame-store', 'data'),
     Input('play-button', 'n_clicks'),
-    Input('stop-button', 'n_clicks'),
+    State('animation-running-store', 'data'),
     prevent_initial_call=True
 )
-def control_animation(curr_pos, btn1, btn2):
+def control_animation(curr_pos, btn, animation_running):
     triggered_id = ctx.triggered_id
     if triggered_id == 'play-button':
         # start animation from the current position
-        return int(curr_pos/ANIMATION_FRAMES_STEP)+1, False
-    if triggered_id == 'stop-button':
-        # stop animation
-        return int(curr_pos/ANIMATION_FRAMES_STEP), True
+        if animation_running:
+            # pause
+            return int(curr_pos/ANIMATION_FRAMES_STEP), True, html.I(className="bi bi-play-fill"), False
+        else:
+            # play
+            return int(curr_pos/ANIMATION_FRAMES_STEP)+1, False, html.I(className="bi bi-pause-fill"), True
 
 # change the background image (or turn it off/on)
 @callback(
