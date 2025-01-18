@@ -6,16 +6,43 @@
 
 \chapter{Vizualizácia dát z mobilných mapovacích systémov}
 
-\section{Zobrazenie mračna bodov}
-\subsection{Bodový model kamery}
-\subsection{Dostupné knižnice pre zobrazenie mračna bodov v jazyku Python}
-\subsubsection{Pydeck}
+[popis, aké dáta produkujú m. m. s.]
 
-\section{Tvorba užívateľského rozhrania}
-\subsection{Dostupné knižnice pre tvorbu interaktívnej webovej aplikácie v jazyku Python}
-\subsubsection{Streamlit}
-\subsubsection{Dash}
-\subsubsection{Porovnanie knižníc Streamlit a Dash}
+\section{Dierkový model kamery -- teoretický základ zobrazenia}
+
+[...]
+
+\section{Existujúce možnosti zobrazenia dát z mobilných mapovacích systémov}
+
+[popis základných knižníc aj programov, ako napr. CloudCompare]
+
+\subsection{Riešenia dostupné v jazyku Python}
+\subsubsection{Framework deck.gl a jeho nadstavba Pydeck}
+
+Javascriptový framework deck.gl je určený na zobrazovanie dát najmä na mapových podkladoch. Vyznačuje sa vysokou presnosťou a výkonnosťou. Pre akceleráciu využíva rozhrania WebGPU a WebGL2 \cite{deck.gl_documentation}.
+
+Vizualizácia dát v deck.gl sa skladá z dvoch základných častí:
+\begin{itemize}
+    \item Vrstvy (\texttt{Layers}). Do vrstiev sa ukladajú zobrazované dáta. Framework deck.gl ponúka vyše 30 preddefinovaných typov vrstiev. Pre túto prácu je významná najmä vrstva \texttt{PointCloudLayer}, ktorá je určená na zobrazenie mračna bodov.
+    \item Pohľad (\texttt{View}). Definuje vlastnosti kamery, napríklad zorné pole a prednú a zadnú orezávaciu rovinu (\emph{near plane} a \emph{far plane}).
+    Časť \texttt{ViewState} určuje polohu a smer pohľadu kamery. Typ pohľadu definuje spôsob interakcie vizualizácie s používateľom, napríklad pre zobrazenie trate z pohľadu strojvedúceho je ideálny typ \texttt{FirstPersonView}.
+\end{itemize}
+
+Napriek tomu, že je framework deck.gl primárne určený pre použitie v Javascripte, je možné ho použiť aj v jazyku Python, a to pomocou knižnice \textbf{Pydeck}. Tá je pomerne jednoduchá a podstatou jej činnosti je, že prevedie kód napísaný v jazyku Python do formátu JSON. Framework deck.gl má totiž modul @deck.gl/json, ktorý prijíma reprezentáciu vizualizácie vo formáte JSON a transformuje ju do javascriptového kódu (na definície funkcií a deck.gl objektov)\footnote{Ukážka rozhrania modulu @deck.gl/json je na \url{https://deck.gl/playground}.}.
+
+Knižnica Pydeck je dobrým prostriedkom na vytvorenie jednoduchých vizualizácií, s ktorými môže používateľ interagovať pohybmi myši. Jej možnosti sú však oproti pôvodnému frameworku deck.gl veľmi obmedzené. Nie je však vhodná na vytváranie zložitejších animácií s veľkým množstvom dát, pretože sa aj po tej najmenšej zmene musia dáta a definícia vizualizácie nanovo prevádzať do formátu JSON a následne na javascriptový kód, čo je veľmi časovo náročné.
+
+\section{Frameworky pre tvorbu interaktívnej webovej aplikácie v jazyku Python}
+
+\subsubsection{Streamlit a Dash}
+
+Streamlit a Dash sú frameworky, ktoré majú rovnaké zameranie: oba slúžia na tvorbu webových aplikácií pre prácu s dátami (\emph{data apps}) v jazyku Python. Dash je oproti Streamlitu na nižšej úrovni abstrakcie, pretože sám o sebe nemá žiaden vizuálny štýl a mnohé jeho komponenty sa priamo mapujú na HTML elementy, napríklad \texttt{dash.html.Div} a \texttt{dash.html.H1} \cite{streamlit_documentation}\cite{dash_documentation}.
+
+Oba frameworky majú podporu pre Pydeck, u Streamlitu je priamo k dispozícii element \texttt{st.pydeck\_chart} a k Dashu je možné pridať knižnicu \textbf{Dash Deck}. Ukázalo sa však, že \texttt{st.pydeck\_chart} podporuje iba pohľad \texttt{MapView}, ktorý je určený na zobrazenie dát na mape a nedá sa použiť na perspektívne zobrazenie bodov v trojrozmernom priestore.
+
+Dash Deck má navyše tú výhodu, že umožňuje vynechať Pydeck a definovať zobrazenie pomocou slovníkov so štruktúrou zodpovedajúcou tej, ktorú vyžaduje modul @deck.gl/json. To trochu zefektívni vykonávanie zmien vo vizualizácii, keďže to umožní upravovať jednotlivé časti zvlášť.
+
+[obrázok ilustrujúci transformácie]
 
 \chapter{Návrh aplikácie pre vizualizáciu dát z železničného mobilného mapovacieho systému}
 
@@ -32,3 +59,4 @@
 
 % Pro kompilaci po částech (viz projekt.tex) nutno odkomentovat
 %\end{document}
+
