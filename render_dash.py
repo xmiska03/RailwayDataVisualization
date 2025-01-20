@@ -1,5 +1,4 @@
 from dash import Dash, html, dcc, callback, Output, Input, State, Patch, ctx, clientside_callback
-import dash_deck
 import dash_bootstrap_components as dbc
 import pandas as pd
 import numpy as np
@@ -17,8 +16,8 @@ ZOOM = 9
 FOVY = 24                    # focal length
 FAR_PLANE = 300
 OPACITY = 0.7
-ANIMATION_SPEED = 1          # frames per second
-ANIMATION_FRAMES_STEP = 10
+ANIMATION_SPEED = 12          # frames per second
+ANIMATION_FRAMES_STEP = 2
 
 # loads a csv file into a numpy array
 def load_csv_into_nparray(file_address):
@@ -68,7 +67,7 @@ pc_nparray = pc.numpy(("x", "y", "z", "intensity"))
 #pc_nparray = pc_nparray[::10]
 
 # pre-count colors
-pc_nparray = intensity_to_colors(pc_nparray)
+#pc_nparray = intensity_to_colors(pc_nparray)
 
 # load data about camera positions (order of the columns: y, z, x)
 trans_nparray = load_csv_into_nparray("data/trans.csv")
@@ -84,13 +83,13 @@ for i in range(frames_cnt):
     transf_strings.append(create_transformation_string(transf_mat))
 
 # create a pandas DataFrame
-pc_df = pd.DataFrame(pc_nparray, columns=["x", "y", "z", "r", "g", "b"])
+pc_df = pd.DataFrame(pc_nparray, columns=["x", "y", "z", "intensity"])
 
 # prepare the visualization of the point cloud using Deck.GL
 point_cloud_layer = {
     "@@type": "PointCloudLayer",
     "data": pc_df.to_dict(orient="records"),
-    "getColor": "@@=[r, g, b]",
+    "getColor": "@@=[intensity*6, intensity*6, intensity*6]",
     "getPosition": f"@@=[{transf_strings[0]}]",
     #"getPosition": f"@@=[x, y, z]",
     "pointSize": POINT_SIZE,
@@ -123,7 +122,12 @@ deck_dict = {
 }
 
 # create a Dash app
-app = Dash(__name__, external_stylesheets=[dbc.themes.CYBORG, "https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css"])
+app = Dash(
+    __name__,
+    title = "Vizualizace dat z MMS",
+    update_title = "Načítání...",
+    external_stylesheets = [dbc.themes.CYBORG, "https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css"]
+)
 
 down_panel = [
     dbc.Col(dbc.Button(html.I(className="bi bi-play-fill"), id='play-button'), width=1),
@@ -195,16 +199,31 @@ visualization = html.Div(
         html.Img(
             src="/assets/video_frames/frame_0.jpg",
             id="background-img",
-            style={'width': '100%', 'height': 'auto'}
+            style={'width': '100%', 'height': 'auto', "display": "block"}
         ),
-        dash_deck.DeckGL(
-        data=deck_dict,
-        style={"height": "60vh", 
-            "width": "60vw", 
-            "marginLeft": "4.5%", 
-            "marginTop": "6%"},
-        id="point-cloud-visualization"
+        html.Canvas(
+            id='visualization-canvas',
+            style={
+                'position': 'absolute',
+                'top': 0,
+                'left': 0
+            }
         ),
+        dcc.Store(
+            id='visualization-data',
+            data=deck_dict
+        ),
+        dcc.Store(
+            id='visualization-change',
+        )
+        #dash_deck.DeckGL(
+        #data=deck_dict,
+        #style={"height": "60vh", 
+        #    "width": "60vw", 
+        #    "marginLeft": "4.5%", 
+        #    "marginTop": "6%"},
+        #id="point-cloud-visualization"
+        #)
     ],
     style = {
         "position": "relative" 
@@ -243,7 +262,9 @@ app.layout = html.Div(children=
                 dbc.Col(right_panel, width=3)
             ],
             justify="center"
-        )
+        ),
+        html.Div(id="dummy"),  # used because every callback has to have an output
+        html.Div(id="dummy2")
     ],
     style={
         "fontSize": "16px"
@@ -305,15 +326,19 @@ def control_animation(curr_pos, btn, animation_running):
 # change the background image (or turn it off/on)
 @callback(
     Output('background-img', 'src'),
+    Output('background-img', 'style'),
     Input('current-frame-store', 'data'),
     Input('camera-picture-checkbox', 'value'),
 )
 def change_background(new_pos, layers):
+    patched_style = Patch()
     if 'pic' in layers:
-        return f"/assets/video_frames/frame_{new_pos}.jpg"
+        patched_style["visibility"] = "visible"
     else:
-        return "none"
+        patched_style["visibility"] = "hidden"
+    return f"/assets/video_frames/frame_{new_pos}.jpg", patched_style
 
+"""
 # react to changed frame number, point cloud layer visibility or visualization parameters
 @callback(
     Output('point-cloud-visualization', 'data'),
@@ -346,6 +371,38 @@ def change_point_cloud(new_pos, layers, point_size, point_opacity):
         patched_data["layers"][0]["opacity"] = point_opacity 
 
     return patched_data
+"""
+
+# shift the point cloud
+app.clientside_callback(
+    """
+    function(frame) {
+        if (window.updateLayerPosition) {
+            window.updateLayerPosition(frame);  // call function defined in the javascript file
+        }
+        return 'dummy2';
+    }
+    """,
+    Output('dummy2', 'id'),  # no output needed
+    Input('current-frame-store', 'data'),
+    prevent_initial_call=True
+)
+
+# initialize the point cloud
+app.clientside_callback(
+    """
+    function(data_dict) {
+        if (window.initializeDeck) {
+            console.log("Calling initializeDeck");
+            window.data_dict = data_dict;
+            window.initializeDeck(data_dict);  // call function defined in the javascript file
+        }
+        return 'dummy';
+    }
+    """,
+    Output('dummy', 'id'),  # no output needed
+    Input('visualization-data', 'data')
+)
 
 if __name__ == "__main__":
     app.run(debug=True)

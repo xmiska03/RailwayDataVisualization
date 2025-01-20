@@ -21,7 +21,7 @@ const VIEW = new OrbitView({
     controller: true
 });
 
-function initializeDeck() {
+function initializeDeck(data_dict_par) {
   const visCanvas = document.getElementById('visualization-canvas');
 
   // If the element doesn't exist yet, retry after 100ms
@@ -29,6 +29,8 @@ function initializeDeck() {
     setTimeout(initializeDeck, 100);
     return;
   }
+
+  //window.data_dict = data_dict
 
   // Initialize Deck.gl once the div exists
   window.deck = new Deck({
@@ -38,7 +40,7 @@ function initializeDeck() {
     layers: [
       new PointCloudLayer({
         id: 'point-cloud-layer',
-        data: data,
+        data: window.data_dict.layers[0].data,
         getColor: d => [
           d.intensity > 6 ? 7 * (d.intensity - 6) : 0,
           d.intensity > 6 ? 255 - 7 * (d.intensity - 6) : 51 * d.intensity,
@@ -60,31 +62,32 @@ function initializeDeck() {
   });
 }
 
-function updateLayerPosition() {
-  window.step = (window.step + 10) % 500;
+function updateLayerPosition(new_position) {
+  console.log("called with", new_position);
+  var new_pos = new_position
   const updatedLayer = new PointCloudLayer({
     id: 'point-cloud-layer',
-    data: data,
+    data: window.data_dict.layers[0].data,
     getColor: d => [
       d.intensity > 6 ? 7 * (d.intensity - 6) : 0,
       d.intensity > 6 ? 255 - 7 * (d.intensity - 6) : 51 * d.intensity,
       d.intensity > 6 ? 0 : 255 - 51 * d.intensity
     ],
     getPosition: d => [
-      d.x * transf[window.step].a + d.y * transf[window.step].b + d.z * transf[window.step].c + transf[window.step].d,
-      d.x * transf[window.step].e + d.y * transf[window.step].f + d.z * transf[window.step].g + transf[window.step].h,
-      d.x * transf[window.step].i + d.y * transf[window.step].j + d.z * transf[window.step].k + transf[window.step].l,
+      d.x * transf[new_pos].a + d.y * transf[new_pos].b + d.z * transf[new_pos].c + transf[new_pos].d,
+      d.x * transf[new_pos].e + d.y * transf[new_pos].f + d.z * transf[new_pos].g + transf[new_pos].h,
+      d.x * transf[new_pos].i + d.y * transf[new_pos].j + d.z * transf[new_pos].k + transf[new_pos].l,
     ],
     opacity: 0.7,
     pointSize: 10,
     updateTriggers: {
-      getPosition: window.step
+      getPosition: new_pos
     }
   });
   window.deck.setProps({layers: [updatedLayer]});
 }
 
-initializeDeck();
+//initializeDeck();
 
 // make the functions global
 window.initializeDeck = initializeDeck
