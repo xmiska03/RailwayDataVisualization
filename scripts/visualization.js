@@ -1,70 +1,50 @@
 import {Deck} from '@deck.gl/core';
 import {PointCloudLayer} from '@deck.gl/layers';
 import {OrbitView} from '@deck.gl/core';
-import data from './data.js';
 import transf from './transf.js';
 
+
 console.log("Script visualization.js loaded");
-window.step = 0;
 
-const INITIAL_VIEW_STATE = {
-  rotationOrbit: 92,
-  rotationX: 4.3,
-  target: [0, -0.3, 1.0],
-  zoom: 9,
-  controller: true
-};
+function initializeDeck() {
 
-const VIEW = new OrbitView({
-    far: 300,
-    fovy: 24,
-    controller: true
-});
+  const INITIAL_VIEW_STATE = window.data_dict.initialViewState;
+  
+  const VIEW = new OrbitView({
+      far: window.data_dict.views[0].far,
+      fovy: window.data_dict.views[0].fovy,
+      controller: window.data_dict.views[0].controller
+  });
 
-function initializeDeck(data_dict_par) {
-  const visCanvas = document.getElementById('visualization-canvas');
+  const POINT_CLOUD_LAYER = new PointCloudLayer({
+    id: 'point-cloud-layer',
+    data: window.data_dict.layers[0].data,
+    getColor: d => [
+      d.intensity > 6 ? 7 * (d.intensity - 6) : 0,
+      d.intensity > 6 ? 255 - 7 * (d.intensity - 6) : 51 * d.intensity,
+      d.intensity > 6 ? 0 : 255 - 51 * d.intensity
+    ],
+    getPosition: d => [
+      d.x * transf[0].a + d.y * transf[0].b + d.z * transf[0].c + transf[0].d,
+      d.x * transf[0].e + d.y * transf[0].f + d.z * transf[0].g + transf[0].h,
+      d.x * transf[0].i + d.y * transf[0].j + d.z * transf[0].k + transf[0].l,
+    ],
+    opacity: window.data_dict.layers[0].opacity,
+    pointSize: window.data_dict.layers[0].pointSize,
+    visible: window.data_dict.layers[0].visible,
+  });
 
-  // If the element doesn't exist yet, retry after 100ms
-  if (!visCanvas) {
-    setTimeout(initializeDeck, 100);
-    return;
-  }
-
-  //window.data_dict = data_dict
-
-  // Initialize Deck.gl once the div exists
   window.deck = new Deck({
     initialViewState: INITIAL_VIEW_STATE,
     views: [VIEW],
-    controller: true,
-    layers: [
-      new PointCloudLayer({
-        id: 'point-cloud-layer',
-        data: window.data_dict.layers[0].data,
-        getColor: d => [
-          d.intensity > 6 ? 7 * (d.intensity - 6) : 0,
-          d.intensity > 6 ? 255 - 7 * (d.intensity - 6) : 51 * d.intensity,
-          d.intensity > 6 ? 0 : 255 - 51 * d.intensity
-        ],
-        getPosition: d => [
-          d.x * transf[window.step].a + d.y * transf[window.step].b + d.z * transf[window.step].c + transf[window.step].d,
-          d.x * transf[window.step].e + d.y * transf[window.step].f + d.z * transf[window.step].g + transf[window.step].h,
-          d.x * transf[window.step].i + d.y * transf[window.step].j + d.z * transf[window.step].k + transf[window.step].l,
-        ],
-        opacity: 0.7,
-        pointSize: 10,
-        updateTriggers: {
-          getPosition: window.step
-        }
-      })
-    ],
+    layers: [POINT_CLOUD_LAYER],
     canvas: 'visualization-canvas'
   });
 }
 
-function updateLayerPosition(new_position) {
-  console.log("called with", new_position);
-  var new_pos = new_position
+// to change camera position
+function updatePosition() {
+  var new_pos = window.position;
   const updatedLayer = new PointCloudLayer({
     id: 'point-cloud-layer',
     data: window.data_dict.layers[0].data,
@@ -78,19 +58,50 @@ function updateLayerPosition(new_position) {
       d.x * transf[new_pos].e + d.y * transf[new_pos].f + d.z * transf[new_pos].g + transf[new_pos].h,
       d.x * transf[new_pos].i + d.y * transf[new_pos].j + d.z * transf[new_pos].k + transf[new_pos].l,
     ],
-    opacity: 0.7,
-    pointSize: 10,
+    opacity: window.data_dict.layers[0].opacity,
+    pointSize: window.data_dict.layers[0].pointSize,
+    visible: window.data_dict.layers[0].visible,
     updateTriggers: {
-      getPosition: new_pos
+      getPosition: new_pos        // needed when changing getPosition or getColor
     }
   });
   window.deck.setProps({layers: [updatedLayer]});
 }
 
-//initializeDeck();
+// to change point cloud visibility, point size or opacity
+function updatePCLayerProps(visible, point_size, opacity) {
+  var pos = window.position;
+
+  //console.log("is_visible:", is_visible);
+  //console.log("new_size:", new_size, typeof new_size);
+  //console.log("pos:", pos);
+
+  window.data_dict.layers[0].visible = visible;
+  window.data_dict.layers[0].pointSize = parseInt(point_size, 10);
+  window.data_dict.layers[0].opacity = parseFloat(opacity);
+
+  const updatedLayer = new PointCloudLayer({
+    id: 'point-cloud-layer',
+    data: window.data_dict.layers[0].data,
+    getColor: d => [
+      d.intensity > 6 ? 7 * (d.intensity - 6) : 0,
+      d.intensity > 6 ? 255 - 7 * (d.intensity - 6) : 51 * d.intensity,
+      d.intensity > 6 ? 0 : 255 - 51 * d.intensity
+    ],
+    getPosition: d => [
+      d.x * transf[pos].a + d.y * transf[pos].b + d.z * transf[pos].c + transf[pos].d,
+      d.x * transf[pos].e + d.y * transf[pos].f + d.z * transf[pos].g + transf[pos].h,
+      d.x * transf[pos].i + d.y * transf[pos].j + d.z * transf[pos].k + transf[pos].l,
+    ],
+    opacity: window.data_dict.layers[0].opacity,
+    pointSize: window.data_dict.layers[0].pointSize,
+    visible: window.data_dict.layers[0].visible,
+  });
+  window.deck.setProps({layers: [updatedLayer]});
+}
 
 // make the functions global
-window.initializeDeck = initializeDeck
-window.updateLayerPosition = updateLayerPosition
-
+window.initializeDeck = initializeDeck;
+window.updatePosition = updatePosition;
+window.updatePCLayerProps = updatePCLayerProps;
 

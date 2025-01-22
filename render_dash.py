@@ -8,7 +8,7 @@ from scipy.spatial.transform import Rotation
 
 
 # visualization parameters
-POINT_SIZE = 16
+POINT_SIZE = 10
 TARGET = [0, -0.3, 1.0]      # move the camera left/right, up/down
 ROTATION_ORBIT = 92          # turn the camera left/right
 ROTATION_X = 4.3             # turn the camera up/down
@@ -89,9 +89,8 @@ pc_df = pd.DataFrame(pc_nparray, columns=["x", "y", "z", "intensity"])
 point_cloud_layer = {
     "@@type": "PointCloudLayer",
     "data": pc_df.to_dict(orient="records"),
-    "getColor": "@@=[intensity*6, intensity*6, intensity*6]",
-    "getPosition": f"@@=[{transf_strings[0]}]",
-    #"getPosition": f"@@=[x, y, z]",
+    #"getColor": "@@=[intensity*6, intensity*6, intensity*6]",
+    #"getPosition": f"@@=[{transf_strings[0]}]",
     "pointSize": POINT_SIZE,
     "opacity": OPACITY,
     "visible": True,
@@ -252,6 +251,10 @@ app.layout = html.Div(children=
             "Vizualizace dat z mobilního mapovacího systému",
             style={"textAlign": "center", "padding":"10px"}
         ),
+        #html.Video(
+        #    src="/assets/youtube_video.mp4",
+        #    id="background-video"
+        #),
         dbc.Row(
             [
                 dbc.Col([
@@ -263,8 +266,7 @@ app.layout = html.Div(children=
             ],
             justify="center"
         ),
-        html.Div(id="dummy"),  # used because every callback has to have an output
-        html.Div(id="dummy2")
+        html.Div(id="dummy"),  # because the initializing callback needs some output
     ],
     style={
         "fontSize": "16px"
@@ -350,12 +352,6 @@ def change_background(new_pos, layers):
 )
 def change_point_cloud(new_pos, layers, point_size, point_opacity):
     patched_data = Patch()
-
-    triggered_id = ctx.triggered_id
-    if triggered_id == 'current-frame-store':
-        # change the transformation function in Deck.GL visualization
-        patched_data["layers"][0]["getPosition"] = f"@@=[{transf_strings[new_pos]}]"
-        #patched_data["initialViewState"]["target"] = [0.5*new_pos, -0.3, 1.0]
     
     elif triggered_id == 'point-cloud-checkbox':
         # change the visibility of point cloud layer
@@ -373,35 +369,51 @@ def change_point_cloud(new_pos, layers, point_size, point_opacity):
     return patched_data
 """
 
-# shift the point cloud
-app.clientside_callback(
-    """
-    function(frame) {
-        if (window.updateLayerPosition) {
-            window.updateLayerPosition(frame);  // call function defined in the javascript file
-        }
-        return 'dummy2';
-    }
-    """,
-    Output('dummy2', 'id'),  # no output needed
-    Input('current-frame-store', 'data'),
-    prevent_initial_call=True
-)
-
 # initialize the point cloud
 app.clientside_callback(
     """
     function(data_dict) {
         if (window.initializeDeck) {
             console.log("Calling initializeDeck");
-            window.data_dict = data_dict;
-            window.initializeDeck(data_dict);  // call function defined in the javascript file
+            window.data_dict = data_dict;  // initialize the global variables
+            window.position = 0;
+            window.initializeDeck();  // call function defined in the javascript file
         }
         return 'dummy';
     }
     """,
-    Output('dummy', 'id'),  # no output needed
+    Output('dummy', 'id'),  # needed for the initial call
     Input('visualization-data', 'data')
+)
+
+# shift the point cloud
+app.clientside_callback(
+    """
+    function(position) {
+        if (window.updatePosition) {
+            window.position = position;
+            window.updatePosition();  // call function defined in the javascript file
+        }
+    }
+    """,
+    Input('current-frame-store', 'data'),
+    prevent_initial_call=True
+)
+
+# change point cloud visibility, point size or opacity
+app.clientside_callback(
+    """
+    function(layers, point_size, opacity) {  // Dash sometimes gives inputs as strings, sometimes as numbers!
+        if (window.updatePCLayerProps) {
+            // call function defined in the javascript file
+            window.updatePCLayerProps(layers.includes('pcl'), point_size, opacity);
+        }
+    }
+    """,
+    Input('point-cloud-checkbox', 'value'),
+    Input('point-size-input', 'value'),
+    Input('point-opacity-input', 'value'),
+    prevent_initial_call=True
 )
 
 if __name__ == "__main__":
