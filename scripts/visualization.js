@@ -1,5 +1,6 @@
 import {Deck} from '@deck.gl/core';
 import {PointCloudLayer} from '@deck.gl/layers';
+import {LineLayer} from '@deck.gl/layers';
 import {OrbitView} from '@deck.gl/core';
 import transf from './transf.js';
 
@@ -34,10 +35,29 @@ function initializeDeck() {
     visible: window.data_dict.layers[0].visible,
   });
 
+  window.line_layer = new LineLayer({
+    id: 'line-layer',
+    data: [
+      {from: {x:22.33637810, y:-0.82757741, z:-1.58382225}, to: {x:44.93216324, y:-1.24530971, z:-1.93530166}}
+    ],
+    getColor: [255, 100, 100],
+    getSourcePosition: d => [
+      d.from.x * transf[0].a + d.from.y * transf[0].b + d.from.z * transf[0].c + transf[0].d,
+      d.from.x * transf[0].e + d.from.y * transf[0].f + d.from.z * transf[0].g + transf[0].h,
+      d.from.x * transf[0].i + d.from.y * transf[0].j + d.from.z * transf[0].k + transf[0].l,
+    ],
+    getTargetPosition: d => [
+      d.to.x * transf[0].a + d.to.y * transf[0].b + d.to.z * transf[0].c + transf[0].d,
+      d.to.x * transf[0].e + d.to.y * transf[0].f + d.to.z * transf[0].g + transf[0].h,
+      d.to.x * transf[0].i + d.to.y * transf[0].j + d.to.z * transf[0].k + transf[0].l,
+    ],
+    getWidth: 40
+  });
+
   window.deck = new Deck({
     initialViewState: INITIAL_VIEW_STATE,
     views: [VIEW],
-    layers: [POINT_CLOUD_LAYER],
+    layers: [POINT_CLOUD_LAYER, window.line_layer],
     canvas: 'visualization-canvas'
   });
 }
@@ -45,7 +65,7 @@ function initializeDeck() {
 // to change camera position
 function updatePosition() {
   var new_pos = window.position;
-  const updatedLayer = new PointCloudLayer({
+  const updatedPCLayer = new PointCloudLayer({
     id: 'point-cloud-layer',
     data: window.data_dict.layers[0].data,
     getColor: d => [
@@ -65,7 +85,32 @@ function updatePosition() {
       getPosition: new_pos        // needed when changing getPosition or getColor
     }
   });
-  window.deck.setProps({layers: [updatedLayer]});
+
+  const updatedLineLayer = new LineLayer({
+    id: 'line-layer',
+    data: [
+      {from: {x:22.33637810, y:-0.82757741, z:-1.58382225}, to: {x:44.93216324, y:-1.24530971, z:-1.93530166}}
+    ],
+    getColor: [255, 100, 100],
+    getSourcePosition: d => [
+      d.from.x * transf[new_pos].a + d.from.y * transf[new_pos].b + d.from.z * transf[new_pos].c + transf[new_pos].d,
+      d.from.x * transf[new_pos].e + d.from.y * transf[new_pos].f + d.from.z * transf[new_pos].g + transf[new_pos].h,
+      d.from.x * transf[new_pos].i + d.from.y * transf[new_pos].j + d.from.z * transf[new_pos].k + transf[new_pos].l,
+    ],
+    getTargetPosition: d => [
+      d.to.x * transf[new_pos].a + d.to.y * transf[new_pos].b + d.to.z * transf[new_pos].c + transf[new_pos].d,
+      d.to.x * transf[new_pos].e + d.to.y * transf[new_pos].f + d.to.z * transf[new_pos].g + transf[new_pos].h,
+      d.to.x * transf[new_pos].i + d.to.y * transf[new_pos].j + d.to.z * transf[new_pos].k + transf[new_pos].l,
+    ],
+    getWidth: 40,
+    updateTriggers: {
+      getSourcePosition: new_pos,        // needed when changing getPosition or getColor
+      getTargetPosition: new_pos
+    }
+  });
+  window.line_layer = updatedLineLayer;
+  
+  window.deck.setProps({layers: [updatedPCLayer, updatedLineLayer]});
 }
 
 // to change point cloud visibility, point size or opacity
@@ -80,7 +125,7 @@ function updatePCLayerProps(visible, point_size, opacity) {
   window.data_dict.layers[0].pointSize = parseInt(point_size, 10);
   window.data_dict.layers[0].opacity = parseFloat(opacity);
 
-  const updatedLayer = new PointCloudLayer({
+  const updatedPCLayer = new PointCloudLayer({
     id: 'point-cloud-layer',
     data: window.data_dict.layers[0].data,
     getColor: d => [
@@ -97,7 +142,7 @@ function updatePCLayerProps(visible, point_size, opacity) {
     pointSize: window.data_dict.layers[0].pointSize,
     visible: window.data_dict.layers[0].visible,
   });
-  window.deck.setProps({layers: [updatedLayer]});
+  window.deck.setProps({layers: [updatedPCLayer, window.line_layer]});
 }
 
 // make the functions global
