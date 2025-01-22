@@ -46,6 +46,18 @@ Dash Deck má navyše tú výhodu, že umožňuje vynechať Pydeck a definovať 
 
 \chapter{Návrh aplikácie pre vizualizáciu dát z železničného mobilného mapovacieho systému}
 
+Cieľom tejto práce je vytvoriť používateľskú aplikáciu. Výsledná aplikácia by mala byť webová, aby ju bolo možné spustiť jednoducho pomocou webového prehliadača. Mala by spĺňať nasledujúce body:
+
+\begin{itemize}
+    \item Zobrazenie dát z mobilného mapovacieho systému. Tieto dáta sú tvorené mračnom bodov, kamerovým záznamom, vektorovými dátami a údajmi o pohybe vlaku a mali by byť zobrazené z pohľadu strojvedúceho vlaku.
+    \item Umožniť používateľovi vybrať si konkrétnu pozíciu vlaku aj prehrať si animáciu pohybu vlaku.
+    \item Umožniť používateľovi nahrať súbory s dátami na zobrazenie: súbor s mračnom bodov, video z kamery na čele vlaku, súbor s vektorovými dátami, textové súbory s údajmi o pohybe vlaku - pole translácií a pole rotácií.
+    \item Poskytnúť používateľovi možnosti prispôsobenia zobrazenia, ako napríklad zmeny viditeľnosti jednotlivých vrstiev (mračno bodov, vektorové dáta, kamerový záznam) a základné nastavenia zobrazenia mračna bodov (rôzne farebné škály podľa intenzity, veľkosť a priehľadnosť bodov, zobrazenie bodov len do určitej vzdialenosti). Užitočná by bola aj možnosť doladiť parametre zobrazovania mračna bodov a vektorových dát (posun aj otočenie kamery doprava/doľava, nahor/nadol, ohnisková vzdialenosť), aby bolo možné toto zobrazenie prispôsobiť záznamu z kamery. Kamera totiž môže byť na vlaku rôzne umiestnená a údaje z nej môžu byť oproti údajom z mračna bodov posunuté.
+    \item Zobrazovať prejazdný profil vlaku v istej vzdialenosti pred vlakom a umožnovať prehrať animáciu jeho pohybu (podľa vektorových údajoch o koľajniciach).
+    \item Detekovať prekážky na trati.
+    \item Umožňovať kolorizáciu mračna bodov podľa kamerového záznamu.
+\end{itemize}
+
 \section{Návrh používateľského rozhrania}
 
 \chapter{Implementácia navrhnutej aplikácie}
