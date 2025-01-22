@@ -54,11 +54,16 @@ def create_transformation_string(transf_mat):
             f"+ {transf_mat[2][3]}"
     )
 
-def intensity_to_colors(pc_nparray):
-    red = np.where(pc_nparray[:, 3] > 6, 7 * (pc_nparray[:, 3] - 6), 0)
-    green = np.where(pc_nparray[:, 3] > 6, 255 - 7 * (pc_nparray[:, 3] - 6), 51 * (pc_nparray[:, 3]))
-    blue = np.where(pc_nparray[:, 3] > 6, 0, 255 - 51 * (pc_nparray[:, 3]))
-    return np.column_stack((pc_nparray[:, :3], red, green, blue))
+# creates a JSON-like array of lines from a numpy array of points representing a polyline
+def create_lines_data(points_nparray):
+    lines = []
+    for i in range(len(points_nparray) - 1):
+        line = {
+            "from": {"x": points_nparray[i, 0], "y": points_nparray[i, 1], "z": points_nparray[i, 2]},
+            "to": {"x": points_nparray[i+1, 0], "y": points_nparray[i+1, 1], "z": points_nparray[i+1, 2]}
+        }
+        lines.append(line)
+    return lines
 
 # load point cloud
 pc = PointCloud.from_path("data/scans.pcd")
@@ -66,8 +71,11 @@ pc_nparray = pc.numpy(("x", "y", "z", "intensity"))
 
 #pc_nparray = pc_nparray[::10]
 
-# pre-count colors
-#pc_nparray = intensity_to_colors(pc_nparray)
+# load vector data (lines)
+lines1 = create_lines_data(load_csv_into_nparray("data/polyline1.csv"))
+lines2 = create_lines_data(load_csv_into_nparray("data/polyline2.csv"))
+lines3 = create_lines_data(load_csv_into_nparray("data/polyline3.csv"))
+lines_data = lines1 + lines2 + lines3
 
 # load data about camera positions (order of the columns: y, z, x)
 trans_nparray = load_csv_into_nparray("data/trans.csv")
@@ -87,7 +95,7 @@ pc_df = pd.DataFrame(pc_nparray, columns=["x", "y", "z", "intensity"])
 
 # prepare the visualization of the point cloud using Deck.GL
 point_cloud_layer = {
-    "@@type": "PointCloudLayer",
+    #"@@type": "PointCloudLayer",
     "data": pc_df.to_dict(orient="records"),
     #"getColor": "@@=[intensity*6, intensity*6, intensity*6]",
     #"getPosition": f"@@=[{transf_strings[0]}]",
@@ -99,25 +107,31 @@ point_cloud_layer = {
     #}
 }
 
+line_layer = {
+    "data": lines_data,
+    "color": [255, 100, 100],
+    "width": 40,
+    "visible": True
+}
+
 view_state = {
     "rotationOrbit": ROTATION_ORBIT,
     "rotationX": ROTATION_X,
     "target": TARGET,
-    "zoom": ZOOM,
-    "controller": True
+    "zoom": ZOOM
 }
 
 view = {
-    "@@type": "OrbitView",
+    #"@@type": "OrbitView",
     "far": FAR_PLANE,
     "fovy": FOVY,
-    "controller": True
+    "controller": False
 }
 
 deck_dict = {
     "initialViewState": view_state,
     "views": [view],
-    "layers": [point_cloud_layer],
+    "layers": [point_cloud_layer, line_layer],
 }
 
 # create a Dash app
@@ -176,7 +190,7 @@ right_panel = [
     dbc.Row(camera_position_widget),
     dbc.Row(html.Div("Zobrazení vrstev:")),
     dbc.Row(dcc.Checklist(
-            options=[{'label': ' záber z kamery', 'value': 'pic'}],
+            options=[{'label': ' záběr z kamery', 'value': 'pic'}],
             value=['pic'],
             id='camera-picture-checkbox'
         )
@@ -185,6 +199,12 @@ right_panel = [
             options=[{'label': ' mračno bodů', 'value': 'pcl'}],
             value=['pcl'],
             id='point-cloud-checkbox'
+        )
+    ),
+    dbc.Row(dcc.Checklist(
+            options=[{'label': ' vektorová data', 'value': 'vec'}],
+            value=['vec'],
+            id='vector-data-checkbox'
         )
     ),
     dbc.Placeholder(color="black", size="xs"),
@@ -340,35 +360,6 @@ def change_background(new_pos, layers):
         patched_style["visibility"] = "hidden"
     return f"/assets/video_frames/frame_{new_pos}.jpg", patched_style
 
-"""
-# react to changed frame number, point cloud layer visibility or visualization parameters
-@callback(
-    Output('point-cloud-visualization', 'data'),
-    Input('current-frame-store', 'data'),
-    Input('point-cloud-checkbox', 'value'),
-    Input('point-size-input', 'value'),
-    Input('point-opacity-input', 'value'),
-    prevent_initial_call=True
-)
-def change_point_cloud(new_pos, layers, point_size, point_opacity):
-    patched_data = Patch()
-    
-    elif triggered_id == 'point-cloud-checkbox':
-        # change the visibility of point cloud layer
-        if 'pcl' in layers:
-            patched_data["layers"][0]["visible"] = True
-        else:
-            patched_data["layers"][0]["visible"] = False
-    
-    elif triggered_id == 'point-size-input':
-        patched_data["layers"][0]["pointSize"] = point_size
-
-    elif triggered_id == 'point-opacity':
-        patched_data["layers"][0]["opacity"] = point_opacity 
-
-    return patched_data
-"""
-
 # initialize the point cloud
 app.clientside_callback(
     """
@@ -377,7 +368,7 @@ app.clientside_callback(
             console.log("Calling initializeDeck");
             window.data_dict = data_dict;  // initialize the global variables
             window.position = 0;
-            window.initializeDeck();  // call function defined in the javascript file
+            window.initializeDeck();  // call function defined in the JavaScript file
         }
         return 'dummy';
     }
@@ -392,7 +383,7 @@ app.clientside_callback(
     function(position) {
         if (window.updatePosition) {
             window.position = position;
-            window.updatePosition();  // call function defined in the javascript file
+            window.updatePosition();  // call function defined in the JavaScript file
         }
     }
     """,
@@ -405,7 +396,7 @@ app.clientside_callback(
     """
     function(layers, point_size, opacity) {  // Dash sometimes gives inputs as strings, sometimes as numbers!
         if (window.updatePCLayerProps) {
-            // call function defined in the javascript file
+            // call function defined in the JavaScript file
             window.updatePCLayerProps(layers.includes('pcl'), point_size, opacity);
         }
     }
@@ -413,6 +404,20 @@ app.clientside_callback(
     Input('point-cloud-checkbox', 'value'),
     Input('point-size-input', 'value'),
     Input('point-opacity-input', 'value'),
+    prevent_initial_call=True
+)
+
+# change vector data visibility
+app.clientside_callback(
+    """
+    function(layers) {
+        if (window.updateLineLayerProps) {
+            // call function defined in the JavaScript file
+            window.updateLineLayerProps(layers.includes('vec'));
+        }
+    }
+    """,
+    Input('vector-data-checkbox', 'value'),
     prevent_initial_call=True
 )
 

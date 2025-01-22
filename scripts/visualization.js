@@ -17,7 +17,7 @@ function initializeDeck() {
       controller: window.data_dict.views[0].controller
   });
 
-  const POINT_CLOUD_LAYER = new PointCloudLayer({
+  window.pc_layer = new PointCloudLayer({
     id: 'point-cloud-layer',
     data: window.data_dict.layers[0].data,
     getColor: d => [
@@ -37,10 +37,8 @@ function initializeDeck() {
 
   window.line_layer = new LineLayer({
     id: 'line-layer',
-    data: [
-      {from: {x:22.33637810, y:-0.82757741, z:-1.58382225}, to: {x:44.93216324, y:-1.24530971, z:-1.93530166}}
-    ],
-    getColor: [255, 100, 100],
+    data: window.data_dict.layers[1].data,
+    getColor: window.data_dict.layers[1].color,
     getSourcePosition: d => [
       d.from.x * transf[0].a + d.from.y * transf[0].b + d.from.z * transf[0].c + transf[0].d,
       d.from.x * transf[0].e + d.from.y * transf[0].f + d.from.z * transf[0].g + transf[0].h,
@@ -51,13 +49,14 @@ function initializeDeck() {
       d.to.x * transf[0].e + d.to.y * transf[0].f + d.to.z * transf[0].g + transf[0].h,
       d.to.x * transf[0].i + d.to.y * transf[0].j + d.to.z * transf[0].k + transf[0].l,
     ],
-    getWidth: 40
+    getWidth: window.data_dict.layers[1].width,
+    visible: window.data_dict.layers[1].visible
   });
 
   window.deck = new Deck({
     initialViewState: INITIAL_VIEW_STATE,
     views: [VIEW],
-    layers: [POINT_CLOUD_LAYER, window.line_layer],
+    layers: [window.pc_layer, window.line_layer],
     canvas: 'visualization-canvas'
   });
 }
@@ -85,13 +84,12 @@ function updatePosition() {
       getPosition: new_pos        // needed when changing getPosition or getColor
     }
   });
+  window.pc_layer = updatedPCLayer;
 
   const updatedLineLayer = new LineLayer({
     id: 'line-layer',
-    data: [
-      {from: {x:22.33637810, y:-0.82757741, z:-1.58382225}, to: {x:44.93216324, y:-1.24530971, z:-1.93530166}}
-    ],
-    getColor: [255, 100, 100],
+    data: window.data_dict.layers[1].data,
+    getColor: window.data_dict.layers[1].color,
     getSourcePosition: d => [
       d.from.x * transf[new_pos].a + d.from.y * transf[new_pos].b + d.from.z * transf[new_pos].c + transf[new_pos].d,
       d.from.x * transf[new_pos].e + d.from.y * transf[new_pos].f + d.from.z * transf[new_pos].g + transf[new_pos].h,
@@ -102,24 +100,21 @@ function updatePosition() {
       d.to.x * transf[new_pos].e + d.to.y * transf[new_pos].f + d.to.z * transf[new_pos].g + transf[new_pos].h,
       d.to.x * transf[new_pos].i + d.to.y * transf[new_pos].j + d.to.z * transf[new_pos].k + transf[new_pos].l,
     ],
-    getWidth: 40,
+    getWidth: window.data_dict.layers[1].width,
+    visible: window.data_dict.layers[1].visible,
     updateTriggers: {
       getSourcePosition: new_pos,        // needed when changing getPosition or getColor
       getTargetPosition: new_pos
     }
   });
   window.line_layer = updatedLineLayer;
-  
+
   window.deck.setProps({layers: [updatedPCLayer, updatedLineLayer]});
 }
 
 // to change point cloud visibility, point size or opacity
 function updatePCLayerProps(visible, point_size, opacity) {
   var pos = window.position;
-
-  //console.log("is_visible:", is_visible);
-  //console.log("new_size:", new_size, typeof new_size);
-  //console.log("pos:", pos);
 
   window.data_dict.layers[0].visible = visible;
   window.data_dict.layers[0].pointSize = parseInt(point_size, 10);
@@ -142,11 +137,42 @@ function updatePCLayerProps(visible, point_size, opacity) {
     pointSize: window.data_dict.layers[0].pointSize,
     visible: window.data_dict.layers[0].visible,
   });
+  window.pc_layer = updatedPCLayer;
+
   window.deck.setProps({layers: [updatedPCLayer, window.line_layer]});
+}
+
+// to change vector data visibility
+function updateLineLayerProps(visible) {
+  var pos = window.position;
+
+  window.data_dict.layers[1].visible = visible;
+
+  const updatedLineLayer = new LineLayer({
+    id: 'line-layer',
+    data: window.data_dict.layers[1].data,
+    getColor: window.data_dict.layers[1].color,
+    getSourcePosition: d => [
+      d.from.x * transf[new_pos].a + d.from.y * transf[new_pos].b + d.from.z * transf[new_pos].c + transf[new_pos].d,
+      d.from.x * transf[new_pos].e + d.from.y * transf[new_pos].f + d.from.z * transf[new_pos].g + transf[new_pos].h,
+      d.from.x * transf[new_pos].i + d.from.y * transf[new_pos].j + d.from.z * transf[new_pos].k + transf[new_pos].l,
+    ],
+    getTargetPosition: d => [
+      d.to.x * transf[new_pos].a + d.to.y * transf[new_pos].b + d.to.z * transf[new_pos].c + transf[new_pos].d,
+      d.to.x * transf[new_pos].e + d.to.y * transf[new_pos].f + d.to.z * transf[new_pos].g + transf[new_pos].h,
+      d.to.x * transf[new_pos].i + d.to.y * transf[new_pos].j + d.to.z * transf[new_pos].k + transf[new_pos].l,
+    ],
+    getWidth: window.data_dict.layers[1].width,
+    visible: window.data_dict.layers[1].visible
+  });
+  window.line_layer = updatedLineLayer;
+  
+  window.deck.setProps({layers: [window.pc_layer, updatedLineLayer]});
 }
 
 // make the functions global
 window.initializeDeck = initializeDeck;
 window.updatePosition = updatePosition;
 window.updatePCLayerProps = updatePCLayerProps;
+window.updateLineLayerProps = updateLineLayerProps;
 
