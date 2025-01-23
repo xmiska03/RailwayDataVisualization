@@ -6,7 +6,7 @@
 
 \chapter{Vizualizácia dát z~mobilných mapovacích systémov}
 
-[popis, aké dáta produkujú m. m. s.]
+[stručný popis, aké dáta produkujú m. m. s.]
 
 \section{Dierkový model kamery -- teoretický základ zobrazenia}
 
@@ -32,7 +32,14 @@ Vizualizácia dát v~deck.gl sa skladá z~dvoch základných častí:
 
 Napriek tomu, že je framework deck.gl primárne určený pre použitie v~Javascripte, je možné ho použiť aj v~jazyku Python, a to pomocou knižnice \textbf{Pydeck}. Tá je pomerne jednoduchá a podstatou jej činnosti je, že prevedie kód napísaný v~jazyku Python do formátu JSON. Framework deck.gl má totiž modul @deck.gl/json, ktorý prijíma reprezentáciu vizualizácie vo formáte JSON a transformuje ju do javascriptového kódu (na definície funkcií a deck.gl objektov)\footnote{Ukážka rozhrania modulu @deck.gl/json je na \url{https://deck.gl/playground}.}.
 
-Knižnica Pydeck je dobrým prostriedkom na vytvorenie jednoduchých vizualizácií, s~ktorými môže používateľ interagovať pohybmi myši. Jej možnosti sú však oproti pôvodnému frameworku deck.gl veľmi obmedzené. Nie je však vhodná na vytváranie zložitejších animácií s~veľkým množstvom dát, pretože sa aj po tej najmenšej zmene musia dáta a definícia vizualizácie nanovo prevádzať do formátu JSON a následne na javascriptový kód, čo je veľmi časovo náročné.
+Knižnica Pydeck je dobrým prostriedkom na vytvorenie jednoduchých vizualizácií, s~ktorými môže používateľ interagovať pohybmi myši. Jej možnosti sú však oproti pôvodnému frameworku deck.gl veľmi obmedzené. Nie je však vhodná na vytváranie zložitejších animácií s~veľkým množstvom dát, pretože sa aj po tej najmenšej zmene musia dáta a definícia vizualizácie nanovo prevádzať do formátu JSON a následne na javascriptový kód (obrázok \ref{fig:pydeck_dashdeck_schema}), čo je veľmi časovo náročné.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=1\linewidth]{text_prace/obrazky-figures/pydeck_dashdeck_transformacie.pdf}
+    \caption{Schéma vzťahov medzi technológiami Pydeck, Dash Deck a deck.gl.}
+    \label{fig:pydeck_dashdeck_schema}
+\end{figure}
 
 \section{Frameworky pre tvorbu interaktívnej webovej aplikácie v~jazyku Python}
 
@@ -40,11 +47,9 @@ Knižnica Pydeck je dobrým prostriedkom na vytvorenie jednoduchých vizualizác
 
 Streamlit a Dash sú frameworky, ktoré majú rovnaké zameranie: oba slúžia na tvorbu webových aplikácií pre prácu s~dátami (\emph{data apps}) v~jazyku Python. Dash je oproti Streamlitu na nižšej úrovni abstrakcie, pretože sám o~sebe nemá žiaden vizuálny štýl a mnohé jeho komponenty sa priamo mapujú na HTML elementy, napríklad \texttt{dash.html.Div} a \texttt{dash.html.H1} \cite{streamlit_documentation}\cite{dash_documentation}.
 
-Oba frameworky majú podporu pre Pydeck, u~Streamlitu je priamo k~dispozícii element \texttt{st.pydeck\_chart} a k~Dashu je možné pridať knižnicu \textbf{Dash Deck}. Ukázalo sa však, že \texttt{st.pydeck\_chart} podporuje iba pohľad \texttt{MapView}, ktorý je určený na zobrazenie dát na mape a nedá sa použiť na perspektívne zobrazenie bodov v~trojrozmernom priestore.
+Oba frameworky majú podporu pre Pydeck, u~Streamlitu je priamo k~dispozícii element \texttt{st.pydeck\_chart} a k~Dashu má na tento účel vytvorenú prídavnú knižnicu \textbf{Dash Deck}. Ukázalo sa však, že \texttt{st.pydeck\_chart} podporuje iba pohľad \texttt{MapView}, ktorý je určený na zobrazenie dát na mape a nedá sa použiť na perspektívne zobrazenie bodov v~trojrozmernom priestore.
 
-Dash Deck má navyše tú výhodu, že umožňuje vynechať Pydeck a definovať zobrazenie pomocou slovníkov so štruktúrou zodpovedajúcou tej, ktorú vyžaduje modul @deck.gl/json. To trochu zefektívni vykonávanie zmien vo vizualizácii, keďže to umožní upravovať jednotlivé časti zvlášť.
-
-[obrázok ilustrujúci transformácie]
+Dash Deck má navyše tú výhodu, že umožňuje vynechať Pydeck a definovať zobrazenie pomocou slovníkov so štruktúrou zodpovedajúcou tej, ktorú vyžaduje modul @deck.gl/json, čo je znázornené na obrázku \ref{fig:pydeck_dashdeck_schema}. To trochu zefektívni vykonávanie zmien vo vizualizácii, keďže taká reprezentácia umožní jednoduchšie vykonávanie úprav.
 
 \subsubsection{Popis frameworku Dash}
 
@@ -70,7 +75,7 @@ Cieľom tejto práce je vytvoriť používateľskú aplikáciu. Výsledná aplik
 
 \chapter{Implementácia navrhnutej aplikácie}
 
-Prvou fázou implementácie bolo napísanie skriptu v~jazyku Python, ktorý vykresľoval mračno bodov bez použitia špeciálnych knižníc či frameworkov. K~dispozícii pritom bola jedna sada ukážkových dát, ktorá sa skladala z~mračna bodov, kalibračnej matice a postupnosti translácií a rotácií, ktoré predstavovali pohyb vlaku po trati. Mračno bodov obsahovalo 201880 bodov s~intenzitou od 0 do 42 a bolo definovaných 500 polôh vlaku. K~tomu boli dodané obrázky, ktoré ukazovali, ako by mal vyzerať výsledok zobrazenia (obrázok \ref{fig:referencny-obrazok}).
+Prvou fázou implementácie bolo napísanie skriptu v~jazyku Python, ktorý vykresľoval mračno bodov bez použitia špeciálnych knižníc či frameworkov. K~dispozícii pritom bola jedna sada ukážkových dát, ktorá sa skladala z~mračna bodov, kalibračnej matice a postupnosti translácií a rotácií, ktoré predstavovali pohyb vlaku po trati. Mračno bodov obsahovalo 201~880 bodov s~intenzitou od 0 do 42 a bolo definovaných 500 polôh vlaku. K~tomu boli dodané obrázky, ktoré ukazovali, ako by mal vyzerať výsledok zobrazenia (obrázok \ref{fig:referencny-obrazok}).
 
 \begin{figure}[h]
     \centering
@@ -89,7 +94,7 @@ Tento čas sa podarilo významne zredukovať použitím knižnice Dash Deck bez 
 
 \section{Optimalizácia vykresľovania mračna bodov priamym použitím jazyka JavaScript}
 
-Pythonový framework Dash používa na vytváranie používateľského rozhrania JavaScript, konkrétne framework React \cite{dash_documentation}. Jeho tvorcovia rátali s~tým, že vývojári, ktorí ho budú používať, budú niekedy chcieť priamo použiť javascriptový kód. Preto to tento framework umožňuje viacerými spôsobmi:
+Pythonový framework Dash interne používa na vytváranie používateľského rozhrania JavaScript, konkrétne framework React \cite{dash_documentation}. Jeho tvorcovia rátali s~tým, že vývojári, ktorí ho budú používať, budú niekedy chcieť priamo použiť javascriptový kód. Preto to tento framework umožňuje viacerými spôsobmi:
 
 \begin{itemize}
     \item Klientske callbacky. Podobajú sa tým štandardným, ale na rozdiel od nich bežia iba na klientovi a píšu sa v~jazyku JavaScript. Štandardné callbacky bežia na serveri a píšu sa v~Pythone.
@@ -101,7 +106,30 @@ V~tejto práci bola pre jednoduchosť využitá prvá a druhá možnosť. Bol na
 
 Pre správne pripojenie zdrojových kódov frameworku deck.gl k~javascriptovému kódu tak, aby mohol fungovať v~rámci aplikácie napísanej vo frameworku Dash, je nutné použiť bundler. V~rámci tejto práce bol použitý bundler Webpack. Výstupnému skriptu je potrebné nastaviť príponu \texttt{.mjs}, aby ho Dash spustil ako modul.
 
-Výsledky optimalizácie sú zaznamenané v~tabuľke ... .
+Výkonnosť vykresľovania mračna bodov pred a po optimalizácii je vzhľadom na riadenie animácie pomocou komponentu \texttt{Interval} pomerne ťažké určiť. Ten má síce podľa dokumentácie zabezpečovať periodické volanie funkcií, ale v~praxi sa ukázalo, že jeho presnosť nie je veľká a navyše animáciu spomaľuje, pretože funguje na základe komunikácie medzi klientom a serverom. Preto by bolo vhodné ho niečím nahradiť, napríklad riadením animácie v~Javascripte iba na klientskej strane.
+
+
+\begin{table}[h]
+    \centering
+    \begin{tabular}{m{10em}|m{13em}|m{12em}}
+        {\RaggedRight Nastavenie parametra \texttt{interval} [ms]} &  {\RaggedRight Čas, za ktorý prebehla celá animácia (500 snímok) [s]} & {\RaggedRight Priemerný čas vykreslenia jedného snímku [ms]} \\ \hline
+         &  &  \\
+         &  &  \\
+    \end{tabular}
+    \caption{Výkonnosť vykresľovania mračna bodov obsahujúceho 201~880 bodov pred optimalizáciou, teda iba pomocou kódu v~jazyku Python. Použité technológie: Python, Dash, Dash Deck.}
+    \label{tab:js_optimalizacia}
+\end{table}
+
+\begin{table}[h]
+    \centering
+    \begin{tabular}{m{10em}|m{13em}|m{12em}}
+        {\RaggedRight Nastavenie parametra \texttt{interval} [ms]} &  {\RaggedRight Čas, za ktorý prebehla celá animácia (500 snímok) [s]} & {\RaggedRight Priemerný čas vykreslenia jedného snímku [ms]} \\ \hline
+         &  &  \\
+         &  &  \\
+    \end{tabular}
+    \caption{Výkonnosť vykresľovania mračna bodov obsahujúceho 201~880 bodov po optimalizácii, teda iba pomocou vloženia kódu v~jazyku Javascript. Použité technológie: Python, Dash, Javascript, deck.gl.}
+\end{table}
+
 
 \section{Experimenty a vyhodnotenie výsledkov}
 
