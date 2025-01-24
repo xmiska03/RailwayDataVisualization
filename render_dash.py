@@ -9,14 +9,14 @@ from scipy.spatial.transform import Rotation
 
 # visualization parameters
 POINT_SIZE = 10
-TARGET = [0, -0.3, 1.0]      # move the camera left/right, up/down
-ROTATION_ORBIT = 92          # turn the camera left/right
-ROTATION_X = 4.3             # turn the camera up/down
+TARGET = [0, -1, 0.5]      # move the camera left/right, up/down
+ROTATION_ORBIT = 91.5          # turn the camera left/right
+ROTATION_X = 1.3             # turn the camera up/down
 ZOOM = 9
-FOVY = 24                    # focal length
+FOVY = 32                    # focal length
 FAR_PLANE = 300
 OPACITY = 0.7
-ANIMATION_SPEED = 12          # frames per second
+ANIMATION_SPEED = 6          # frames per second
 ANIMATION_FRAMES_STEP = 2
 
 # loads a csv file into a numpy array
@@ -160,7 +160,7 @@ camera_position_widget = [
         type="number",
         min=0,
         max=frames_cnt-1
-    ), width=5)
+    ), width=7)
 ]
 
 point_size_widget = [
@@ -171,7 +171,17 @@ point_size_widget = [
         type="number",
         min=1,
         max=50
-    ), width=5)
+    ), width=7)
+]
+
+point_color_widget = [
+    dbc.Col(html.Div("Barevná škála: "), width=5),
+    dbc.Col(dcc.Dropdown(
+        options={'rgb': 'rudo-zeleno-modrá', 'rg': 'rudo-modrá', 'gp': 'žluto-fialová'},
+        value='rgb',
+        clearable=False,
+        id='point-color-dropdown'
+    ), width=7)
 ]
 
 point_opacity_widget = [
@@ -183,7 +193,7 @@ point_opacity_widget = [
         min=0,
         max=1,
         step=0.1
-    ), width=5)
+    ), width=7)
 ]
 
 right_panel = [
@@ -210,13 +220,15 @@ right_panel = [
     dbc.Placeholder(color="black", size="xs"),
     dbc.Row(point_size_widget),
     dbc.Placeholder(color="black", size="xs"),
+    dbc.Row(point_color_widget),
+    dbc.Placeholder(color="black", size="xs"),
     dbc.Row(point_opacity_widget)
 ]
 
 visualization = html.Div(
     [
         html.Img(
-            src="/assets/video_frames/frame_0.jpg",
+            src="/assets/video_frames/0.jpg",
             id="background-img",
             style={'width': '100%', 'height': 'auto', "display": "block"}
         ),
@@ -281,7 +293,7 @@ app.layout = html.Div(children=
                     visualization,
                     dbc.Placeholder(color="black"),
                     dbc.Row(down_panel, justify="center", align="end")    
-                ], width=8),
+                ], width=6),
                 dbc.Col(right_panel, width=3)
             ],
             justify="center"
@@ -358,7 +370,7 @@ def change_background(new_pos, layers):
         patched_style["visibility"] = "visible"
     else:
         patched_style["visibility"] = "hidden"
-    return f"/assets/video_frames/frame_{new_pos}.jpg", patched_style
+    return f"/assets/video_frames/{new_pos}.jpg", patched_style
 
 # initialize the point cloud
 app.clientside_callback(
