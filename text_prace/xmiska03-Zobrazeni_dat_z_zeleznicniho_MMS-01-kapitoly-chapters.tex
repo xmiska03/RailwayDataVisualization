@@ -6,17 +6,118 @@
 
 \chapter{Vizualizácia dát z~mobilných mapovacích systémov}
 
-[stručný popis, aké dáta produkujú m. m. s.]
+[stručný popis, aké dáta je potrebné zobrazovať]
 
-\section{Dierkový model kamery -- teoretický základ zobrazenia}
+\section{Dierkový model kamery -- teoretický základ perspektívneho zobrazenia}
 
-[...]
+Kamera je v~počítačovej grafike pojem, ktorý označuje projekciu bodov z~trojrozmerného priestoru do roviny. Túto projekciu je možné vyjadriť pomocou matíc a je väčšinou bodová (\emph{central projection}).
 
-\section{Existujúce možnosti zobrazenia dát z~mobilných mapovacích systémov}
+Existuje niekoľko rôznych modelov kamery, z~ktorých najjednoduchší z~je dierkový model kamery (\emph{pinhole camera model}). U~tohto modelu je stred projekcie $\mathbf{C}$  (\emph{camera centre}) v~počiatku Euklidovského súradnicového systému a body sa premietajú do roviny $z = f$, ktorá sa označuje ako obrazová rovina (\emph{image plane}).
 
-[popis základných knižníc aj programov, ako napr. CloudCompare]
+Princíp zobrazenia je nasledovný: obrazom bodu $\mathbf{X} = (X, Y, Z)^T$ je bod $\mathbf{x}$, kde priamka vedúca bodom $\mathbf{X}$ a stredom projekcie $\mathbf{C}$ pretína obrazovú rovinu. Z~podobnosti trojuholníkov je možné odvodiť, že bod $\mathbf{x}$ má súradnice $(fX/Z, fY/Z, f)^T$.
 
-\subsection{Riešenia dostupné v~jazyku Python}
+Keďže všetky obrazy bodov ležia v~obrazovej rovine $z = f$, je možné poslednú súradnicu zanedbať a zapisovať súradnice bodu $\mathbf{x}$ v~súradnicovom systéme obrazovej roviny ako $(fX/Z, fY/Z)^T$.
+
+Túto projekciu môžeme v~homogénnych súradniciach zapísať pomocou násobenia matíc nasledovným spôsobom:
+
+$$ \mathbf{x} 
+=
+\begin{pmatrix}
+fX \\
+fY \\
+Z
+\end{pmatrix}
+=
+\begin{bmatrix}
+f &   &   & 0 \\
+  & f &   & 0 \\
+  &   & 1 & 0
+\end{bmatrix}
+\begin{pmatrix}
+X \\
+Y \\
+Z \\
+1
+\end{pmatrix}
+=
+\begin{bmatrix}
+f &   &   & 0 \\
+  & f &   & 0 \\
+  &   & 1 & 0
+\end{bmatrix}
+\mathbf{X}
+=
+\mathrm{P} \mathbf{X}
+$$
+
+Maticu $\mathrm{P}$ nazývame projekčnou maticou kamery (\emph{camera projection matrix}).
+
+\subsubsection{Rozšírenia základného dierkového modelu kamery}
+
+V~praxi väčšinou chceme vyjadriť body na obrazovej rovine v~súradnicovom systéme, ktorý nemá stred v~bode $(0, 0, f)^T$, ale v~ľubovoľnom bode $(-p_x, -p_y, f)^T$. Obrazom bodu $\mathbf{X} = (X, Y, Z)^T$ (v~súradnicovom systéme kamery) potom bude bod $\mathbf{x} = (fX/Z + p_x, fY/Z + p_y, f)^T$ (v~súradnicovom systéme obrazovej roviny). To je možné zahrnúť do projekčnej matice nasledovným spôsobom:
+
+$$ \mathrm{P} =
+\begin{bmatrix}
+f &   & p_x & 0 \\
+  & f & p_y & 0 \\
+  &   &  1  & 0
+\end{bmatrix}
+$$
+
+$$ \mathbf{x} 
+=
+\begin{pmatrix}
+fX/Z + p_x \\
+fY/Z + p_y \\
+1
+\end{pmatrix}
+=
+\begin{pmatrix}
+fX + Z p_x \\
+fY + Z p_y \\
+Z
+\end{pmatrix}
+=
+\begin{bmatrix}
+f &   &  p_x & 0 \\
+  & f &  p_y & 0 \\
+  &   &   1  & 0
+\end{bmatrix}
+\begin{pmatrix}
+X \\
+Y \\
+Z \\
+1
+\end{pmatrix}
+$$
+
+Maticu
+
+$$ \mathrm{K} 
+=
+\begin{bmatrix}
+f &   &  p_x \\
+  & f &  p_y \\
+  &   &   1  
+\end{bmatrix}
+$$
+
+nazývame kalibračnou maticou kamery (\emph{camera calibration matrix}) a medzi ňou a projekčnou maticou platí vzťah
+$\mathrm{P} = \begin{bmatrix} \mathrm{K} | 0 \end{bmatrix}$, kde $0$ predstavuje nulový stĺpcový vektor.
+
+Parametre $f$, $p_x$ a $p_y$ označujeme ako \textbf{vnútorné parametre kamery}.
+
+Až doteraz sme predpokladali, že kamera má stred v~počiatku súradnicovej sústavy a je \uv{otočená} v~smere osi $z$, t. j. že obrazová rovina je rovnobežná s~rovinou $xy$. V~praxi to tak však nebýva a kamera má v~súradnicovom systéme, v~ktorom sú definované zobrazované body, istú rotáciu a transláciu. V~takom prípade rozlišujeme všeobecný súradnicový systém a súradnicový systém kamery (\emph{world coordinate frame} a \emph{camera coordinate frame}).
+
+Ak $\widetilde{\mathbf{X}}$ je vektor súradníc bodu $\mathbf{X}$ vo všeobecnom súradnicovom systéme a vektor $\widetilde{\mathbf{X}}_{\mathrm{cam}}$ reprezentuje ten istý bod v~súradnicovom systéme kamery, tak platí vzťah 
+$$\widetilde{\mathbf{X}}_{\mathrm{cam}} = \mathrm{R} (\widetilde{\mathbf{X}} - \widetilde{\mathbf{C}}),$$ 
+kde $\widetilde{\mathbf{C}}$ sú súradnice stredu kamery vo všeobecnom súradnicovom systéme a $\mathrm{R}$ je rotačná matica $3 \times 3$ reprezentujúca orientáciu súradnicového systému kamery. To vedie k~novému vyjadreniu projekčnej matice ako $\mathrm{P} = \mathrm{K} \mathrm{R} \bigl[ \mathrm{I} | - \widetilde{\mathbf{C}} \bigr]$, kde $\mathrm{I}$ je jednotková matica $3 \times 3$.
+
+Parametre $\mathrm{R}$ a $\widetilde{\mathbf{C}}$ označujeme ako \textbf{vonkajšie parametre kamery}.
+
+Zdrojom všetkých informácií v~tejto sekcii je kniha \emph{Multiple View Geometry in Computer Vision} od autorov R. Hartley a A. Zisserman \cite{multiple_view_geometry}.
+
+\section{Existujúce možnosti zobrazenia dát z~mobilných mapovacích systémov v~jazyku Python}
 
 \subsubsection{Framework deck.gl a jeho nadstavba Pydeck}
 \label{sec:deck_gl}
@@ -106,29 +207,40 @@ V~tejto práci bola pre jednoduchosť využitá prvá a druhá možnosť. Bol na
 
 Pre správne pripojenie zdrojových kódov frameworku deck.gl k~javascriptovému kódu tak, aby mohol fungovať v~rámci aplikácie napísanej vo frameworku Dash, je nutné použiť bundler. V~rámci tejto práce bol použitý bundler Webpack. Výstupnému skriptu je potrebné nastaviť príponu \texttt{.mjs}, aby ho Dash spustil ako modul.
 
-Výkonnosť vykresľovania mračna bodov pred a po optimalizácii je vzhľadom na riadenie animácie pomocou komponentu \texttt{Interval} pomerne ťažké určiť. Ten má síce podľa dokumentácie zabezpečovať periodické volanie funkcií, ale v~praxi sa ukázalo, že jeho presnosť nie je veľká a navyše animáciu spomaľuje, pretože funguje na základe komunikácie medzi klientom a serverom. Preto by bolo vhodné ho niečím nahradiť, napríklad riadením animácie v~Javascripte iba na klientskej strane.
-
+Meranie výkonnosti vykresľovania mračna bodov pred a po optimalizácii je popísané v~tabuľkách \ref{tab:js_optimalizacia_pred} a \ref{tab:js_optimalizacia_po}.
 
 \begin{table}[h]
     \centering
-    \begin{tabular}{m{10em}|m{13em}|m{12em}}
-        {\RaggedRight Nastavenie parametra \texttt{interval} [ms]} &  {\RaggedRight Čas, za ktorý prebehla celá animácia (500 snímok) [s]} & {\RaggedRight Priemerný čas vykreslenia jedného snímku [ms]} \\ \hline
-         &  &  \\
-         &  &  \\
+    \begin{tabular}{>{\centering\arraybackslash}m{10em}|>{\centering\arraybackslash}m{13em}|>{\centering\arraybackslash}m{12em}}
+        {\RaggedRight Nastavenie parametra \texttt{interval} [ms]} &  {\RaggedRight Čas, za ktorý prebehla celá animácia (100 snímok) [s]} & {\RaggedRight Priemerný čas vykreslenia jedného snímku [ms]} \\ \hline
+        1000 & 101 & 1010 \\
+        800 & 80 & 800 \\
+        750 & 76 & 760 \\
+        700 & 72 & 720 \\
+        650 & 71 & 710 \\
+        600 & 70 & 700 \\
     \end{tabular}
-    \caption{Výkonnosť vykresľovania mračna bodov obsahujúceho 201~880 bodov pred optimalizáciou, teda iba pomocou kódu v~jazyku Python. Použité technológie: Python, Dash, Dash Deck.}
-    \label{tab:js_optimalizacia}
+    \caption{Výkonnosť vykresľovania mračna bodov obsahujúceho 201~880 bodov \textbf{pred optimalizáciou}, teda iba pomocou kódu v~jazyku Python. Použité technológie: Python, Dash, Dash Deck. Z~nameraných údajov vyplýva, že minimálny čas, ktorý stačí na vykreslenie jednej snímky, je asi 750~ms, čo znamená, že rýchlosť nedosahuje ani 2 snímky za sekundu.}
+    \label{tab:js_optimalizacia_pred}
 \end{table}
 
 \begin{table}[h]
     \centering
-    \begin{tabular}{m{10em}|m{13em}|m{12em}}
-        {\RaggedRight Nastavenie parametra \texttt{interval} [ms]} &  {\RaggedRight Čas, za ktorý prebehla celá animácia (500 snímok) [s]} & {\RaggedRight Priemerný čas vykreslenia jedného snímku [ms]} \\ \hline
-         &  &  \\
-         &  &  \\
+    \begin{tabular}{>{\centering\arraybackslash}m{10em}|>{\centering\arraybackslash}m{13em}|>{\centering\arraybackslash}m{12em}}
+         Nastavenie parametra \texttt{interval} [ms] &  Čas, za ktorý prebehla celá animácia (500 snímok) [s] & Priemerný čas vykreslenia jedného snímku [ms] \\ \hline
+        250 & 126 & 252 \\
+        200 & 101 & 202 \\
+        150 & 76 & 152 \\
+        125 & 68 & 136 \\
+        100 & 63 & 126 \\
+         75 & 62 & 124 \\
     \end{tabular}
-    \caption{Výkonnosť vykresľovania mračna bodov obsahujúceho 201~880 bodov po optimalizácii, teda iba pomocou vloženia kódu v~jazyku Javascript. Použité technológie: Python, Dash, Javascript, deck.gl.}
+    \caption{Výkonnosť vykresľovania mračna bodov obsahujúceho 201~880 bodov \textbf{po optimalizácii}, teda s~vykresľovaním dát v~jazyku Javascript. Použité technológie: Python, Dash, Javascript, deck.gl. Z~nameraných údajov vyplýva, že minimálny čas, ktorý stačí na vykreslenie jednej snímky, je asi 150~ms, čo zodpovedá rýchlosti asi 6 snímok za sekundu.}
+    \label{tab:js_optimalizacia_po}
 \end{table}
+
+Riadenie animácie pomocou komponentu \texttt{Interval} frameworku Dash je pomerne ťažkopádne, pretože funguje na základe komunikácie medzi klientom a serverom a tým animáciu spomaľuje. Preto by bolo vhodné ho niečím nahradiť, napríklad riadením animácie v~Javascripte iba na klientskej strane.
+
 
 
 \section{Experimenty a vyhodnotenie výsledkov}
