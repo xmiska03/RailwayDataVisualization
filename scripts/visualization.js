@@ -5,7 +5,32 @@ import {OrbitView} from '@deck.gl/core';
 import transf from './transf.js';
 
 
-console.log("Script visualization.js loaded");
+// color scales - mapping point intensity to colors
+// red - green - blue (from greatest to lowest intensity)
+function getColorRGB(d) {
+  return [
+    d.intensity > 6 ? 7 * (d.intensity - 6) : 0,
+    d.intensity > 6 ? 255 - 7 * (d.intensity - 6) : 51 * d.intensity,
+    d.intensity > 6 ? 0 : 255 - 51 * d.intensity
+  ];
+}
+
+function getColorRB(d) {
+  return [
+    6 * d.intensity,
+    0,
+    255 - 6 * d.intensity
+  ];
+}
+
+function getColorYR(d) {
+  return [
+    255,
+    6 * d.intensity,
+    0
+  ];
+}
+
 
 function initializeDeck() {
 
@@ -20,11 +45,11 @@ function initializeDeck() {
   window.pc_layer = new PointCloudLayer({
     id: 'point-cloud-layer',
     data: window.data_dict.layers[0].data,
-    getColor: d => [
-      d.intensity > 6 ? 7 * (d.intensity - 6) : 0,
-      d.intensity > 6 ? 255 - 7 * (d.intensity - 6) : 51 * d.intensity,
-      d.intensity > 6 ? 0 : 255 - 51 * d.intensity
-    ],
+    getColor: window.data_dict.layers[0].pointColor === 'rgb'
+      ? getColorRGB 
+      : window.data_dict.layers[0].pointColor === 'rb' 
+        ? getColorRB
+        : getColorPY,
     getPosition: d => [
       d.x * transf[0].a + d.y * transf[0].b + d.z * transf[0].c + transf[0].d,
       d.x * transf[0].e + d.y * transf[0].f + d.z * transf[0].g + transf[0].h,
@@ -61,17 +86,18 @@ function initializeDeck() {
   });
 }
 
+
 // to change camera position
 function updatePosition() {
   var new_pos = window.position;
   const updatedPCLayer = new PointCloudLayer({
     id: 'point-cloud-layer',
     data: window.data_dict.layers[0].data,
-    getColor: d => [
-      d.intensity > 6 ? 7 * (d.intensity - 6) : 0,
-      d.intensity > 6 ? 255 - 7 * (d.intensity - 6) : 51 * d.intensity,
-      d.intensity > 6 ? 0 : 255 - 51 * d.intensity
-    ],
+    getColor: window.data_dict.layers[0].pointColor === 'rgb'
+      ? getColorRGB 
+      : window.data_dict.layers[0].pointColor === 'rb' 
+        ? getColorRB
+        : getColorYR,
     getPosition: d => [
       d.x * transf[new_pos].a + d.y * transf[new_pos].b + d.z * transf[new_pos].c + transf[new_pos].d,
       d.x * transf[new_pos].e + d.y * transf[new_pos].f + d.z * transf[new_pos].g + transf[new_pos].h,
@@ -112,22 +138,24 @@ function updatePosition() {
   window.deck.setProps({layers: [updatedPCLayer, updatedLineLayer]});
 }
 
+
 // to change point cloud visibility, point size or opacity
-function updatePCLayerProps(visible, point_size, opacity) {
+function updatePCLayerProps(visible, point_size, point_color, opacity) {
   var pos = window.position;
 
   window.data_dict.layers[0].visible = visible;
   window.data_dict.layers[0].pointSize = parseInt(point_size, 10);
+  window.data_dict.layers[0].pointColor = point_color;
   window.data_dict.layers[0].opacity = parseFloat(opacity);
 
   const updatedPCLayer = new PointCloudLayer({
     id: 'point-cloud-layer',
     data: window.data_dict.layers[0].data,
-    getColor: d => [
-      d.intensity > 6 ? 7 * (d.intensity - 6) : 0,
-      d.intensity > 6 ? 255 - 7 * (d.intensity - 6) : 51 * d.intensity,
-      d.intensity > 6 ? 0 : 255 - 51 * d.intensity
-    ],
+    getColor: window.data_dict.layers[0].pointColor === 'rgb'
+              ? getColorRGB 
+              : window.data_dict.layers[0].pointColor === 'rb' 
+                ? getColorRB
+                : getColorYR,
     getPosition: d => [
       d.x * transf[pos].a + d.y * transf[pos].b + d.z * transf[pos].c + transf[pos].d,
       d.x * transf[pos].e + d.y * transf[pos].f + d.z * transf[pos].g + transf[pos].h,
@@ -136,11 +164,15 @@ function updatePCLayerProps(visible, point_size, opacity) {
     opacity: window.data_dict.layers[0].opacity,
     pointSize: window.data_dict.layers[0].pointSize,
     visible: window.data_dict.layers[0].visible,
+    updateTriggers: {
+      getColor: point_color        // needed when changing getPosition or getColor
+    }
   });
   window.pc_layer = updatedPCLayer;
 
   window.deck.setProps({layers: [updatedPCLayer, window.line_layer]});
 }
+
 
 // to change vector data visibility
 function updateLineLayerProps(visible) {

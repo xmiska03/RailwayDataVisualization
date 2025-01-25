@@ -100,6 +100,7 @@ point_cloud_layer = {
     #"getColor": "@@=[intensity*6, intensity*6, intensity*6]",
     #"getPosition": f"@@=[{transf_strings[0]}]",
     "pointSize": POINT_SIZE,
+    "pointColor": 'rgb',
     "opacity": OPACITY,
     "visible": True,
     #"transitions": {
@@ -109,7 +110,7 @@ point_cloud_layer = {
 
 line_layer = {
     "data": lines_data,
-    "color": [255, 100, 100],
+    "color": [255, 255, 0],
     "width": 40,
     "visible": True
 }
@@ -177,7 +178,7 @@ point_size_widget = [
 point_color_widget = [
     dbc.Col(html.Div("Barevná škála: "), width=5),
     dbc.Col(dcc.Dropdown(
-        options={'rgb': 'rudo-zeleno-modrá', 'rg': 'rudo-modrá', 'gp': 'žluto-fialová'},
+        options={'rgb': 'rudo-zeleno-modrá', 'rb': 'rudo-modrá', 'yr': 'žluto-rudá'},
         value='rgb',
         clearable=False,
         id='point-color-dropdown'
@@ -247,14 +248,6 @@ visualization = html.Div(
         dcc.Store(
             id='visualization-change',
         )
-        #dash_deck.DeckGL(
-        #data=deck_dict,
-        #style={"height": "60vh", 
-        #    "width": "60vw", 
-        #    "marginLeft": "4.5%", 
-        #    "marginTop": "6%"},
-        #id="point-cloud-visualization"
-        #)
     ],
     style = {
         "position": "relative" 
@@ -403,18 +396,19 @@ app.clientside_callback(
     prevent_initial_call=True
 )
 
-# change point cloud visibility, point size or opacity
+# change point cloud visibility, point size, color scale or opacity
 app.clientside_callback(
     """
-    function(layers, point_size, opacity) {  // Dash sometimes gives inputs as strings, sometimes as numbers!
-        if (window.updatePCLayerProps) {
+    function(layers, point_size, color_scale, opacity) {  
+            if (window.updatePCLayerProps) {
             // call function defined in the JavaScript file
-            window.updatePCLayerProps(layers.includes('pcl'), point_size, opacity);
+            window.updatePCLayerProps(layers.includes('pcl'), point_size, color_scale, opacity);
         }
     }
     """,
     Input('point-cloud-checkbox', 'value'),
-    Input('point-size-input', 'value'),
+    Input('point-size-input', 'value'),  # Dash sometimes gives number inputs as strings, sometimes as numbers!
+    Input('point-color-dropdown', 'value'),
     Input('point-opacity-input', 'value'),
     prevent_initial_call=True
 )
