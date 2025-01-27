@@ -1,4 +1,4 @@
-import {Deck} from '@deck.gl/core';
+import {Deck, FirstPersonView} from '@deck.gl/core';
 import {PointCloudLayer} from '@deck.gl/layers';
 import {LineLayer} from '@deck.gl/layers';
 import {OrbitView} from '@deck.gl/core';
@@ -36,7 +36,7 @@ function initializeDeck() {
 
   const INITIAL_VIEW_STATE = window.data_dict.initialViewState;
   
-  const VIEW = new OrbitView({
+  const VIEW = new FirstPersonView({
       far: window.data_dict.views[0].far,
       fovy: window.data_dict.views[0].fovy,
       controller: window.data_dict.views[0].controller

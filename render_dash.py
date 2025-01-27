@@ -8,16 +8,17 @@ from scipy.spatial.transform import Rotation
 
 
 # visualization parameters
-POINT_SIZE = 10
-TARGET = [0, -1, 0.5]      # move the camera left/right, up/down
-ROTATION_ORBIT = 91.5          # turn the camera left/right
-ROTATION_X = 1.3             # turn the camera up/down
-ZOOM = 9
-FOVY = 32                    # focal length
+POINT_SIZE = 16
+POSITION = [0, -1.1, 0.45]      # move the camera left/right, up/down
+BEARING = 91.5          # turn the camera left/right
+PITCH = 1.3             # turn the camera up/down
+ZOOM = 10
+FOVY = 37                    # focal length
 FAR_PLANE = 300
 OPACITY = 0.7
 ANIMATION_SPEED = 6          # frames per second
 ANIMATION_FRAMES_STEP = 2
+LINE_WIDTH = 50
 
 # loads a csv file into a numpy array
 def load_csv_into_nparray(file_address):
@@ -111,14 +112,14 @@ point_cloud_layer = {
 line_layer = {
     "data": lines_data,
     "color": [255, 255, 0],
-    "width": 40,
+    "width": LINE_WIDTH,
     "visible": True
 }
 
 view_state = {
-    "rotationOrbit": ROTATION_ORBIT,
-    "rotationX": ROTATION_X,
-    "target": TARGET,
+    "bearing": BEARING,
+    "pitch": PITCH,
+    "position": POSITION,
     "zoom": ZOOM
 }
 
@@ -126,7 +127,7 @@ view = {
     #"@@type": "OrbitView",
     "far": FAR_PLANE,
     "fovy": FOVY,
-    "controller": False
+    "controller": True
 }
 
 deck_dict = {
