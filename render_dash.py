@@ -413,19 +413,21 @@ app.clientside_callback(
     Input('visualization-data', 'data')
 )
 
+"""
 # shift the point cloud
 app.clientside_callback(
-    """
+    
     function(position) {
         if (window.updatePosition) {
             window.position = position;
             window.updatePosition();  // call function defined in the JavaScript file
         }
     }
-    """,
+    ,
     Input('current-frame-store', 'data'),
     prevent_initial_call=True
 )
+"""
 
 # change point cloud visibility, point size, color scale or opacity
 app.clientside_callback(

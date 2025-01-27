@@ -27,7 +27,7 @@ cap.release()
 """
 # create video from pictures
 fourcc = cv2.VideoWriter_fourcc(*'mp4v')  # Codec for mp4 format
-out = cv2.VideoWriter("assets/new_video.mp4", fourcc, 20, (2048,1536))
+out = cv2.VideoWriter("assets/new_video.mp4", fourcc, 25, (2048,1536))
 
 for i in range(500):
     frame = cv2.imread(f"assets/video_frames/{i}.jpg")
