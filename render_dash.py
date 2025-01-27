@@ -18,7 +18,7 @@ FAR_PLANE = 300
 OPACITY = 0.7
 ANIMATION_SPEED = 6          # frames per second
 ANIMATION_FRAMES_STEP = 2
-LINE_WIDTH = 50
+LINE_WIDTH = 60
 
 # loads a csv file into a numpy array
 def load_csv_into_nparray(file_address):
@@ -111,7 +111,7 @@ point_cloud_layer = {
 
 line_layer = {
     "data": lines_data,
-    "color": [255, 255, 0],
+    "color": [250, 100, 15],
     "width": LINE_WIDTH,
     "visible": True
 }
@@ -141,7 +141,7 @@ app = Dash(
     __name__,
     title = "Vizualizace dat z MMS",
     update_title = "Načítání...",
-    external_stylesheets = [dbc.themes.CYBORG, "https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css"]
+    external_stylesheets = [dbc.themes.FLATLY, "https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css"]
 )
 
 down_panel = [

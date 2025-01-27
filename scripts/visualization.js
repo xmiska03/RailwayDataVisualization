@@ -206,19 +206,20 @@ function updateLineLayerProps(visible) {
 }
 
 function animationStep() {
-  console.log("called in time:", Date.now() - animation_start);
-  window.updatePosition();
-  window.position++;
+  var currentTime = Date.now();
+  var elapsed = currentTime - window.animation_start;
 
-  if (position < 500) {
-    var nextFrameTime =  (animation_start + 40*position) - Date.now();
-    console.log(position, ":", nextFrameTime);
-    setTimeout(animationStep, nextFrameTime >= 0 ? nextFrameTime : 0);
-  }
+  window.position = Math.floor(elapsed / 40);
+  if (window.position >= 500) return;
+  window.updatePosition();
+
+  const nextFrameTime = window.animation_start + 40 * (window.position + 1) - Date.now();
+  setTimeout(animationStep, Math.max(0, nextFrameTime));
 }
 
 function runDeckAnimation() {
-  animation_start = Date.now();
+  window.animation_start = Date.now();
+  window.position = 0;
   animationStep();
 }
 
