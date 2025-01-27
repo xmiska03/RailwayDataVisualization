@@ -5,6 +5,8 @@ import {OrbitView} from '@deck.gl/core';
 import transf from './transf.js';
 
 
+window.position = 0;
+
 // color scales - mapping point intensity to colors
 // red - green - blue (from greatest to lowest intensity)
 function getColorRGB(d) {
@@ -202,9 +204,17 @@ function updateLineLayerProps(visible) {
   window.deck.setProps({layers: [window.pc_layer, updatedLineLayer]});
 }
 
+function runDeckAnimation() {
+  console.log("runDeckAnimation here");
+  setInterval(() => {
+    window.updatePosition();
+    window.position++;
+  }, 40);  
+}
+
 // make the functions global
 window.initializeDeck = initializeDeck;
 window.updatePosition = updatePosition;
 window.updatePCLayerProps = updatePCLayerProps;
 window.updateLineLayerProps = updateLineLayerProps;
-
+window.runDeckAnimation = runDeckAnimation;
