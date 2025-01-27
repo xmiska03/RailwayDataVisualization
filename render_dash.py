@@ -229,11 +229,16 @@ right_panel = [
 
 visualization = html.Div(
     [
-        html.Img(
-            src="/assets/video_frames/0.jpg",
-            id="background-img",
+        html.Video(
+            src="/assets/new_video_compatible.mp4",
+            id="background-video",
             style={'width': '100%', 'height': 'auto', "display": "block"}
         ),
+        #html.Img(
+        #    src="/assets/video_frames/0.jpg",
+        #    id="background-img",
+        #    style={'width': '100%', 'height': 'auto', "display": "block"}
+        #),
         html.Canvas(
             id='visualization-canvas',
             style={
@@ -277,10 +282,6 @@ app.layout = html.Div(children=
             "Vizualizace dat z mobilního mapovacího systému",
             style={"textAlign": "center", "padding":"10px"}
         ),
-        #html.Video(
-        #    src="/assets/youtube_video.mp4",
-        #    id="background-video"
-        #),
         dbc.Row(
             [
                 dbc.Col([
@@ -301,7 +302,7 @@ app.layout = html.Div(children=
 
 
 # callbacks - the logic of the app
-
+"""
 # change frame by the input field, slider or as a part of the animation
 @callback(
     Output('current-frame-store', 'data'),
@@ -350,7 +351,9 @@ def control_animation(curr_pos, btn, animation_running):
         else:
             # play
             return int(curr_pos/ANIMATION_FRAMES_STEP)+1, False, html.I(className="bi bi-pause-fill"), True
+"""
 
+"""
 # change the background image (or turn it off/on)
 @callback(
     Output('background-img', 'src'),
@@ -365,7 +368,35 @@ def change_background(new_pos, layers):
     else:
         patched_style["visibility"] = "hidden"
     return f"/assets/video_frames/{new_pos}.jpg", patched_style
+"""
 
+# turn the background video on/off
+@callback(
+    Output('background-video', 'style'),
+    Input('camera-picture-checkbox', 'value'),
+)
+def change_background(options_list):
+    patched_style = Patch()
+    if 'pic' in options_list:
+        patched_style["visibility"] = "visible"
+    else:
+        patched_style["visibility"] = "hidden"
+    return patched_style
+
+# play video and animation
+app.clientside_callback(
+    """
+    function(btn) {
+        window.runDeckAnimation();
+        
+        const video = document.getElementById('background-video');
+        video.play();
+    }
+    """,
+    Input("play-button", "n_clicks"),
+    prevent_initial_call=True
+)
+    
 # initialize the point cloud
 app.clientside_callback(
     """
@@ -383,19 +414,21 @@ app.clientside_callback(
     Input('visualization-data', 'data')
 )
 
+"""
 # shift the point cloud
 app.clientside_callback(
-    """
+    
     function(position) {
         if (window.updatePosition) {
             window.position = position;
             window.updatePosition();  // call function defined in the JavaScript file
         }
     }
-    """,
+    ,
     Input('current-frame-store', 'data'),
     prevent_initial_call=True
 )
+"""
 
 # change point cloud visibility, point size, color scale or opacity
 app.clientside_callback(

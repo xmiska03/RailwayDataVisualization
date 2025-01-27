@@ -5,6 +5,9 @@ import {OrbitView} from '@deck.gl/core';
 import transf from './transf.js';
 
 
+window.position = 0;
+var animation_start = 0;
+
 // color scales - mapping point intensity to colors
 // red - green - blue (from greatest to lowest intensity)
 function getColorRGB(d) {
@@ -176,7 +179,7 @@ function updatePCLayerProps(visible, point_size, point_color, opacity) {
 
 // to change vector data visibility
 function updateLineLayerProps(visible) {
-  var pos = window.position;
+  var new_pos = window.position;
 
   window.data_dict.layers[1].visible = visible;
 
@@ -202,9 +205,26 @@ function updateLineLayerProps(visible) {
   window.deck.setProps({layers: [window.pc_layer, updatedLineLayer]});
 }
 
+function animationStep() {
+  console.log("called in time:", Date.now() - animation_start);
+  window.updatePosition();
+  window.position++;
+
+  if (position < 500) {
+    var nextFrameTime =  (animation_start + 40*position) - Date.now();
+    console.log(position, ":", nextFrameTime);
+    setTimeout(animationStep, nextFrameTime >= 0 ? nextFrameTime : 0);
+  }
+}
+
+function runDeckAnimation() {
+  animation_start = Date.now();
+  animationStep();
+}
+
 // make the functions global
 window.initializeDeck = initializeDeck;
 window.updatePosition = updatePosition;
 window.updatePCLayerProps = updatePCLayerProps;
 window.updateLineLayerProps = updateLineLayerProps;
-
+window.runDeckAnimation = runDeckAnimation;
