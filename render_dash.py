@@ -16,8 +16,6 @@ ZOOM = 10
 FOVY = 37                    # focal length
 FAR_PLANE = 300
 OPACITY = 0.7
-ANIMATION_SPEED = 6          # frames per second
-ANIMATION_FRAMES_STEP = 2
 LINE_WIDTH = 60
 
 # loads a csv file into a numpy array
@@ -96,17 +94,12 @@ pc_df = pd.DataFrame(pc_nparray, columns=["x", "y", "z", "intensity"])
 
 # prepare the visualization of the point cloud using Deck.GL
 point_cloud_layer = {
-    #"@@type": "PointCloudLayer",
     "data": pc_df.to_dict(orient="records"),
-    #"getColor": "@@=[intensity*6, intensity*6, intensity*6]",
     #"getPosition": f"@@=[{transf_strings[0]}]",
     "pointSize": POINT_SIZE,
     "pointColor": 'rgb',
     "opacity": OPACITY,
-    "visible": True,
-    #"transitions": {
-    #    "getPosition": 1000
-    #}
+    "visible": True
 }
 
 line_layer = {
@@ -124,7 +117,6 @@ view_state = {
 }
 
 view = {
-    #"@@type": "OrbitView",
     "far": FAR_PLANE,
     "fovy": FOVY,
     "controller": True
@@ -234,11 +226,6 @@ visualization = html.Div(
             id="background-video",
             style={'width': '100%', 'height': 'auto', "display": "block"}
         ),
-        #html.Img(
-        #    src="/assets/video_frames/0.jpg",
-        #    id="background-img",
-        #    style={'width': '100%', 'height': 'auto', "display": "block"}
-        #),
         html.Canvas(
             id='visualization-canvas',
             style={
@@ -262,13 +249,6 @@ visualization = html.Div(
 
 app.layout = html.Div(children=
     [
-        dcc.Interval(
-            id="animation-interval", 
-            interval=1000/ANIMATION_SPEED, 
-            n_intervals=0,   # begin from 0
-            max_intervals=frames_cnt/ANIMATION_FRAMES_STEP,
-            disabled=True
-        ),
         dcc.Store(
             id='current-frame-store',
             data=0
@@ -329,45 +309,6 @@ def change_frame(input_val, slider_val, interval_val):
         if new_pos >= frames_cnt:
             new_pos = 0    # end of animation, return to the beginning
         return new_pos, new_pos, new_pos
-
-# play/pause the animation
-@callback(
-    Output('animation-interval', 'n_intervals'),
-    Output('animation-interval', 'disabled'),
-    Output('play-button', 'children'),
-    Output('animation-running-store', 'data'),
-    State('current-frame-store', 'data'),
-    Input('play-button', 'n_clicks'),
-    State('animation-running-store', 'data'),
-    prevent_initial_call=True
-)
-def control_animation(curr_pos, btn, animation_running):
-    triggered_id = ctx.triggered_id
-    if triggered_id == 'play-button':
-        # start animation from the current position
-        if animation_running:
-            # pause
-            return int(curr_pos/ANIMATION_FRAMES_STEP), True, html.I(className="bi bi-play-fill"), False
-        else:
-            # play
-            return int(curr_pos/ANIMATION_FRAMES_STEP)+1, False, html.I(className="bi bi-pause-fill"), True
-"""
-
-"""
-# change the background image (or turn it off/on)
-@callback(
-    Output('background-img', 'src'),
-    Output('background-img', 'style'),
-    Input('current-frame-store', 'data'),
-    Input('camera-picture-checkbox', 'value'),
-)
-def change_background(new_pos, layers):
-    patched_style = Patch()
-    if 'pic' in layers:
-        patched_style["visibility"] = "visible"
-    else:
-        patched_style["visibility"] = "hidden"
-    return f"/assets/video_frames/{new_pos}.jpg", patched_style
 """
 
 # turn the background video on/off
@@ -383,14 +324,34 @@ def change_background(options_list):
         patched_style["visibility"] = "hidden"
     return patched_style
 
-# play video and animation
+# play/pause the animation
+# this function handles the video, deck.gl visualization and play button icon
 app.clientside_callback(
     """
     function(btn) {
-        window.runDeckAnimation();
-        
         const video = document.getElementById('background-video');
-        video.play();
+        const icon = document.getElementById("play-button").querySelector("i"); 
+        
+        console.log("current time: ", video.currentTime);
+        
+        if (!window.animation_running) {
+            window.runDeckAnimation();         // run both deck animation and the video
+            video.play();
+        
+        } else {
+            window.stopDeckAnimation();
+            video.pause();
+            // fix possible offset
+            const time = (window.position + 1) / 25;
+            
+            console.log("go to time: ", time);
+            
+            video.currentTime = time;
+        }
+
+        icon.classList.toggle("bi-play-fill");    // change icon
+        icon.classList.toggle("bi-pause-fill");
+
     }
     """,
     Input("play-button", "n_clicks"),

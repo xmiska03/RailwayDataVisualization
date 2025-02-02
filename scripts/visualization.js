@@ -1,12 +1,15 @@
 import {Deck, FirstPersonView} from '@deck.gl/core';
 import {PointCloudLayer} from '@deck.gl/layers';
 import {LineLayer} from '@deck.gl/layers';
-import {OrbitView} from '@deck.gl/core';
 import transf from './transf.js';
 
 
+window.frames_cnt = 500;
 window.position = 0;
-var animation_start = 0;
+window.animation_start_time = 0;
+window.animation_start_pos = 0;
+window.animation_running = false;
+window.frame_rate = 40;
 
 // color scales - mapping point intensity to colors
 // red - green - blue (from greatest to lowest intensity)
@@ -206,21 +209,43 @@ function updateLineLayerProps(visible) {
 }
 
 function animationStep() {
-  var currentTime = Date.now();
-  var elapsed = currentTime - window.animation_start;
+  var elapsed = Date.now() - window.animation_start_time;
+  
+  // calculate new position
+  window.position = window.animation_start_pos + Math.floor(elapsed / window.frame_rate);
+  console.log("position: ", position);
+ 
+  if (window.position >= window.frames_cnt) {                                // end of animation
+    window.animation_running = false;
+    const icon = document.getElementById("play-button").querySelector("i");  // change icon
+    icon.classList.toggle("bi-play-fill");
+    icon.classList.toggle("bi-pause-fill");
+    return;    
+  }
+ 
+  window.updatePosition();                             // update the visualization
 
-  window.position = Math.floor(elapsed / 40);
-  if (window.position >= 500) return;
-  window.updatePosition();
-
-  const nextFrameTime = window.animation_start + 40 * (window.position + 1) - Date.now();
-  setTimeout(animationStep, Math.max(0, nextFrameTime));
+  if (window.animation_running) {                      // plan the next step
+    let nextRelativePos = window.position + 1 - window.animation_start_pos;
+    const nextFrameTime = (window.animation_start_time + window.frame_rate * nextRelativePos) - Date.now();
+    console.log("set timeout to: ", nextFrameTime);
+    setTimeout(animationStep, Math.max(0, nextFrameTime));
+  }
 }
 
 function runDeckAnimation() {
-  window.animation_start = Date.now();
-  window.position = 0;
+  if (window.position >= window.frames_cnt) {  // it is at the end, start again from the beginning
+    window.position = 0;
+  }
+  
+  window.animation_start_time = Date.now();
+  window.animation_start_pos = window.position;
+  window.animation_running = true;
   animationStep();
+}
+
+function stopDeckAnimation() {
+  window.animation_running = false;
 }
 
 // make the functions global
@@ -229,3 +254,4 @@ window.updatePosition = updatePosition;
 window.updatePCLayerProps = updatePCLayerProps;
 window.updateLineLayerProps = updateLineLayerProps;
 window.runDeckAnimation = runDeckAnimation;
+window.stopDeckAnimation = stopDeckAnimation;
