@@ -209,26 +209,30 @@ function updateLineLayerProps(visible) {
 }
 
 function animationStep() {
-  var elapsed = Date.now() - window.animation_start_time;
+  const elapsed = Date.now() - window.animation_start_time;
   
   // calculate new position
   window.position = window.animation_start_pos + Math.floor(elapsed / window.frame_rate);
-  console.log("position: ", position);
+  //console.log("position: ", position);
  
   if (window.position >= window.frames_cnt) {                                // end of animation
     window.animation_running = false;
     const icon = document.getElementById("play-button").querySelector("i");  // change icon
     icon.classList.toggle("bi-play-fill");
     icon.classList.toggle("bi-pause-fill");
+    dash_clientside.set_props("camera-position-slider", {value: window.position});  // update slider
     return;    
   }
  
-  window.updatePosition();                             // update the visualization
+  window.updatePosition();                                                   // update the visualization
+  document.getElementById("camera-position-input").value = window.position;  // update input value
+  // this is a time-consuming operation :-(
+  // dash_clientside.set_props("camera-position-slider", {value: window.position});  // update slider
 
-  if (window.animation_running) {                      // plan the next step
-    let nextRelativePos = window.position + 1 - window.animation_start_pos;
+  if (window.animation_running) {                                            // plan the next step
+    const nextRelativePos = window.position + 1 - window.animation_start_pos;
     const nextFrameTime = (window.animation_start_time + window.frame_rate * nextRelativePos) - Date.now();
-    console.log("set timeout to: ", nextFrameTime);
+    //console.log("set timeout to: ", nextFrameTime);
     setTimeout(animationStep, Math.max(0, nextFrameTime));
   }
 }

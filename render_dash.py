@@ -282,82 +282,7 @@ app.layout = html.Div(children=
 
 
 # callbacks - the logic of the app
-"""
-# change frame by the input field, slider or as a part of the animation
-@callback(
-    Output('current-frame-store', 'data'),
-    Output('camera-position-input', 'value'),
-    Output('camera-position-slider', 'value'),
-    Input('camera-position-input', 'value'),
-    Input('camera-position-slider', 'value'),
-    Input("animation-interval", "n_intervals"),
-    prevent_initial_call=True
-)
-def change_frame(input_val, slider_val, interval_val):
-    triggered_id = ctx.triggered_id
-    if triggered_id == 'camera-position-input':   # frame changed by input field
-        if isinstance(input_val, int):
-            return input_val, input_val, input_val
-        else:
-            return slider_val, input_val, slider_val
-    
-    elif triggered_id == 'camera-position-slider':   # frame changed by slider
-        return slider_val, slider_val, slider_val
-    
-    elif triggered_id == 'animation-interval':   # frame changed as a part of the animation
-        new_pos = ANIMATION_FRAMES_STEP * interval_val
-        if new_pos >= frames_cnt:
-            new_pos = 0    # end of animation, return to the beginning
-        return new_pos, new_pos, new_pos
-"""
 
-# turn the background video on/off
-@callback(
-    Output('background-video', 'style'),
-    Input('camera-picture-checkbox', 'value'),
-)
-def change_background(options_list):
-    patched_style = Patch()
-    if 'pic' in options_list:
-        patched_style["visibility"] = "visible"
-    else:
-        patched_style["visibility"] = "hidden"
-    return patched_style
-
-# play/pause the animation
-# this function handles the video, deck.gl visualization and play button icon
-app.clientside_callback(
-    """
-    function(btn) {
-        const video = document.getElementById('background-video');
-        const icon = document.getElementById("play-button").querySelector("i"); 
-        
-        console.log("current time: ", video.currentTime);
-        
-        if (!window.animation_running) {
-            window.runDeckAnimation();         // run both deck animation and the video
-            video.play();
-        
-        } else {
-            window.stopDeckAnimation();
-            video.pause();
-            // fix possible offset
-            const time = (window.position + 1) / 25;
-            
-            console.log("go to time: ", time);
-            
-            video.currentTime = time;
-        }
-
-        icon.classList.toggle("bi-play-fill");    // change icon
-        icon.classList.toggle("bi-pause-fill");
-
-    }
-    """,
-    Input("play-button", "n_clicks"),
-    prevent_initial_call=True
-)
-    
 # initialize the point cloud
 app.clientside_callback(
     """
@@ -375,21 +300,88 @@ app.clientside_callback(
     Input('visualization-data', 'data')
 )
 
-"""
-# shift the point cloud
+# play/pause the animation
+# this function handles the video, deck.gl visualization and play button icon
 app.clientside_callback(
-    
-    function(position) {
-        if (window.updatePosition) {
-            window.position = position;
-            window.updatePosition();  // call function defined in the JavaScript file
+    """
+    function(btn) {
+        const video = document.getElementById('background-video');
+        const icon = document.getElementById("play-button").querySelector("i"); 
+        //console.log("current time: ", video.currentTime);
+        
+        if (!window.animation_running) {
+            window.runDeckAnimation();         // run both deck animation and the video
+            video.play();
+        
+        } else {
+            window.stopDeckAnimation();
+            video.pause();
+            // fix possible offset
+            const time = (window.position + 1) / 25;
+            video.currentTime = time;
+            // update slider
+            dash_clientside.set_props("camera-position-slider", { value: window.position + 1});
         }
+
+        icon.classList.toggle("bi-play-fill");    // change icon
+        icon.classList.toggle("bi-pause-fill");
+
     }
-    ,
-    Input('current-frame-store', 'data'),
+    """,
+    Input("play-button", "n_clicks"),
     prevent_initial_call=True
 )
-"""
+
+# change the frame by input
+app.clientside_callback(
+    """
+    function(input_val) {
+        if (!isNaN(input_val)) {
+            // update deck.gl visualization
+            window.position = input_val;
+            window.updatePosition();  // call function defined in the JavaScript file
+            
+            // update video
+            const video = document.getElementById('background-video');
+            const time = input_val / 25;
+            video.currentTime = time;
+        }
+    }
+    """,
+    Input('camera-position-input', 'value'),
+    prevent_initial_call=True
+)
+
+# change the frame by slider
+app.clientside_callback(
+    """
+    function(slider_val) {
+        // update video
+        const video = document.getElementById('background-video');
+        const time = slider_val / 25;
+        video.currentTime = time;
+
+        // update deck.gl visualization
+        window.position = slider_val;
+        window.updatePosition();  // call function defined in the JavaScript file
+    }
+    """,
+    Input('camera-position-slider', 'value'),
+    prevent_initial_call=True
+)
+
+# turn the background video on/off
+@callback(
+    Output('background-video', 'style'),
+    Input('camera-picture-checkbox', 'value'),
+)
+def change_background(options_list):
+    patched_style = Patch()
+    if 'pic' in options_list:
+        patched_style["visibility"] = "visible"
+    else:
+        patched_style["visibility"] = "hidden"
+    return patched_style
 
 # change point cloud visibility, point size, color scale or opacity
 app.clientside_callback(
