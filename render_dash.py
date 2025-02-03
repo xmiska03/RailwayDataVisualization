@@ -143,18 +143,14 @@ down_panel = [
         marks={0:'0', 100:'100', 200:'200', 300:'300', 400:'400', (frames_cnt-1):f'{frames_cnt}'}, 
         id='camera-position-slider',
         updatemode='drag'
-    ), width=10)
-]
-
-camera_position_widget = [
-    dbc.Col(html.Div("Pozice kamery: "), width=5),
+    ), width=9),
     dbc.Col(dbc.Input(
         value="0",
         id="camera-position-input",
         type="number",
         min=0,
         max=frames_cnt-1
-    ), width=7)
+    ), width=2),
 ]
 
 point_size_widget = [
@@ -191,7 +187,6 @@ point_opacity_widget = [
 ]
 
 right_panel = [
-    dbc.Row(camera_position_widget),
     dbc.Row(html.Div("Zobrazení vrstev:")),
     dbc.Row(dcc.Checklist(
             options=[{'label': ' záběr z kamery', 'value': 'pic'}],
@@ -345,6 +340,9 @@ app.clientside_callback(
             const video = document.getElementById('background-video');
             const time = input_val / 25;
             video.currentTime = time;
+
+            // update slider
+            //dash_clientside.set_props("camera-position-slider", {value: input_val});  
         }
     }
     """,
@@ -364,6 +362,9 @@ app.clientside_callback(
         // update deck.gl visualization
         window.position = slider_val;
         window.updatePosition();  // call function defined in the JavaScript file
+
+        // update input
+        dash_clientside.set_props("camera-position-input", {value: slider_val});  
     }
     """,
     Input('camera-position-slider', 'value'),
