@@ -327,46 +327,31 @@ app.clientside_callback(
     prevent_initial_call=True
 )
 
-# change the frame by input
+# change the frame by number input or slider
 app.clientside_callback(
     """
-    function(input_val) {
+    function(input_val, slider_val) {
         if (!isNaN(input_val)) {
-            // update deck.gl visualization
-            window.position = input_val;
-            window.updatePosition();  // call function defined in the JavaScript file
-            
-            // update video
-            const video = document.getElementById('background-video');
-            const time = input_val / 25;
-            video.currentTime = time;
+            // get the new position - which one was changed, slider or input?
+            let new_pos = (slider_val != window.position) ? slider_val : input_val;
+            if (new_pos != window.position) {
+                // update deck.gl visualization
+                window.position = new_pos;
+                window.updatePosition();  // call function defined in the JavaScript file
+                
+                // update video
+                const video = document.getElementById('background-video');
+                const time = new_pos / 25;
+                video.currentTime = time;
 
-            // update slider
-            //dash_clientside.set_props("camera-position-slider", {value: input_val});  
+                // update slider and input
+                dash_clientside.set_props("camera-position-slider", {value: new_pos});
+                dash_clientside.set_props("camera-position-input", {value: new_pos});
+            }
         }
     }
     """,
     Input('camera-position-input', 'value'),
-    prevent_initial_call=True
-)
-
-# change the frame by slider
-app.clientside_callback(
-    """
-    function(slider_val) {
-        // update video
-        const video = document.getElementById('background-video');
-        const time = slider_val / 25;
-        video.currentTime = time;
-
-        // update deck.gl visualization
-        window.position = slider_val;
-        window.updatePosition();  // call function defined in the JavaScript file
-
-        // update input
-        dash_clientside.set_props("camera-position-input", {value: slider_val});  
-    }
-    """,
     Input('camera-position-slider', 'value'),
     prevent_initial_call=True
 )
