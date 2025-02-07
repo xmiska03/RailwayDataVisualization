@@ -119,7 +119,7 @@ view_state = {
 view = {
     "far": FAR_PLANE,
     "fovy": FOVY,
-    "controller": True
+    "controller": False
 }
 
 deck_dict = {
@@ -136,22 +136,31 @@ app = Dash(
     external_stylesheets = [dbc.themes.FLATLY, "https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css"]
 )
 
-down_panel = [
+down_panel_upper = [
     dbc.Col(dbc.Button(html.I(className="bi bi-play-fill"), id='play-button'), width=1),
-    dbc.Col(dcc.Slider(
-        0, frames_cnt-1, 1, value=0, 
-        marks={0:'0', 100:'100', 200:'200', 300:'300', 400:'400', (frames_cnt-1):f'{frames_cnt}'}, 
-        id='camera-position-slider',
-        updatemode='drag'
+    dbc.Col(html.Div("00:00", id="current-time-div"), width=1),
+    dbc.Col(dcc.Input(
+        value=0,
+        id="camera-position-slider-input",
+        type="range",
+        min=0,
+        max=frames_cnt-1,
+        style={'width': '100%'}
     ), width=9),
+    dbc.Col(html.Div("00:20", id="total-time-div"), width=1),
+]
+
+down_panel_lower = [
+    dbc.Col(html.Div("Snímek:"), width=1),
     dbc.Col(dbc.Input(
         value="0",
         id="camera-position-input",
         type="number",
         min=0,
         max=frames_cnt-1
-    ), width=2),
+    ), width=2)
 ]
+
 
 point_size_widget = [
     dbc.Col(html.Div("Velikost bodů: "), width=5),
@@ -252,17 +261,15 @@ app.layout = html.Div(children=
             id='animation-running-store',
             data=False
         ),
+        dbc.Placeholder(color="white"),
 
-        html.H4(
-            "Vizualizace dat z mobilního mapovacího systému",
-            style={"textAlign": "center", "padding":"10px"}
-        ),
         dbc.Row(
             [
                 dbc.Col([
                     visualization,
                     dbc.Placeholder(color="black"),
-                    dbc.Row(down_panel, justify="center", align="end")    
+                    dbc.Row(down_panel_upper, justify="center", align="start"),
+                    dbc.Row(down_panel_lower, justify="start", align="end"),
                 ], width=6),
                 dbc.Col(right_panel, width=3)
             ],
@@ -314,8 +321,6 @@ app.clientside_callback(
             // fix possible offset
             const time = (window.position + 1) / 25;
             video.currentTime = time;
-            // update slider
-            dash_clientside.set_props("camera-position-slider", { value: window.position + 1});
         }
 
         icon.classList.toggle("bi-play-fill");    // change icon
@@ -330,8 +335,10 @@ app.clientside_callback(
 # change the frame by number input or slider
 app.clientside_callback(
     """
-    function(input_val, slider_val) {
+    function(input_val, slider_val_dec) {
         if (!isNaN(input_val)) {
+            let slider_val = (Math.floor(slider_val_dec));
+            
             // get the new position - which one was changed, slider or input?
             let new_pos = (slider_val != window.position) ? slider_val : input_val;
             if (new_pos != window.position) {
@@ -340,19 +347,25 @@ app.clientside_callback(
                 window.updatePosition();  // call function defined in the JavaScript file
                 
                 // update video
-                const video = document.getElementById('background-video');
-                const time = new_pos / 25;
+                let video = document.getElementById('background-video');
+                let time = new_pos / 25;
                 video.currentTime = time;
 
-                // update slider and input
-                dash_clientside.set_props("camera-position-slider", {value: new_pos});
+                // update slider and input field and time label
+                dash_clientside.set_props("camera-position-slider-input", {value: new_pos});
                 dash_clientside.set_props("camera-position-input", {value: new_pos});
+
+                // update time label
+                let time_sec = Math.floor(time);
+                let minutes = Math.floor(time_sec / 60);
+                let seconds = time_sec % 60;
+                dash_clientside.set_props("current-time-div", {children: `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`});
             }
         }
     }
     """,
     Input('camera-position-input', 'value'),
-    Input('camera-position-slider', 'value'),
+    Input('camera-position-slider-input', 'value'),
     prevent_initial_call=True
 )
 

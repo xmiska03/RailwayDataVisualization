@@ -209,6 +209,7 @@ function updateLineLayerProps(visible) {
 }
 
 function animationStep() {
+  const video = document.getElementById('background-video');
   const elapsed = Date.now() - window.animation_start_time;
   
   // calculate new position
@@ -220,14 +221,18 @@ function animationStep() {
     const icon = document.getElementById("play-button").querySelector("i");  // change icon
     icon.classList.toggle("bi-play-fill");
     icon.classList.toggle("bi-pause-fill");
-    dash_clientside.set_props("camera-position-slider", {value: window.position});  // update slider
     return;    
   }
  
   window.updatePosition();                                                   // update the visualization
   document.getElementById("camera-position-input").value = window.position;  // update input value
-  // this is a time-consuming operation :-(
-  // dash_clientside.set_props("camera-position-slider", {value: window.position});  // update slider
+  document.getElementById("camera-position-slider-input").value = window.position;  // update slider value
+
+  // update time label
+  let time_sec = Math.floor(video.currentTime); // get time, remove decimal part
+  let minutes = Math.floor(time_sec / 60);
+  let seconds = time_sec % 60;
+  document.getElementById("current-time-div").innerText = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
 
   if (window.animation_running) {                                            // plan the next step
     const nextRelativePos = window.position + 1 - window.animation_start_pos;
