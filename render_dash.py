@@ -43,16 +43,6 @@ def calculate_transformation_matrix(trans_nparray, rot_nparray, position):
     ])
     return rot_matrix @ trans_matrix
 
-# creates transformation function to pass to pydeck
-def create_transformation_string(transf_mat):
-    return (f"x * {transf_mat[0][0]} + y * {transf_mat[0][1]} + z * {transf_mat[0][2]} "
-            f"+ {transf_mat[0][3]}, "
-            f"x * {transf_mat[1][0]} + y * {transf_mat[1][1]} + z * {transf_mat[1][2]} "
-            f"+ {transf_mat[1][3]}, "
-            f"x * {transf_mat[2][0]} + y * {transf_mat[2][1]} + z * {transf_mat[2][2]} "
-            f"+ {transf_mat[2][3]}"
-    )
-
 # creates a JSON-like array of lines from a numpy array of points representing a polyline
 def create_lines_data(points_nparray):
     lines = []
@@ -83,11 +73,11 @@ rot_nparray = load_csv_into_nparray("data/rot.csv")
 # number of frames to generate (500 in example data)
 frames_cnt = trans_nparray.shape[0]
 
-# pre-calculate all transformation strings
-transf_strings = []
+# pre-calculate all transformation matrices
+transf_matrices = []
 for i in range(frames_cnt):
-    transf_mat = calculate_transformation_matrix(trans_nparray, rot_nparray, i)
-    transf_strings.append(create_transformation_string(transf_mat))
+    transf_matrix = calculate_transformation_matrix(trans_nparray, rot_nparray, i)
+    transf_matrices.append(transf_matrix)
 
 # create a pandas DataFrame
 pc_df = pd.DataFrame(pc_nparray, columns=["x", "y", "z", "intensity"])
@@ -95,7 +85,6 @@ pc_df = pd.DataFrame(pc_nparray, columns=["x", "y", "z", "intensity"])
 # prepare the visualization of the point cloud using Deck.GL
 point_cloud_layer = {
     "data": pc_df.to_dict(orient="records"),
-    #"getPosition": f"@@=[{transf_strings[0]}]",
     "pointSize": POINT_SIZE,
     "pointColor": 'rgb',
     "opacity": OPACITY,
@@ -243,8 +232,17 @@ visualization = html.Div(
             data=deck_dict
         ),
         dcc.Store(
-            id='visualization-change',
-        )
+            id='translations-data',
+            data=trans_nparray
+        ),
+        dcc.Store(
+            id='rotations-data',
+            data=rot_nparray
+        ),
+        dcc.Store(
+            id='transformations-data',
+            data=transf_matrices
+        ),
     ],
     style = {
         "position": "relative" 
@@ -276,6 +274,7 @@ app.layout = html.Div(children=
             justify="center"
         ),
         html.Div(id="dummy"),  # because the initializing callback needs some output
+        html.Div(id="dummy2")
     ],
     style={
         "fontSize": "16px"
@@ -290,7 +289,6 @@ app.clientside_callback(
     """
     function(data_dict) {
         if (window.initializeDeck) {
-            console.log("Calling initializeDeck");
             window.data_dict = data_dict;  // initialize the global variables
             window.position = 0;
             window.initializeDeck();  // call function defined in the JavaScript file
@@ -300,6 +298,20 @@ app.clientside_callback(
     """,
     Output('dummy', 'id'),  # needed for the initial call
     Input('visualization-data', 'data')
+)
+
+# initialize the transformations data
+app.clientside_callback(
+    """
+    function(transf_data) {
+        if (window.initializeDeck) {
+            window.transf = transf_data;  // make the data accessible for the visualization.js script
+        }
+        return 'dummy2';
+    }
+    """,
+    Output('dummy2', 'id'),  # needed for the initial call
+    Input('transformations-data', 'data')
 )
 
 # play/pause the animation
