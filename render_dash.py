@@ -251,14 +251,6 @@ visualization = html.Div(
 
 app.layout = html.Div(children=
     [
-        dcc.Store(
-            id='current-frame-store',
-            data=0
-        ),
-        dcc.Store(
-            id='animation-running-store',
-            data=False
-        ),
         dbc.Placeholder(color="white"),
 
         dbc.Row(
@@ -272,9 +264,7 @@ app.layout = html.Div(children=
                 dbc.Col(right_panel, width=3)
             ],
             justify="center"
-        ),
-        html.Div(id="dummy"),  # because the initializing callback needs some output
-        html.Div(id="dummy2")
+        )
     ],
     style={
         "fontSize": "16px"
@@ -293,10 +283,10 @@ app.clientside_callback(
             window.position = 0;
             window.initializeDeck();  // call function defined in the JavaScript file
         }
-        return 'dummy';
+        return dash_clientside.no_update;
     }
     """,
-    Output('dummy', 'id'),  # needed for the initial call
+    Output('visualization-data', 'id'),  # dummy output needed so that the initial call occurs
     Input('visualization-data', 'data')
 )
 
@@ -307,10 +297,10 @@ app.clientside_callback(
         if (window.initializeDeck) {
             window.transf = transf_data;  // make the data accessible for the visualization.js script
         }
-        return 'dummy2';
+        return dash_clientside.no_update;
     }
     """,
-    Output('dummy2', 'id'),  # needed for the initial call
+    Output('transformations-data', 'id'),  # dummy output needed so that the initial call occurs
     Input('transformations-data', 'data')
 )
 

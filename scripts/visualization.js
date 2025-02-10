@@ -6,7 +6,7 @@ import {LineLayer} from '@deck.gl/layers';
 window.frames_cnt = 500;
 window.position = 0;
 window.animation_running = false;
-window.frame_rate = 40;
+window.frame_duration = 40;   // milliseconds
 
 // color scales - mapping point intensity to colors
 // red - green - blue (from greatest to lowest intensity)
@@ -209,10 +209,9 @@ function animationStep() {
   if (!window.animation_running) return;
 
   const video = document.getElementById('background-video');
-  const videoTime = video.currentTime*1000;   // seconds to miliseconds
   
   // calculate new position from video time
-  window.position = Math.floor(videoTime / window.frame_rate);
+  window.position = Math.floor(video.currentTime * 25);
   //console.log("video time: ", videoTime);
   //console.log("position: ", window.position);
  
@@ -244,7 +243,7 @@ function animationStep() {
   document.getElementById("current-time-div").innerText = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
 
   // plan the next step
-  const timeToNextFrame = (window.position + 1) * window.frame_rate - videoTime;
+  const timeToNextFrame = (window.position + 1) * window.frame_duration - video.currentTime * 1000;
   //console.log("set timeout to: ", timeToNextFrame);
   setTimeout(animationStep, Math.max(0, timeToNextFrame));
 }
