@@ -223,8 +223,14 @@ function animationStep() {
     const icon = document.getElementById("play-button").querySelector("i");  // change icon
     icon.classList.toggle("bi-play-fill");
     icon.classList.toggle("bi-pause-fill");
-    // this has to be done with the frame number input element so that Dash knows about the changes
+    // this has to be done with the elements so that Dash knows about the changes
     dash_clientside.set_props("camera-position-input", {value: window.position});
+    dash_clientside.set_props("camera-position-slider-input", {value: window.position});
+    const time_sec = Math.floor(video.currentTime - 0.001); // get time in seconds, round to whole number
+    const minutes = Math.floor(time_sec / 60);
+    const seconds = time_sec % 60;
+    const label = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`
+    dash_clientside.set_props("current-time-div", {children: label});
   }
  
   // update the visualization
@@ -233,7 +239,7 @@ function animationStep() {
   //console.log("script setting inputs to: ", window.position);
   document.getElementById("camera-position-input").value = window.position;         // update input value
   document.getElementById("camera-position-slider-input").value = window.position;  // update slider value
-  const time_sec = Math.floor(video.currentTime); // get time in seconds, round to whole number
+  const time_sec = Math.floor(Math.max(video.currentTime - 0.001, 0)); // get time in seconds, round to whole number
   const minutes = Math.floor(time_sec / 60);
   const seconds = time_sec % 60;                                                    // update time label
   document.getElementById("current-time-div").innerText = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
@@ -255,8 +261,16 @@ function runDeckAnimation() {
 
 function stopDeckAnimation() {
   window.animation_running = false;
+
   // TODO: this has to be done with the frame number input element so that Dash knows about the changes
   dash_clientside.set_props("camera-position-input", {value: window.position});
+  dash_clientside.set_props("camera-position-slider-input", {value: window.position});
+  const video = document.getElementById('background-video');
+  const time_sec = Math.floor(video.currentTime); // get time in seconds, round to whole number
+  const minutes = Math.floor(time_sec / 60);
+  const seconds = time_sec % 60;
+  const label = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`
+  dash_clientside.set_props("current-time-div", {children: label});
 }
 
 // make the functions global
