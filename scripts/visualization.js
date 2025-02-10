@@ -6,8 +6,6 @@ import transf from './transf.js';
 
 window.frames_cnt = 500;
 window.position = 0;
-window.animation_start_time = 0;
-window.animation_start_pos = 0;
 window.animation_running = false;
 window.frame_rate = 40;
 
@@ -95,7 +93,7 @@ function initializeDeck() {
 
 // to change camera position
 function updatePosition() {
-  var new_pos = window.position;
+  let new_pos = window.position;
   const updatedPCLayer = new PointCloudLayer({
     id: 'point-cloud-layer',
     data: window.data_dict.layers[0].data,
@@ -209,52 +207,56 @@ function updateLineLayerProps(visible) {
 }
 
 function animationStep() {
+  if (!window.animation_running) return;
+
   const video = document.getElementById('background-video');
-  const elapsed = Date.now() - window.animation_start_time;
+  const videoTime = video.currentTime*1000;   // seconds to miliseconds
   
-  // calculate new position
-  window.position = window.animation_start_pos + Math.floor(elapsed / window.frame_rate);
-  //console.log("position: ", position);
+  // calculate new position from video time
+  window.position = Math.floor(videoTime / window.frame_rate);
+  //console.log("video time: ", videoTime);
+  //console.log("position: ", window.position);
  
   if (window.position >= window.frames_cnt) {                                // end of animation
+    window.position = window.frames_cnt - 1;                                 // show the last frame
     window.animation_running = false;
     const icon = document.getElementById("play-button").querySelector("i");  // change icon
     icon.classList.toggle("bi-play-fill");
     icon.classList.toggle("bi-pause-fill");
-    return;    
+    // this has to be done with the frame number input element so that Dash knows about the changes
+    dash_clientside.set_props("camera-position-input", {value: window.position});
   }
  
-  window.updatePosition();                                                   // update the visualization
-  document.getElementById("camera-position-input").value = window.position;  // update input value
+  // update the visualization
+  window.updatePosition();
+  // update GUI elements
+  //console.log("script setting inputs to: ", window.position);
+  document.getElementById("camera-position-input").value = window.position;         // update input value
   document.getElementById("camera-position-slider-input").value = window.position;  // update slider value
-
-  // update time label
-  let time_sec = Math.floor(video.currentTime); // get time, remove decimal part
-  let minutes = Math.floor(time_sec / 60);
-  let seconds = time_sec % 60;
+  const time_sec = Math.floor(video.currentTime); // get time in seconds, round to whole number
+  const minutes = Math.floor(time_sec / 60);
+  const seconds = time_sec % 60;                                                    // update time label
   document.getElementById("current-time-div").innerText = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
 
-  if (window.animation_running) {                                            // plan the next step
-    const nextRelativePos = window.position + 1 - window.animation_start_pos;
-    const nextFrameTime = (window.animation_start_time + window.frame_rate * nextRelativePos) - Date.now();
-    //console.log("set timeout to: ", nextFrameTime);
-    setTimeout(animationStep, Math.max(0, nextFrameTime));
-  }
+  // plan the next step
+  const timeToNextFrame = (window.position + 1) * window.frame_rate - videoTime;
+  //console.log("set timeout to: ", timeToNextFrame);
+  setTimeout(animationStep, Math.max(0, timeToNextFrame));
 }
 
 function runDeckAnimation() {
-  if (window.position >= window.frames_cnt) {  // it is at the end, start again from the beginning
+  if (window.position >= window.frames_cnt - 1) {  // it is at the end, start again from the beginning
     window.position = 0;
   }
   
-  window.animation_start_time = Date.now();
-  window.animation_start_pos = window.position;
   window.animation_running = true;
   animationStep();
 }
 
 function stopDeckAnimation() {
   window.animation_running = false;
+  // TODO: this has to be done with the frame number input element so that Dash knows about the changes
+  dash_clientside.set_props("camera-position-input", {value: window.position});
 }
 
 // make the functions global

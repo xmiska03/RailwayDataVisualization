@@ -147,7 +147,7 @@ down_panel_upper = [
         max=frames_cnt-1,
         style={'width': '100%'}
     ), width=9),
-    dbc.Col(html.Div("00:20", id="total-time-div"), width=1),
+    dbc.Col(html.Div("00:19", id="total-time-div"), width=1),
 ]
 
 down_panel_lower = [
@@ -309,18 +309,16 @@ app.clientside_callback(
     function(btn) {
         const video = document.getElementById('background-video');
         const icon = document.getElementById("play-button").querySelector("i"); 
-        //console.log("current time: ", video.currentTime);
         
         if (!window.animation_running) {
             window.runDeckAnimation();         // run both deck animation and the video
             video.play();
-        
         } else {
             window.stopDeckAnimation();
             video.pause();
-            // fix possible offset
-            const time = (window.position + 1) / 25;
-            video.currentTime = time;
+            // TODO: fix possible offset
+            //window.position = Math.floor(video.currentTime * 25);
+            //window.updatePosition();
         }
 
         icon.classList.toggle("bi-play-fill");    // change icon
@@ -337,29 +335,32 @@ app.clientside_callback(
     """
     function(input_val, slider_val_dec) {
         if (!isNaN(input_val)) {
-            let slider_val = (Math.floor(slider_val_dec));
+            const slider_val = Math.floor(parseFloat(slider_val_dec));
             
-            // get the new position - which one was changed, slider or input?
-            let new_pos = (slider_val != window.position) ? slider_val : input_val;
+            // get the new position - which one triggered the callback, slider or input?
+            const triggered_id = dash_clientside.callback_context.triggered_id;
+            const new_pos = (triggered_id == 'camera-position-input') ? parseInt(input_val) : slider_val;
+            
             if (new_pos != window.position) {
                 // update deck.gl visualization
                 window.position = new_pos;
                 window.updatePosition();  // call function defined in the JavaScript file
                 
                 // update video
-                let video = document.getElementById('background-video');
-                let time = new_pos / 25;
-                video.currentTime = time;
+                const video = document.getElementById('background-video');
+                const videoTime = new_pos / 25;
+                video.currentTime = videoTime;
 
                 // update slider and input field and time label
                 dash_clientside.set_props("camera-position-slider-input", {value: new_pos});
                 dash_clientside.set_props("camera-position-input", {value: new_pos});
 
                 // update time label
-                let time_sec = Math.floor(time);
-                let minutes = Math.floor(time_sec / 60);
-                let seconds = time_sec % 60;
-                dash_clientside.set_props("current-time-div", {children: `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`});
+                const time_sec = Math.floor(videoTime);
+                const minutes = Math.floor(time_sec / 60);
+                const seconds = time_sec % 60;
+                const label = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`
+                dash_clientside.set_props("current-time-div", {children: label});
             }
         }
     }
