@@ -440,5 +440,20 @@ app.clientside_callback(
     prevent_initial_call=True
 )
 
+# change animation speed
+app.clientside_callback(
+    """
+    function(speed_str) {
+        let speed = parseFloat(speed_str);
+        //console.log("speed: ", speed);
+        window.frame_duration = 40 / speed;       // adjust deck animation speed (used in visualization.js)
+        const video = document.getElementById('background-video');
+        video.playbackRate = speed;               // adjust video speed
+    }
+    """,
+    Input('animation-speed-dropdown', 'value'),
+    prevent_initial_call=True
+)
+
 if __name__ == "__main__":
     app.run(debug=True)
