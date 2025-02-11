@@ -140,14 +140,27 @@ down_panel_upper = [
 ]
 
 down_panel_lower = [
-    dbc.Col(html.Div("Snímek:"), width=1),
-    dbc.Col(dbc.Input(
+    html.Div("Snímek:"),
+    dbc.Input(
         value="0",
         id="camera-position-input",
         type="number",
         min=0,
-        max=frames_cnt-1
-    ), width=2)
+        max=frames_cnt-1,
+        style={'width':'90px'}
+    ),
+    html.Div(
+        "",
+        className="ms-auto",   # works as a spacer
+    ),
+    html.Div("Rychlost:"),
+    dcc.Dropdown(
+        options={'2': '2×', '1': '1×', '0.5': '0.5×'},
+        value='1',
+        clearable=False,
+        id='animation-speed-dropdown',
+        style={'width':'80px'}
+    )
 ]
 
 
@@ -185,6 +198,7 @@ point_opacity_widget = [
 ]
 
 right_panel = [
+    dbc.Row(dbc.Placeholder(color="white"),),
     dbc.Row(html.Div("Zobrazení vrstev:")),
     dbc.Row(dcc.Checklist(
             options=[{'label': ' záběr z kamery', 'value': 'pic'}],
@@ -252,16 +266,26 @@ visualization = html.Div(
 app.layout = html.Div(children=
     [
         dbc.Placeholder(color="white"),
-
         dbc.Row(
             [
                 dbc.Col([
                     visualization,
-                    dbc.Placeholder(color="black"),
+                    dbc.Placeholder(color="white"),
                     dbc.Row(down_panel_upper, justify="center", align="start"),
-                    dbc.Row(down_panel_lower, justify="start", align="end"),
+                    dbc.Stack(
+                        down_panel_lower,
+                        direction="horizontal",
+                        gap=3,
+                    ),
                 ], width=6),
-                dbc.Col(right_panel, width=3)
+                dbc.Col(dbc.Tabs(
+                    [
+                        dbc.Tab(right_panel, tab_id="vis", label="Zobrazení", label_style={"padding": "10px"}),
+                        dbc.Tab("", tab_id="data", label="Data", label_style={"padding": "10px"}),
+                        dbc.Tab("", tab_id="prof", label="Průjezdný profil", label_style={"padding": "10px"}),
+                    ],
+                    active_tab="vis"
+                ), width=3)
             ],
             justify="center"
         )
