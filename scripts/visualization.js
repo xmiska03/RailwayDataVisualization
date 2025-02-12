@@ -205,7 +205,7 @@ function updateLineLayerProps(visible) {
   window.deck.setProps({layers: [window.pc_layer, updatedLineLayer]});
 }
 
-function animationStep() {
+function animationStep(now, metadata) {
   const video = document.getElementById('background-video');
   if (window.animation_running) video.requestVideoFrameCallback(animationStep);
   
@@ -213,9 +213,10 @@ function animationStep() {
   window.call_time = Date.now();
   
   // calculate new position from video time
-  window.position = Math.floor(video.currentTime * 25);
+  if (metadata) window.position = Math.floor(metadata.mediaTime * 25);
   
-  //console.log("animationStep - video time: ", video.currentTime);
+  //console.log("animationStep - video.currentTime is: ", video.currentTime);
+  //if (metadata) console.log("animationStep - metadata.mediaTime is: ", metadata.mediaTime);
   console.log("animationStep - setting position: ", window.position);
  
   if (window.position >= window.frames_cnt - 2) {  // end of animation
