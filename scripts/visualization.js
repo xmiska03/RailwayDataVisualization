@@ -206,8 +206,12 @@ function updateLineLayerProps(visible) {
 }
 
 function animationStep() {
-  if (!window.animation_running) return;
-
+  if (window.animation_running) requestAnimationFrame(animationStep);
+  
+  console.log("called after: ", Date.now() - window.timeout_time, "ms");  // for debugging
+  window.timeout_time = Date.now();
+  
+  //setTimeout(animationStep, 40);
   const video = document.getElementById('background-video');
   
   // calculate new position from video time
@@ -241,11 +245,6 @@ function animationStep() {
   const minutes = Math.floor(time_sec / 60);
   const seconds = time_sec % 60;                                                    // update time label
   document.getElementById("current-time-div").innerText = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
-
-  // plan the next step
-  const timeToNextFrame = (window.position + 1) * window.frame_duration - video.currentTime * 1000;
-  //console.log("set timeout to: ", timeToNextFrame);
-  setTimeout(animationStep, Math.max(0, timeToNextFrame));
 }
 
 function runDeckAnimation() {
@@ -260,15 +259,17 @@ function runDeckAnimation() {
 function stopDeckAnimation() {
   window.animation_running = false;
 
-  // TODO: this has to be done with the frame number input element so that Dash knows about the changes
-  dash_clientside.set_props("camera-position-input", {value: window.position});
-  dash_clientside.set_props("camera-position-slider-input", {value: window.position});
-  const video = document.getElementById('background-video');
-  const time_sec = Math.floor(video.currentTime); // get time in seconds, round to whole number
-  const minutes = Math.floor(time_sec / 60);
-  const seconds = time_sec % 60;
-  const label = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`
-  dash_clientside.set_props("current-time-div", {children: label});
+  setTimeout(() => {
+    // this has to be done with the GUI elements so that Dash knows about the changes
+    dash_clientside.set_props("camera-position-input", {value: window.position});
+    dash_clientside.set_props("camera-position-slider-input", {value: window.position});
+    const video = document.getElementById('background-video');
+    const time_sec = Math.floor(video.currentTime); // get time in seconds, round to whole number
+    const minutes = Math.floor(time_sec / 60);
+    const seconds = time_sec % 60;
+    const label = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`
+    dash_clientside.set_props("current-time-div", {children: label});
+  }, 500);
 }
 
 // make the functions global

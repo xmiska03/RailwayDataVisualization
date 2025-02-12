@@ -340,7 +340,8 @@ app.clientside_callback(
             window.runDeckAnimation();         // run both deck animation and the video
             video.play();
         } else {
-            window.stopDeckAnimation();
+            // the video will not pause immediately, so the pause event needs to be used
+            video.onpause=function(){ window.stopDeckAnimation() };
             video.pause();
             // TODO: fix possible offset
             //window.position = Math.floor(video.currentTime * 25);
