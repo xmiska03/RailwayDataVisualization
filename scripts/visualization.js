@@ -206,25 +206,27 @@ function updateLineLayerProps(visible) {
 }
 
 function animationStep() {
-  if (window.animation_running) requestAnimationFrame(animationStep);
-  
-  console.log("called after: ", Date.now() - window.timeout_time, "ms");  // for debugging
-  window.timeout_time = Date.now();
-  
-  //setTimeout(animationStep, 40);
   const video = document.getElementById('background-video');
+  if (window.animation_running) video.requestVideoFrameCallback(animationStep);
+  
+  console.log("called after: ", Date.now() - window.call_time, "ms");  // for debugging
+  window.call_time = Date.now();
   
   // calculate new position from video time
   window.position = Math.floor(video.currentTime * 25);
-  //console.log("video time: ", videoTime);
-  //console.log("position: ", window.position);
+  
+  //console.log("animationStep - video time: ", video.currentTime);
+  console.log("animationStep - setting position: ", window.position);
  
-  if (window.position >= window.frames_cnt) {                                // end of animation
-    window.position = window.frames_cnt - 1;                                 // show the last frame
-    window.animation_running = false;
-    const icon = document.getElementById("play-button").querySelector("i");  // change icon
-    icon.classList.toggle("bi-play-fill");
-    icon.classList.toggle("bi-pause-fill");
+  if (window.position >= window.frames_cnt - 2) {  // end of animation
+    if (window.animation_running == true) {
+      window.animation_running = false;
+      const icon = document.getElementById("play-button").querySelector("i");  // change icon
+      icon.classList.toggle("bi-play-fill");
+      icon.classList.toggle("bi-pause-fill");
+    }
+    
+    window.position = window.frames_cnt - 1;           // show the last frame
     // this has to be done with the elements so that Dash knows about the changes
     dash_clientside.set_props("camera-position-input", {value: window.position});
     dash_clientside.set_props("camera-position-slider-input", {value: window.position});
@@ -238,7 +240,6 @@ function animationStep() {
   // update the visualization
   window.updatePosition();
   // update GUI elements
-  //console.log("script setting inputs to: ", window.position);
   document.getElementById("camera-position-input").value = window.position;         // update input value
   document.getElementById("camera-position-slider-input").value = window.position;  // update slider value
   const time_sec = Math.floor(Math.max(video.currentTime - 0.001, 0)); // get time in seconds, round to whole number
@@ -248,8 +249,11 @@ function animationStep() {
 }
 
 function runDeckAnimation() {
-  if (window.position >= window.frames_cnt - 1) {  // it is at the end, start again from the beginning
+  if (window.position >= window.frames_cnt - 2) {  // it is at the end, start again from the beginning
+    const video = document.getElementById('background-video');
+    video.currentTime = 0;
     window.position = 0;
+    window.updatePosition();
   }
   
   window.animation_running = true;
@@ -264,7 +268,7 @@ function stopDeckAnimation() {
     dash_clientside.set_props("camera-position-input", {value: window.position});
     dash_clientside.set_props("camera-position-slider-input", {value: window.position});
     const video = document.getElementById('background-video');
-    const time_sec = Math.floor(video.currentTime); // get time in seconds, round to whole number
+    const time_sec = Math.floor(video.currentTime - 0.001); // get time in seconds, round to whole number
     const minutes = Math.floor(time_sec / 60);
     const seconds = time_sec % 60;
     const label = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`

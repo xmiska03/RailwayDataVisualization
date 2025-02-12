@@ -334,8 +334,8 @@ app.clientside_callback(
     """
     function(btn) {
         const video = document.getElementById('background-video');
-        const icon = document.getElementById("play-button").querySelector("i"); 
-        
+        const icon = document.getElementById("play-button").querySelector("i");
+
         if (!window.animation_running) {
             window.runDeckAnimation();         // run both deck animation and the video
             video.play();
@@ -376,6 +376,7 @@ app.clientside_callback(
                 // update video
                 const video = document.getElementById('background-video');
                 const videoTime = new_pos / 25;
+
                 video.currentTime = videoTime;
 
                 // update slider and input field and time label
@@ -446,7 +447,6 @@ app.clientside_callback(
     """
     function(speed_str) {
         let speed = parseFloat(speed_str);
-        //console.log("speed: ", speed);
         window.frame_duration = 40 / speed;       // adjust deck animation speed (used in visualization.js)
         const video = document.getElementById('background-video');
         video.playbackRate = speed;               // adjust video speed
