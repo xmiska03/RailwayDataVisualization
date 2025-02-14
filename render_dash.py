@@ -376,7 +376,6 @@ app.clientside_callback(
                 // update video
                 const video = document.getElementById('background-video');
                 const videoTime = new_pos / 25;
-
                 video.currentTime = videoTime;
 
                 // update slider and input field and time label

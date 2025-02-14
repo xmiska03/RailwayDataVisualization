@@ -213,11 +213,19 @@ function animationStep(now, metadata) {
   window.call_time = Date.now();
   
   // calculate new position from video time
-  if (metadata) window.position = Math.floor(metadata.mediaTime * 25);
+  if (metadata) {
+    if (window.animation_running) {
+      // needs to be 1 frame forward to be in sync with the video
+      window.position = Math.floor(metadata.mediaTime * 25) + 1;
+    } else {
+      // the final position when stopping needs to be exact
+      window.position = Math.floor(metadata.mediaTime * 25);
+    }
+  }
   
   //console.log("animationStep - video.currentTime is: ", video.currentTime);
   //if (metadata) console.log("animationStep - metadata.mediaTime is: ", metadata.mediaTime);
-  console.log("animationStep - setting position: ", window.position);
+  //console.log("animationStep - setting position: ", window.position);
  
   if (window.position >= window.frames_cnt - 2) {  // end of animation
     if (window.animation_running == true) {
