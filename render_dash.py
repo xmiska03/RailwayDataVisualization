@@ -122,11 +122,11 @@ app = Dash(
     __name__,
     title = "Vizualizace dat z MMS",
     update_title = "Načítání...",
-    external_stylesheets = [dbc.themes.FLATLY, "https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css"]
+    external_stylesheets = [dbc.themes.BOOTSTRAP, "https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css"]
 )
 
 down_panel_upper = [
-    dbc.Col(dbc.Button(html.I(className="bi bi-play-fill"), id='play-button'), width=1),
+    dbc.Col(dbc.Button(html.I(className="bi-play-fill"), id='play-button'), width=1),
     dbc.Col(html.Div("00:00", id="current-time-div"), width=1),
     dbc.Col(dcc.Input(
         value=0,
@@ -197,8 +197,8 @@ point_opacity_widget = [
     ), width=7)
 ]
 
-right_panel = [
-    dbc.Row(dbc.Placeholder(color="white"),),
+visualization_tab = [
+    dbc.Row(dbc.Placeholder(color="white")),
     dbc.Row(html.Div("Zobrazení vrstev:")),
     dbc.Row(dcc.Checklist(
             options=[{'label': ' záběr z kamery', 'value': 'pic'}],
@@ -224,6 +224,59 @@ right_panel = [
     dbc.Row(point_color_widget),
     dbc.Placeholder(color="black", size="xs"),
     dbc.Row(point_opacity_widget)
+]
+
+upload_box_style = {
+    'width': '100%',
+    'height': '40px',
+    'lineHeight': '40px',
+    'borderWidth': '1px',
+    'borderStyle': 'dashed',
+    'borderRadius': '10px',
+    'textAlign': 'center',
+    'margin': '10px',
+    'cursor': 'pointer',
+    'boxShadow': '0px 2px 5px rgba(0, 0, 0, 0.1)'
+}
+
+data_tab = [
+    dbc.Row(dbc.Placeholder(color="white")),
+    dbc.Row(html.Div("Mračno bodů:")),
+    dbc.Row(dcc.Upload(
+        id='point-cloud-upload',
+        children=html.Div([
+            html.I(className="bi-upload", style={'margin':'5px'}),
+            'Vybrat soubor'
+        ]),
+        style=upload_box_style
+    )),
+    dbc.Row(html.Div("Translace:")),
+    dbc.Row(dcc.Upload(
+        id='translations-upload',
+        children=html.Div([
+            html.I(className="bi-upload", style={'margin':'5px'}),
+            'Vybrat soubor'
+        ]),
+        style=upload_box_style
+    )),
+    dbc.Row(html.Div("Rotace:")),
+    dbc.Row(dcc.Upload(
+        id='rotations-upload',
+        children=html.Div([
+            html.I(className="bi-upload", style={'margin':'5px'}),
+            'Vybrat soubor'
+        ]),
+        style=upload_box_style
+    )),
+    dbc.Row(html.Div("Video:")),
+    dbc.Row(dcc.Upload(
+        id='video-upload',
+        children=html.Div([
+            html.I(className="bi-upload", style={'margin':'5px'}),
+            'Vybrat soubor'
+        ]),
+        style=upload_box_style
+    ))
 ]
 
 visualization = html.Div(
@@ -263,29 +316,46 @@ visualization = html.Div(
     }
 )
 
-app.layout = html.Div(children=
+app.layout = html.Div(
     [
         dbc.Placeholder(color="white"),
         dbc.Row(
-            [
-                dbc.Col([
-                    visualization,
-                    dbc.Placeholder(color="white"),
-                    dbc.Row(down_panel_upper, justify="center", align="start"),
-                    dbc.Stack(
-                        down_panel_lower,
-                        direction="horizontal",
-                        gap=3,
-                    ),
-                ], width=6),
-                dbc.Col(dbc.Tabs(
+            [   
+                # the left side of the screen with the visualization and animation controls 
+                dbc.Col(
                     [
-                        dbc.Tab(right_panel, tab_id="vis", label="Zobrazení", label_style={"padding": "10px"}),
-                        dbc.Tab("", tab_id="data", label="Data", label_style={"padding": "10px"}),
-                        dbc.Tab("", tab_id="prof", label="Průjezdný profil", label_style={"padding": "10px"}),
-                    ],
-                    active_tab="vis"
-                ), width=3)
+                        visualization,
+                        dbc.Placeholder(color="white"),
+                        dbc.Row(down_panel_upper, justify="center", align="start"),
+                        dbc.Stack(down_panel_lower, direction="horizontal", gap=3),
+                    ], width=6
+                ),
+                # the right side of the screen with tabs
+                dbc.Col(  
+                    dbc.Tabs(
+                        [
+                            dbc.Tab(
+                                visualization_tab,
+                                tab_id="vis",
+                                label="Zobrazení",
+                                label_style={"padding": "10px"}
+                            ),
+                            dbc.Tab(
+                                data_tab, 
+                                tab_id="data", 
+                                label="Data", 
+                                label_style={"padding": "10px"}
+                            ),
+                            dbc.Tab(
+                                "", 
+                                tab_id="prof", 
+                                label="Průjezdný profil", 
+                                label_style={"padding": "10px"}
+                            )
+                        ],
+                        active_tab="data"
+                    ), width=3
+                )
             ],
             justify="center"
         )
