@@ -5,6 +5,7 @@ import numpy as np
 from pypcd4 import PointCloud
 import csv
 from scipy.spatial.transform import Rotation
+import base64
 
 
 # visualization parameters
@@ -126,7 +127,7 @@ app = Dash(
 )
 
 down_panel_upper = [
-    dbc.Col(dbc.Button(html.I(className="bi-play-fill"), id='play-button'), width=1),
+    dbc.Col(dbc.Button(html.I(className="bi bi-play-fill"), id='play-button'), width=1),
     dbc.Col(html.Div("00:00", id="current-time-div"), width=1),
     dbc.Col(dcc.Input(
         value=0,
@@ -239,44 +240,113 @@ upload_box_style = {
     'boxShadow': '0px 2px 5px rgba(0, 0, 0, 0.1)'
 }
 
+upload_design = html.Div([
+    html.I(className="bi bi-upload", style={'margin':'5px'}),
+    'Vybrat soubor'
+])
+
+point_cloud_upload = dcc.Upload(
+    id='point-cloud-upload',
+    children=upload_design,
+    style=upload_box_style
+)
+
+translations_upload = dcc.Upload(
+    id='translations-upload',
+    children=upload_design,
+    style=upload_box_style
+)
+
+rotations_upload = dcc.Upload(
+    id='rotations-upload',
+    children=upload_design,
+    style=upload_box_style
+)
+
+video_upload = dcc.Upload(
+    id='video-upload',
+    children=upload_design,
+    style=upload_box_style
+)
+
+point_cloud_uploaded_file = dbc.Stack(
+    [
+        html.I(className="bi bi-file-earmark-binary"),
+        html.Div("", id="point-cloud-filename-div"),
+        html.Div(
+            "",
+            className="ms-auto",   # works as a spacer
+        ),
+        dbc.Button(
+            html.I(className="bi bi-x-lg"),
+            id='point-cloud-delete-button', 
+            style={"background": "none", "border": "none", "color": "inherit", "padding": "0"}
+        ),
+    ], direction="horizontal", gap=2, style={'margin': '10px'}
+)
+
+translations_uploaded_file = dbc.Stack(
+    [
+        html.I(className="bi bi-file-earmark-text"),
+        html.Div("", id="translations-filename-div"),
+        html.Div(
+            "",
+            className="ms-auto",   # works as a spacer
+        ),
+        dbc.Button(
+            html.I(className="bi bi-x-lg"),
+            id='translations-delete-button', 
+            style={"background": "none", "border": "none", "color": "inherit", "padding": "0"}
+        ),
+    ], direction="horizontal", gap=2, style={'margin': '10px'}
+)
+
+rotations_uploaded_file = dbc.Stack(
+    [
+        html.I(className="bi bi-file-earmark-text"),
+        html.Div("", id="rotations-filename-div"),
+        html.Div(
+            "",
+            className="ms-auto",   # works as a spacer
+        ),
+        dbc.Button(
+            html.I(className="bi bi-x-lg"),
+            id='rotations-delete-button', 
+            style={"background": "none", "border": "none", "color": "inherit", "padding": "0"}
+        ),
+    ], direction="horizontal", gap=2, style={'margin': '10px'}
+)
+
+video_uploaded_file = dbc.Stack(
+    [
+        html.I(className="bi bi-file-earmark-play"),
+        html.Div("", id="video-filename-div"),
+        html.Div(
+            "",
+            className="ms-auto",   # works as a spacer
+        ),
+        dbc.Button(
+            html.I(className="bi bi-x-lg"),
+            id='video-delete-button', 
+            style={"background": "none", "border": "none", "color": "inherit", "padding": "0"}
+        ),
+    ], direction="horizontal", gap=2, style={'margin': '10px'}
+)
+
 data_tab = [
     dbc.Row(dbc.Placeholder(color="white")),
     dbc.Row(html.Div("Mračno bodů:")),
-    dbc.Row(dcc.Upload(
-        id='point-cloud-upload',
-        children=html.Div([
-            html.I(className="bi-upload", style={'margin':'5px'}),
-            'Vybrat soubor'
-        ]),
-        style=upload_box_style
-    )),
+    dbc.Row(html.Div(point_cloud_upload, id="point-cloud-upload-div")),
+    dbc.Row(html.Div(point_cloud_uploaded_file, id="point-cloud-uploaded-file-div")),
     dbc.Row(html.Div("Translace:")),
-    dbc.Row(dcc.Upload(
-        id='translations-upload',
-        children=html.Div([
-            html.I(className="bi-upload", style={'margin':'5px'}),
-            'Vybrat soubor'
-        ]),
-        style=upload_box_style
-    )),
+    dbc.Row(html.Div(translations_upload, id="translations-upload-div")),
+    dbc.Row(html.Div(translations_uploaded_file, id="translations-uploaded-file-div")),
     dbc.Row(html.Div("Rotace:")),
-    dbc.Row(dcc.Upload(
-        id='rotations-upload',
-        children=html.Div([
-            html.I(className="bi-upload", style={'margin':'5px'}),
-            'Vybrat soubor'
-        ]),
-        style=upload_box_style
-    )),
+    dbc.Row(html.Div(rotations_upload, id="rotations-upload-div")),
+    dbc.Row(html.Div(rotations_uploaded_file, id="rotations-uploaded-file-div")),
     dbc.Row(html.Div("Video:")),
-    dbc.Row(dcc.Upload(
-        id='video-upload',
-        children=html.Div([
-            html.I(className="bi-upload", style={'margin':'5px'}),
-            'Vybrat soubor'
-        ]),
-        style=upload_box_style
-    ))
+    dbc.Row(html.Div(video_upload, id="video-upload-div")),
+    dbc.Row(html.Div(video_uploaded_file, id="video-uploaded-file-div"))
 ]
 
 visualization = html.Div(
@@ -353,7 +423,7 @@ app.layout = html.Div(
                                 label_style={"padding": "10px"}
                             )
                         ],
-                        active_tab="data"
+                        active_tab="vis"
                     ), width=3
                 )
             ],
@@ -524,6 +594,115 @@ app.clientside_callback(
     Input('animation-speed-dropdown', 'value'),
     prevent_initial_call=True
 )
+
+# upload/delete file with point cloud
+@callback(
+    Output('point-cloud-upload-div', 'style'),
+    Output('point-cloud-uploaded-file-div', 'style'),
+    Output('point-cloud-filename-div', 'children'),
+    Input('point-cloud-upload', 'contents'),
+    State('point-cloud-upload', 'filename')
+)
+def upload_point_cloud(file_content, filename):
+    if file_content is not None:
+        # new file uploaded
+        #content_type, content_string = file_content.split(',')
+        #decoded = base64.b64decode(content_string)
+        #print(decoded)
+        return {"display": "none"}, {"display": "block"}, filename
+    else:
+        # file deleted (or it is the initial call)
+        return {"display": "block"}, {"display": "none"}, ""
+
+# upload/delete file with translations
+@callback(
+    Output('translations-upload-div', 'style'),
+    Output('translations-uploaded-file-div', 'style'),
+    Output('translations-filename-div', 'children'),
+    Input('translations-upload', 'contents'),
+    State('translations-upload', 'filename')
+)
+def upload_translations(file_content, filename):
+    if file_content is not None:
+        # new file uploaded
+        content_type, content_string = file_content.split(',')
+        decoded = base64.b64decode(content_string)
+        #print("uploaded translations: ", decoded)
+        return {"display": "none"}, {"display": "block"}, filename
+    else:
+        # file deleted (or it is the initial call)
+        return {"display": "block"}, {"display": "none"}, ""
+
+# react to uploaded/deleted file with rotations
+@callback(
+    Output('rotations-upload-div', 'style'),
+    Output('rotations-uploaded-file-div', 'style'),
+    Output('rotations-filename-div', 'children'),
+    Input('rotations-upload', 'contents'),
+    State('rotations-upload', 'filename')
+)
+def upload_rotations(file_content, filename):
+    if file_content is not None:
+        # new file uploaded
+        content_type, content_string = file_content.split(',')
+        decoded = base64.b64decode(content_string)
+        #print("uploaded rotations: ", decoded)
+        return {"display": "none"}, {"display": "block"}, filename
+    else:
+        # file deleted (or it is the initial call)
+        return {"display": "block"}, {"display": "none"}, ""
+
+# upload/delete file with video
+@callback(
+    Output('video-upload-div', 'style'),
+    Output('video-uploaded-file-div', 'style'),
+    Output('video-filename-div', 'children'),
+    Input('video-upload', 'contents'),
+    State('video-upload', 'filename')
+)
+def upload_video(file_content, filename):
+    if file_content is not None:
+        # new file uploaded
+        #content_type, content_string = file_content.split(',')
+        #decoded = base64.b64decode(content_string)
+        #print(decoded)
+        return {"display": "none"}, {"display": "block"}, filename
+    else:
+        # file deleted (or it is the initial call)
+        return {"display": "block"}, {"display": "none"}, ""
+    
+# delete file with point cloud
+@callback(
+    Output('point-cloud-upload', 'contents'),
+    Input('point-cloud-delete-button', 'n_clicks')
+)
+def delete_point_cloud(btn):
+    return None
+
+# delete file with translations
+@callback(
+    Output('translations-upload', 'contents'),
+    Input('translations-delete-button', 'n_clicks')
+)
+def delete_translations(btn):
+    return None
+
+# delete file with rotations
+@callback(
+    Output('rotations-upload', 'contents'),
+    Input('rotations-delete-button', 'n_clicks')
+)
+def delete_rotations(btn):
+    return None
+
+# delete file with video
+@callback(
+    Output('video-upload', 'contents'),
+    Input('video-delete-button', 'n_clicks')
+)
+def delete_video(btn):
+    return None
+
 
 if __name__ == "__main__":
     app.run(debug=True)
