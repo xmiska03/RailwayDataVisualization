@@ -2,7 +2,7 @@ import {Deck, FirstPersonView} from '@deck.gl/core';
 import {PointCloudLayer} from '@deck.gl/layers';
 import {LineLayer} from '@deck.gl/layers';
 
-
+window.deck_initialized = false;
 window.frames_cnt = 500;
 window.position = 0;
 window.animation_running = false;
@@ -93,6 +93,8 @@ function initializeDeck() {
     layers: [window.pc_layer, window.line_layer],
     canvas: 'visualization-canvas'
   });
+
+  window.deck_initialized = true;
 }
 
 
@@ -116,7 +118,7 @@ function updatePosition() {
     pointSize: window.data_dict.layers[0].pointSize,
     visible: window.data_dict.layers[0].visible,
     updateTriggers: {
-      getPosition: new_pos        // needed when changing getPosition or getColor
+      getPosition: [new_pos, window.transf]        // needed when changing getPosition or getColor
     }
   });
   window.pc_layer = updatedPCLayer;
