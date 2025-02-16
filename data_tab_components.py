@@ -109,3 +109,20 @@ video_uploaded_file = dbc.Stack(
         ),
     ], direction="horizontal", gap=2, style={'margin': '10px'}
 )
+
+data_tab = [
+    dbc.Row(dbc.Placeholder(color="white")),
+    dbc.Row(html.Div("Mračno bodů:")),
+    dbc.Row(html.Div(point_cloud_upload, id="point-cloud-upload-div")),
+    dbc.Row(html.Div(point_cloud_uploaded_file, id="point-cloud-uploaded-file-div")),
+    dbc.Row(html.Div("Translace:")),
+    dbc.Row(html.Div(translations_upload, id="translations-upload-div")),
+    dbc.Row(html.Div(translations_uploaded_file, id="translations-uploaded-file-div")),
+    dbc.Row(html.Div("Rotace:")),
+    dbc.Row(html.Div(rotations_upload, id="rotations-upload-div")),
+    dbc.Row(html.Div(rotations_uploaded_file, id="rotations-uploaded-file-div")),
+    dbc.Row(html.Div("Video:")),
+    dbc.Row(html.Div(video_upload, id="video-upload-div")),
+    dbc.Row(html.Div(video_uploaded_file, id="video-uploaded-file-div"))
+]
+

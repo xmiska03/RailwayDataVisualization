@@ -6,20 +6,13 @@ from pypcd4 import PointCloud
 import csv
 from scipy.spatial.transform import Rotation
 
-import file_upload_components
-import file_upload_callbacks
-
-
-# visualization parameters
-POINT_SIZE = 16
-POSITION = [0, -1.1, 0.45]     # move the camera left/right, up/down
-BEARING = 91.5                 # turn the camera left/right
-PITCH = 1.3                    # turn the camera up/down
-ZOOM = 10
-FOVY = 37                      # focal length
-FAR_PLANE = 300
-OPACITY = 0.7
-LINE_WIDTH = 60
+import data_tab_components
+import data_tab_callbacks
+import visualization_tab_components
+import visualization_tab_callbacks
+import animation_control_components
+import animation_control_callbacks
+import params
 
 # loads a csv file into a numpy array
 def load_csv_into_nparray(file_address):
@@ -88,29 +81,29 @@ pc_df = pd.DataFrame(pc_nparray, columns=["x", "y", "z", "intensity"])
 # prepare the visualization of the point cloud using Deck.GL
 point_cloud_layer = {
     "data": pc_df.to_dict(orient="records"),
-    "pointSize": POINT_SIZE,
+    "pointSize": params.POINT_SIZE,
     "pointColor": 'rgb',
-    "opacity": OPACITY,
+    "opacity": params.OPACITY,
     "visible": True
 }
 
 line_layer = {
     "data": lines_data,
     "color": [250, 100, 15],
-    "width": LINE_WIDTH,
+    "width": params.LINE_WIDTH,
     "visible": True
 }
 
 view_state = {
-    "bearing": BEARING,
-    "pitch": PITCH,
-    "position": POSITION,
-    "zoom": ZOOM
+    "bearing": params.BEARING,
+    "pitch": params.PITCH,
+    "position": params.POSITION,
+    "zoom": params.ZOOM
 }
 
 view = {
-    "far": FAR_PLANE,
-    "fovy": FOVY,
+    "far": params.FAR_PLANE,
+    "fovy": params.FOVY,
     "controller": False
 }
 
@@ -128,122 +121,6 @@ app = Dash(
     external_stylesheets = [dbc.themes.BOOTSTRAP, "https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css"]
 )
 
-down_panel_upper = [
-    dbc.Col(dbc.Button(html.I(className="bi bi-play-fill"), id='play-button'), width=1),
-    dbc.Col(html.Div("00:00", id="current-time-div"), width=1),
-    dbc.Col(dcc.Input(
-        value=0,
-        id="camera-position-slider-input",
-        type="range",
-        min=0,
-        max=frames_cnt-1,
-        style={'width': '100%'}
-    ), width=9),
-    dbc.Col(html.Div("00:19", id="total-time-div"), width=1),
-]
-
-down_panel_lower = [
-    html.Div("Snímek:"),
-    dbc.Input(
-        value="0",
-        id="camera-position-input",
-        type="number",
-        min=0,
-        max=frames_cnt-1,
-        style={'width':'90px'}
-    ),
-    html.Div(
-        "",
-        className="ms-auto",   # works as a spacer
-    ),
-    html.Div("Rychlost:"),
-    dcc.Dropdown(
-        options={'2': '2×', '1': '1×', '0.5': '0.5×'},
-        value='1',
-        clearable=False,
-        id='animation-speed-dropdown',
-        style={'width':'80px'}
-    )
-]
-
-
-point_size_widget = [
-    dbc.Col(html.Div("Velikost bodů: "), width=5),
-    dbc.Col(dbc.Input(
-        value=f"{POINT_SIZE}",
-        id="point-size-input",
-        type="number",
-        min=1,
-        max=50
-    ), width=7)
-]
-
-point_color_widget = [
-    dbc.Col(html.Div("Barevná škála: "), width=5),
-    dbc.Col(dcc.Dropdown(
-        options={'rgb': 'rudo-zeleno-modrá', 'rb': 'rudo-modrá', 'yr': 'žluto-rudá'},
-        value='rgb',
-        clearable=False,
-        id='point-color-dropdown'
-    ), width=7)
-]
-
-point_opacity_widget = [
-    dbc.Col(html.Div("Průhlednost bodů: "), width=5),
-    dbc.Col(dbc.Input(
-        value=f"{OPACITY}",
-        id="point-opacity-input",
-        type="number",
-        min=0,
-        max=1,
-        step=0.1
-    ), width=7)
-]
-
-visualization_tab = [
-    dbc.Row(dbc.Placeholder(color="white")),
-    dbc.Row(html.Div("Zobrazení vrstev:")),
-    dbc.Row(dcc.Checklist(
-            options=[{'label': ' záběr z kamery', 'value': 'pic'}],
-            value=['pic'],
-            id='camera-picture-checkbox'
-        )
-    ),
-    dbc.Row(dcc.Checklist(
-            options=[{'label': ' mračno bodů', 'value': 'pcl'}],
-            value=['pcl'],
-            id='point-cloud-checkbox'
-        )
-    ),
-    dbc.Row(dcc.Checklist(
-            options=[{'label': ' vektorová data', 'value': 'vec'}],
-            value=['vec'],
-            id='vector-data-checkbox'
-        )
-    ),
-    dbc.Placeholder(color="black", size="xs"),
-    dbc.Row(point_size_widget),
-    dbc.Placeholder(color="black", size="xs"),
-    dbc.Row(point_color_widget),
-    dbc.Placeholder(color="black", size="xs"),
-    dbc.Row(point_opacity_widget)
-]
-
-data_tab = [
-    dbc.Row(dbc.Placeholder(color="white")),
-    dbc.Row(html.Div("Mračno bodů:")),
-    dbc.Row(html.Div(file_upload_components.point_cloud_upload, id="point-cloud-upload-div")),
-    dbc.Row(html.Div(file_upload_components.point_cloud_uploaded_file, id="point-cloud-uploaded-file-div")),
-    dbc.Row(html.Div("Translace:")),
-    dbc.Row(html.Div(file_upload_components.translations_upload, id="translations-upload-div")),
-    dbc.Row(html.Div(file_upload_components.translations_uploaded_file, id="translations-uploaded-file-div")),
-    dbc.Row(html.Div("Rotace:")),
-    dbc.Row(html.Div(file_upload_components.rotations_upload, id="rotations-upload-div")),
-    dbc.Row(html.Div(file_upload_components.rotations_uploaded_file, id="rotations-uploaded-file-div")),
-    dbc.Row(html.Div("Video:")),
-    dbc.Row(html.Div(file_upload_components.video_upload, id="video-upload-div")),
-    dbc.Row(html.Div(file_upload_components.video_uploaded_file, id="video-uploaded-file-div"))
-]
 
 visualization = html.Div(
     [
@@ -282,46 +159,59 @@ visualization = html.Div(
     }
 )
 
+# the left side of the screen with the visualization and animation controls 
+app_left_col = dbc.Col(
+    [
+        visualization,
+        dbc.Placeholder(color="white"),
+        dbc.Row(
+            animation_control_components.down_panel_upper, 
+            justify="center",
+            align="start"
+        ),
+        dbc.Stack(
+            animation_control_components.down_panel_lower,
+            direction="horizontal",
+            gap=3
+        ),
+    ], width=6
+)
+    
+# the right side of the screen with tabs
+app_right_col = dbc.Col(  
+    dbc.Tabs(
+        [
+            dbc.Tab(
+                visualization_tab_components.visualization_tab,
+                tab_id="vis",
+                label="Zobrazení",
+                label_style={"padding": "10px"}
+            ),
+            dbc.Tab(
+                data_tab_components.data_tab, 
+                tab_id="data", 
+                label="Data", 
+                label_style={"padding": "10px"}
+            ),
+            dbc.Tab(
+                "", 
+                tab_id="prof", 
+                label="Průjezdný profil", 
+                label_style={"padding": "10px"}
+            )
+        ],
+        active_tab="vis"
+    ), width=3
+)
+
+# Dash app layout
 app.layout = html.Div(
     [
         dbc.Placeholder(color="white"),
         dbc.Row(
-            [   
-                # the left side of the screen with the visualization and animation controls 
-                dbc.Col(
-                    [
-                        visualization,
-                        dbc.Placeholder(color="white"),
-                        dbc.Row(down_panel_upper, justify="center", align="start"),
-                        dbc.Stack(down_panel_lower, direction="horizontal", gap=3),
-                    ], width=6
-                ),
-                # the right side of the screen with tabs
-                dbc.Col(  
-                    dbc.Tabs(
-                        [
-                            dbc.Tab(
-                                visualization_tab,
-                                tab_id="vis",
-                                label="Zobrazení",
-                                label_style={"padding": "10px"}
-                            ),
-                            dbc.Tab(
-                                data_tab, 
-                                tab_id="data", 
-                                label="Data", 
-                                label_style={"padding": "10px"}
-                            ),
-                            dbc.Tab(
-                                "", 
-                                tab_id="prof", 
-                                label="Průjezdný profil", 
-                                label_style={"padding": "10px"}
-                            )
-                        ],
-                        active_tab="vis"
-                    ), width=3
-                )
+            [
+                app_left_col,
+                app_right_col
             ],
             justify="center"
         )
@@ -334,7 +224,7 @@ app.layout = html.Div(
 
 # callbacks - the logic of the app
 
-# initialize the point cloud
+# initialize the deck visualization
 app.clientside_callback(
     """
     function(data_dict) {
@@ -350,149 +240,10 @@ app.clientside_callback(
     Input('visualization-data', 'data')
 )
 
-# initialize the transformations data
-app.clientside_callback(
-    """
-    function(transf_data) {
-        if (window.initializeDeck) {
-            window.transf = transf_data;  // make the data accessible for the visualization.js script
-        }
-        return dash_clientside.no_update;
-    }
-    """,
-    Output('transformations-data', 'id'),  # dummy output needed so that the initial call occurs
-    Input('transformations-data', 'data')
-)
-
-# play/pause the animation
-# this function handles the video, deck.gl visualization and play button icon
-app.clientside_callback(
-    """
-    function(btn) {
-        const video = document.getElementById('background-video');
-        const icon = document.getElementById("play-button").querySelector("i");
-
-        if (!window.animation_running) {
-            window.runDeckAnimation();         // run both deck animation and the video
-            video.play();
-        } else {
-            // the video will not pause immediately, so the pause event needs to be used
-            video.onpause=function(){ window.stopDeckAnimation() };
-            video.pause();
-            // TODO: fix possible offset
-            //window.position = Math.floor(video.currentTime * 25);
-            //window.updatePosition();
-        }
-
-        icon.classList.toggle("bi-play-fill");    // change icon
-        icon.classList.toggle("bi-pause-fill");
-
-    }
-    """,
-    Input("play-button", "n_clicks"),
-    prevent_initial_call=True
-)
-
-# change the frame by number input or slider
-app.clientside_callback(
-    """
-    function(input_val, slider_val_dec) {
-        if (!isNaN(input_val)) {
-            const slider_val = Math.floor(parseFloat(slider_val_dec));
-            
-            // get the new position - which one triggered the callback, slider or input?
-            const triggered_id = dash_clientside.callback_context.triggered_id;
-            const new_pos = (triggered_id == 'camera-position-input') ? parseInt(input_val) : slider_val;
-            
-            if (new_pos != window.position) {
-                // update deck.gl visualization
-                window.position = new_pos;
-                window.updatePosition();  // call function defined in the JavaScript file
-                
-                // update video
-                const video = document.getElementById('background-video');
-                const videoTime = new_pos / 25;
-                video.currentTime = videoTime;
-
-                // update slider and input field and time label
-                dash_clientside.set_props("camera-position-slider-input", {value: new_pos});
-                dash_clientside.set_props("camera-position-input", {value: new_pos});
-
-                // update time label
-                const time_sec = Math.floor(videoTime);
-                const minutes = Math.floor(time_sec / 60);
-                const seconds = time_sec % 60;
-                const label = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`
-                dash_clientside.set_props("current-time-div", {children: label});
-            }
-        }
-    }
-    """,
-    Input('camera-position-input', 'value'),
-    Input('camera-position-slider-input', 'value'),
-    prevent_initial_call=True
-)
-
-# turn the background video on/off
-@callback(
-    Output('background-video', 'style'),
-    Input('camera-picture-checkbox', 'value'),
-)
-def change_background(options_list):
-    patched_style = Patch()
-    if 'pic' in options_list:
-        patched_style["visibility"] = "visible"
-    else:
-        patched_style["visibility"] = "hidden"
-    return patched_style
-
-# change point cloud visibility, point size, color scale or opacity
-app.clientside_callback(
-    """
-    function(layers, point_size, color_scale, opacity) {  
-            if (window.updatePCLayerProps) {
-            // call function defined in the JavaScript file
-            window.updatePCLayerProps(layers.includes('pcl'), point_size, color_scale, opacity);
-        }
-    }
-    """,
-    Input('point-cloud-checkbox', 'value'),
-    Input('point-size-input', 'value'),  # Dash sometimes gives number inputs as strings, sometimes as numbers!
-    Input('point-color-dropdown', 'value'),
-    Input('point-opacity-input', 'value'),
-    prevent_initial_call=True
-)
-
-# change vector data visibility
-app.clientside_callback(
-    """
-    function(layers) {
-        if (window.updateLineLayerProps) {
-            // call function defined in the JavaScript file
-            window.updateLineLayerProps(layers.includes('vec'));
-        }
-    }
-    """,
-    Input('vector-data-checkbox', 'value'),
-    prevent_initial_call=True
-)
-
-# change animation speed
-app.clientside_callback(
-    """
-    function(speed_str) {
-        let speed = parseFloat(speed_str);
-        window.frame_duration = 40 / speed;       // adjust deck animation speed (used in visualization.js)
-        const video = document.getElementById('background-video');
-        video.playbackRate = speed;               // adjust video speed
-    }
-    """,
-    Input('animation-speed-dropdown', 'value'),
-    prevent_initial_call=True
-)
-
 # add callbacks defined in other files
-file_upload_callbacks.get_callbacks(app)
+visualization_tab_callbacks.get_callbacks(app)
+data_tab_callbacks.get_callbacks(app)
+animation_control_callbacks.get_callbacks(app)
 
 if __name__ == "__main__":
     app.run(debug=True)

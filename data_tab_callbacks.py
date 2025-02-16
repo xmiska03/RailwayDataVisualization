@@ -5,6 +5,21 @@ import base64
 
 
 def get_callbacks(app):
+
+    # initialize the transformations data
+    app.clientside_callback(
+        """
+        function(transf_data) {
+            if (window.initializeDeck) {
+                window.transf = transf_data;  // make the data accessible for the visualization.js script
+            }
+            return dash_clientside.no_update;
+        }
+        """,
+        Output('transformations-data', 'id'),  # dummy output needed so that the initial call occurs
+        Input('transformations-data', 'data')
+    )
+
     # upload/delete file with point cloud
     @app.callback(
         Output('point-cloud-upload-div', 'style'),
