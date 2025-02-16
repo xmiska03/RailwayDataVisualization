@@ -3,6 +3,7 @@
 from dash import Output, Input, State, Patch
 import base64
 import numpy as np
+import time
 
 from general_functions import calculate_transformation_matrix
 
@@ -113,19 +114,23 @@ def get_callbacks(app):
         Output('video-upload-div', 'style'),
         Output('video-uploaded-file-div', 'style'),
         Output('video-filename-div', 'children'),
+        Output("background-video", "src"),
         Input('video-upload', 'contents'),
         State('video-upload', 'filename')
     )
     def upload_video(file_content, filename):
         if file_content is not None:
             # new file uploaded
-            #content_type, content_string = file_content.split(',')
-            #decoded = base64.b64decode(content_string)
-            #print(decoded)
-            return {"display": "none"}, {"display": "block"}, filename
+            content_type, content_string = file_content.split(',')
+            decoded = base64.b64decode(content_string)
+            # write the video to a file
+            server_filename = f"assets/uploaded_video_{int(time.time())}.mp4" # filename with a timestamp
+            with open(server_filename, "wb") as f:
+                f.write(decoded)
+            return {"display": "none"}, {"display": "block"}, filename, server_filename
         else:
             # file deleted (or it is the initial call)
-            return {"display": "block"}, {"display": "none"}, ""
+            return {"display": "block"}, {"display": "none"}, "", Patch()
     
     
     # delete file with point cloud

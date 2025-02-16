@@ -36,7 +36,7 @@ def create_lines_data(points_nparray):
 pc = PointCloud.from_path("data/scans.pcd")
 pc_nparray = pc.numpy(("x", "y", "z", "intensity"))
 
-#pc_nparray = pc_nparray[::10]
+#pc_nparray = pc_nparray[::10]   # reduce the size of the point cloud
 
 # load vector data (lines)
 lines1 = create_lines_data(load_csv_into_nparray("data/polyline1.csv"))
@@ -89,15 +89,7 @@ deck_dict = {
     "layers": [point_cloud_layer, line_layer],
 }
 
-# create a Dash app
-app = Dash(
-    __name__,
-    title = "Vizualizace dat z MMS",
-    update_title = "Načítání...",
-    external_stylesheets = [dbc.themes.BOOTSTRAP, "https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css"]
-)
-
-
+# a part of the Dash app which visualizes the data
 visualization = html.Div(
     [
         html.Video(
@@ -164,6 +156,20 @@ app_right_col = dbc.Col(
     ), width=3
 )
 
+
+# create a Dash app
+app = Dash(
+    __name__,
+    title = "Vizualizace dat z MMS",
+    update_title = "Načítání...",
+    external_stylesheets = [
+        dbc.themes.BOOTSTRAP, 
+        "https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css"
+    ]
+)
+
+app.server.config["MAX_CONTENT_LENGTH"] = 100 * 1024 * 1024  # 100MB to allow a longer video
+
 # Dash app layout
 app.layout = html.Div(
     [
@@ -223,4 +229,4 @@ data_tab_callbacks.get_callbacks(app)
 animation_control_callbacks.get_callbacks(app)
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=True, dev_tools_hot_reload=False)

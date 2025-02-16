@@ -140,8 +140,8 @@ function updatePosition() {
     getWidth: window.data_dict.layers[1].width,
     visible: window.data_dict.layers[1].visible,
     updateTriggers: {
-      getSourcePosition: new_pos,        // needed when changing getPosition or getColor
-      getTargetPosition: new_pos
+      getSourcePosition: [new_pos, window.transf],    // needed when changing getPosition or getColor
+      getTargetPosition: [new_pos, window.transf]
     }
   });
   window.line_layer = updatedLineLayer;
