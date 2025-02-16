@@ -2,23 +2,40 @@
 
 from dash import Output, Input, State
 import base64
+import numpy as np
+
+from general_functions import calculate_transformation_matrix
 
 
 def get_callbacks(app):
 
-    # initialize the transformations data
+    # copy the transformations data from a store to the window object
     app.clientside_callback(
         """
         function(transf_data) {
-            if (window.initializeDeck) {
-                window.transf = transf_data;  // make the data accessible for the visualization.js script
-            }
+            window.transf = transf_data;  // make the data accessible for the visualization.js script
             return dash_clientside.no_update;
         }
         """,
         Output('transformations-data', 'id'),  # dummy output needed so that the initial call occurs
         Input('transformations-data', 'data')
     )
+    
+    # calculate new transformations when new translations or rotations are uploaded
+    @app.callback(
+        Output('transformations-data', 'data'),  # dummy output needed so that the initial call occurs
+        Input('translations-data', 'data'),
+        Input('rotations-data', 'data')
+    )
+    def create_transformations(trans_data, rot_data):
+        trans_nparray = np.array(trans_data)  # convert from lists to numpy arrays
+        rot_nparray = np.array(rot_data)
+
+        transf_matrices = []
+        for i in range(min(trans_nparray.shape[0], rot_nparray.shape[0])):
+            transf_matrix = calculate_transformation_matrix(trans_nparray[i], rot_nparray[i])
+            transf_matrices.append(transf_matrix)
+        return transf_matrices
 
     # upload/delete file with point cloud
     @app.callback(

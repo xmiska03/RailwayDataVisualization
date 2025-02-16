@@ -37,6 +37,12 @@ function getColorYR(d) {
 
 function initializeDeck() {
 
+  if (window.transf == null) {
+    // transformation data was not yet defined by the callback, wait until it is
+    setTimeout(initializeDeck, 40);  // try again in 40 ms
+    return;
+  }
+
   const INITIAL_VIEW_STATE = window.data_dict.initialViewState;
   
   const VIEW = new FirstPersonView({
@@ -222,7 +228,24 @@ function animationStep(now, metadata) {
       window.position = Math.floor(metadata.mediaTime * 25);
     }
   }
+
+  /*const video = document.getElementById('background-video');
+  if (window.animation_running) requestAnimationFrame(animationStep);
+  //if (window.animation_running) setTimeout(animationStep, 40);
+
+  console.log("called after: ", Date.now() - window.call_time, "ms");  // for debugging
+  window.call_time = Date.now();
   
+  // calculate new position from video time
+  if (window.animation_running) {
+    // needs to be 1 frame forward to be in sync with the video
+    window.position = Math.floor(video.currentTime * 25) + 1;
+  } else {
+    // the final position when stopping needs to be exact
+    window.position = Math.floor(video.currentTime * 25);
+  }
+  */
+
   //console.log("animationStep - video.currentTime is: ", video.currentTime);
   //if (metadata) console.log("animationStep - metadata.mediaTime is: ", metadata.mediaTime);
   //console.log("animationStep - setting position: ", window.position);

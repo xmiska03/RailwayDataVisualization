@@ -20,24 +20,6 @@ def load_csv_into_nparray(file_address):
         reader = csv.reader(f)
         data = list(reader)
         return np.array(data, dtype=float)
-    
-# creates transformation matrix from translation and rotation data
-def calculate_transformation_matrix(trans_nparray, rot_nparray, position):
-    trans_matrix = np.array([
-        [1, 0, 0, -trans_nparray[position][2]],
-        [0, 1, 0, -trans_nparray[position][0]],
-        [0, 0, 1, -trans_nparray[position][1]],
-        [0, 0, 0, 1]
-    ])
-    rotation = Rotation.from_euler("xyz", rot_nparray[position], degrees=True)
-    rot_mat_3x3 = rotation.as_matrix()
-    rot_matrix = np.array([
-        [rot_mat_3x3[2][2], rot_mat_3x3[2][0], rot_mat_3x3[2][1], 0],
-        [rot_mat_3x3[0][2], rot_mat_3x3[0][0], rot_mat_3x3[0][1], 0],
-        [rot_mat_3x3[1][2], rot_mat_3x3[1][0], rot_mat_3x3[1][1], 0],
-        [0, 0, 0, 1]
-    ])
-    return rot_matrix @ trans_matrix
 
 # creates a JSON-like array of lines from a numpy array of points representing a polyline
 def create_lines_data(points_nparray):
@@ -68,12 +50,6 @@ rot_nparray = load_csv_into_nparray("data/rot.csv")
 
 # number of frames to generate (500 in example data)
 frames_cnt = trans_nparray.shape[0]
-
-# pre-calculate all transformation matrices
-transf_matrices = []
-for i in range(frames_cnt):
-    transf_matrix = calculate_transformation_matrix(trans_nparray, rot_nparray, i)
-    transf_matrices.append(transf_matrix)
 
 # create a pandas DataFrame
 pc_df = pd.DataFrame(pc_nparray, columns=["x", "y", "z", "intensity"])
@@ -136,23 +112,7 @@ visualization = html.Div(
                 'top': 0,
                 'left': 0
             }
-        ),
-        dcc.Store(
-            id='visualization-data',
-            data=deck_dict
-        ),
-        dcc.Store(
-            id='translations-data',
-            data=trans_nparray
-        ),
-        dcc.Store(
-            id='rotations-data',
-            data=rot_nparray
-        ),
-        dcc.Store(
-            id='transformations-data',
-            data=transf_matrices
-        ),
+        )
     ],
     style = {
         "position": "relative" 
@@ -214,7 +174,24 @@ app.layout = html.Div(
                 app_right_col
             ],
             justify="center"
-        )
+        ),
+
+        # stores used for storing data on the clients side
+        dcc.Store(
+            id='visualization-data',
+            data=deck_dict
+        ),
+        dcc.Store(
+            id='translations-data',
+            data=trans_nparray
+        ),
+        dcc.Store(
+            id='rotations-data',
+            data=rot_nparray
+        ),
+        dcc.Store(
+            id='transformations-data'
+        ),
     ],
     style={
         "fontSize": "16px"
