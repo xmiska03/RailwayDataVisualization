@@ -48,7 +48,8 @@ def get_callbacks(app):
         Output('point-cloud-uploaded-file-div', 'style'),
         Output('point-cloud-filename-div', 'children'),
         Input('point-cloud-upload', 'contents'),
-        State('point-cloud-upload', 'filename')
+        State('point-cloud-upload', 'filename'),
+        prevent_initial_call = True
     )
     def upload_point_cloud(file_content, filename):
         if file_content is not None:
@@ -68,7 +69,8 @@ def get_callbacks(app):
         Output('translations-filename-div', 'children'),
         Output('translations-data', 'data'),
         Input('translations-upload', 'contents'),
-        State('translations-upload', 'filename')
+        State('translations-upload', 'filename'),
+        prevent_initial_call = True
     )
     def upload_translations(file_content, filename):
         if file_content is not None:
@@ -92,7 +94,8 @@ def get_callbacks(app):
         Output('rotations-filename-div', 'children'),
         Output('rotations-data', 'data'),
         Input('rotations-upload', 'contents'),
-        State('rotations-upload', 'filename')
+        State('rotations-upload', 'filename'),
+        prevent_initial_call = True
     )
     def upload_rotations(file_content, filename):
         if file_content is not None:
@@ -114,25 +117,40 @@ def get_callbacks(app):
         Output('video-upload-div', 'style'),
         Output('video-uploaded-file-div', 'style'),
         Output('video-filename-div', 'children'),
-        Output("background-video", "src"),
+        Output('background-video', 'src'),
+        Output('update-video-store', 'data'),  # to set the same position in the new video
         Input('video-upload', 'contents'),
-        State('video-upload', 'filename')
+        State('video-upload', 'filename'),
+        State('update-video-store', 'data'),
+        prevent_initial_call = True
     )
-    def upload_video(file_content, filename):
+    def upload_video(file_content, filename, update_number):
         if file_content is not None:
             # new file uploaded
             content_type, content_string = file_content.split(',')
             decoded = base64.b64decode(content_string)
-            # write the video to a file
+            # write the video to a temporary file
             server_filename = f"assets/uploaded_video_{int(time.time())}.mp4" # filename with a timestamp
             with open(server_filename, "wb") as f:
                 f.write(decoded)
-            return {"display": "none"}, {"display": "block"}, filename, server_filename
+            return {"display": "none"}, {"display": "block"}, filename, server_filename, update_number+1
         else:
             # file deleted (or it is the initial call)
-            return {"display": "block"}, {"display": "none"}, "", Patch()
+            return {"display": "block"}, {"display": "none"}, "", Patch(), update_number+1
     
-    
+    # set a new video to the same time as the old video
+    app.clientside_callback(
+        """
+        function(update_number, camera_pos) {
+            const video = document.getElementById('background-video');
+            const videoTime = parseInt(camera_pos) / 25;
+            video.currentTime = videoTime;
+        }
+        """,
+        Input('update-video-store', 'data'),
+        State('camera-position-input', 'value'),
+    )
+
     # delete file with point cloud
     @app.callback(
         Output('point-cloud-upload', 'contents'),
