@@ -1,3 +1,4 @@
 myenv/*
 __pycache__/*
 assets/uploaded_video_*.mp4
+assets/uploaded_pcd_*.pcd

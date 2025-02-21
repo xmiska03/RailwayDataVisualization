@@ -59,6 +59,8 @@ point_cloud_uploaded_file = dbc.Stack(
             id='point-cloud-delete-button', 
             style={"background": "none", "border": "none", "color": "inherit", "padding": "0"}
         ),
+        # a special store used to trigger a clienside callback to update the point cloud visualization
+        dcc.Store(id="update-pcd-store", data=0)
     ], direction="horizontal", gap=2, style={'margin': '10px'}
 )
 
@@ -108,7 +110,7 @@ video_uploaded_file = dbc.Stack(
             style={"background": "none", "border": "none", "color": "inherit", "padding": "0"}
         ),
         # a special store used to trigger a clienside callback to update the video time
-        dcc.Store(id="update-video-store", data=0)  
+        dcc.Store(id="update-video-store", data=0)
     ], direction="horizontal", gap=2, style={'margin': '10px'}
 )
 
