@@ -207,14 +207,13 @@ app.layout = html.Div(
 
 # callbacks - the logic of the app
 
-# initialize the deck visualization
+# (re)initialize the deck visualization
 app.clientside_callback(
     """
     function(data_dict) {
         if (window.initializeDeck) {
-            window.data_dict = data_dict;  // initialize the global variables
-            window.position = 0;
-            window.initializeDeck();  // call function defined in the JavaScript file
+            window.data_dict = data_dict;  // make the data accessible to visualizations.js
+            window.initializeDeck();       // call function defined in the JavaScript file
         }
         return dash_clientside.no_update;
     }

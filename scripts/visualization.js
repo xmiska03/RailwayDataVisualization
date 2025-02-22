@@ -34,7 +34,8 @@ function getColorYR(d) {
   ];
 }
 
-
+// used for initializing the visualization
+// and also reinitializing when new point cloud data is uploaded 
 function initializeDeck() {
 
   if (window.transf == null) {
@@ -60,13 +61,16 @@ function initializeDeck() {
         ? getColorRB
         : getColorPY,
     getPosition: d => [
-      d.x * window.transf[0][0][0] + d.y * window.transf[0][0][1] + d.z * window.transf[0][0][2] + window.transf[0][0][3],
-      d.x * window.transf[0][1][0] + d.y * window.transf[0][1][1] + d.z * window.transf[0][1][2] + window.transf[0][1][3],
-      d.x * window.transf[0][2][0] + d.y * window.transf[0][2][1] + d.z * window.transf[0][2][2] + window.transf[0][2][3],
+      d.x * window.transf[window.position][0][0] + d.y * window.transf[window.position][0][1] + d.z * window.transf[window.position][0][2] + window.transf[window.position][0][3],
+      d.x * window.transf[window.position][1][0] + d.y * window.transf[window.position][1][1] + d.z * window.transf[window.position][1][2] + window.transf[window.position][1][3],
+      d.x * window.transf[window.position][2][0] + d.y * window.transf[window.position][2][1] + d.z * window.transf[window.position][2][2] + window.transf[window.position][2][3],
     ],
     opacity: window.data_dict.layers[0].opacity,
     pointSize: window.data_dict.layers[0].pointSize,
     visible: window.data_dict.layers[0].visible,
+    updateTriggers: {
+      getPosition: [window.position]        // needed when changing getPosition or getColor
+    }
   });
 
   window.line_layer = new LineLayer({
@@ -74,17 +78,21 @@ function initializeDeck() {
     data: window.data_dict.layers[1].data,
     getColor: window.data_dict.layers[1].color,
     getSourcePosition: d => [
-      d.from.x * window.transf[0][0][0] + d.from.y * window.transf[0][0][1] + d.from.z * window.transf[0][0][2] + window.transf[0][0][3],
-      d.from.x * window.transf[0][1][0] + d.from.y * window.transf[0][1][1] + d.from.z * window.transf[0][1][2] + window.transf[0][1][3],
-      d.from.x * window.transf[0][2][0] + d.from.y * window.transf[0][2][1] + d.from.z * window.transf[0][2][2] + window.transf[0][2][3],
+      d.from.x * window.transf[window.position][0][0] + d.from.y * window.transf[window.position][0][1] + d.from.z * window.transf[window.position][0][2] + window.transf[window.position][0][3],
+      d.from.x * window.transf[window.position][1][0] + d.from.y * window.transf[window.position][1][1] + d.from.z * window.transf[window.position][1][2] + window.transf[window.position][1][3],
+      d.from.x * window.transf[window.position][2][0] + d.from.y * window.transf[window.position][2][1] + d.from.z * window.transf[window.position][2][2] + window.transf[window.position][2][3],
     ],
     getTargetPosition: d => [
-      d.to.x * window.transf[0][0][0] + d.to.y * window.transf[0][0][1] + d.to.z * window.transf[0][0][2] + window.transf[0][0][3],
-      d.to.x * window.transf[0][1][0] + d.to.y * window.transf[0][1][1] + d.to.z * window.transf[0][1][2] + window.transf[0][1][3],
-      d.to.x * window.transf[0][2][0] + d.to.y * window.transf[0][2][1] + d.to.z * window.transf[0][2][2] + window.transf[0][2][3],
+      d.to.x * window.transf[window.position][0][0] + d.to.y * window.transf[window.position][0][1] + d.to.z * window.transf[window.position][0][2] + window.transf[window.position][0][3],
+      d.to.x * window.transf[window.position][1][0] + d.to.y * window.transf[window.position][1][1] + d.to.z * window.transf[window.position][1][2] + window.transf[window.position][1][3],
+      d.to.x * window.transf[window.position][2][0] + d.to.y * window.transf[window.position][2][1] + d.to.z * window.transf[window.position][2][2] + window.transf[window.position][2][3],
     ],
     getWidth: window.data_dict.layers[1].width,
-    visible: window.data_dict.layers[1].visible
+    visible: window.data_dict.layers[1].visible,
+    updateTriggers: {
+      getSourcePosition: [window.position],        // needed when changing getPosition or getColor
+      getTargetPosition: [window.position]
+    }
   });
 
   window.deck = new Deck({
