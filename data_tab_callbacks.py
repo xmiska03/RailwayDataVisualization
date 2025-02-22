@@ -6,6 +6,7 @@ import numpy as np
 import pandas as pd
 from pypcd4 import PointCloud
 import time
+import os
 
 from general_functions import calculate_transformation_matrix
 
@@ -62,19 +63,18 @@ def get_callbacks(app):
             content_type, content_string = file_content.split(',')
             decoded = base64.b64decode(content_string)
             # write the video to a temporary file
-            server_filename = f"assets/uploaded_pcd_{int(time.time())}.pcd" # filename with a timestamp
+            server_filename = f"assets/temp/uploaded_pcd_{int(time.time())}.pcd" # filename with a timestamp
             with open(server_filename, "wb") as f:
                 f.write(decoded)
-            # read the new file
+            # read the temporary file
             pc = PointCloud.from_path(server_filename)
             pc_nparray = pc.numpy(("x", "y", "z", "intensity"))
             pc_df = pd.DataFrame(pc_nparray, columns=["x", "y", "z", "intensity"])
             # create a patch for the visualization data store
             patched_data = Patch()
             patched_data["layers"][0]["data"] = pc_df.to_dict(orient="records")
-
-            # TODO: delete the file
-
+            # delete the temporary file
+            os.remove(server_filename)
             return {"display": "none"}, {"display": "block"}, filename, patched_data, update_number+1
         else:
             # file deleted (or it is the initial call)
@@ -148,7 +148,7 @@ def get_callbacks(app):
             content_type, content_string = file_content.split(',')
             decoded = base64.b64decode(content_string)
             # write the video to a temporary file
-            server_filename = f"assets/uploaded_video_{int(time.time())}.mp4" # filename with a timestamp
+            server_filename = f"assets/temp/uploaded_video_{int(time.time())}.mp4" # filename with a timestamp
             with open(server_filename, "wb") as f:
                 f.write(decoded)
             return {"display": "none"}, {"display": "block"}, filename, server_filename, update_number+1
@@ -167,7 +167,20 @@ def get_callbacks(app):
         """,
         Input('update-video-store', 'data'),
         State('camera-position-input', 'value'),
+        prevent_initial_call=True
     )
+
+    # delete old temporary video files
+    @app.callback(
+        Input('delete-temp-video-interval', 'n_intervals')
+    )
+    def delete_temp_video_files(n):
+        now = int(time.time())  # current time in seconds
+        for filename in os.listdir("assets/temp"):    # find all temporary video files
+            file_path = f"assets/temp/{filename}"
+            if os.path.isfile(file_path):
+                if now - int(filename[15:-4]) > 120:  # determine if the file is at least 2 minutes old
+                    os.remove(file_path)
 
     # delete file with point cloud
     @app.callback(

@@ -110,7 +110,12 @@ video_uploaded_file = dbc.Stack(
             style={"background": "none", "border": "none", "color": "inherit", "padding": "0"}
         ),
         # a special store used to trigger a clienside callback to update the video time
-        dcc.Store(id="update-video-store", data=0)
+        dcc.Store(id="update-video-store", data=0),
+        # an interval to delete temporary video files created when users upload new videos
+        dcc.Interval(
+            id="delete-temp-video-interval",
+            interval=120000,  # 2 minutes
+        ),
     ], direction="horizontal", gap=2, style={'margin': '10px'}
 )
 
