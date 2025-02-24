@@ -104,6 +104,14 @@ visualization = html.Div(
                 'top': 0,
                 'left': 0
             }
+        ),
+        html.Canvas(
+            id='distorted-visualization-canvas',
+            style={
+                'position': 'absolute',
+                'top': 0,
+                'left': 0
+            }
         )
     ],
     style = {

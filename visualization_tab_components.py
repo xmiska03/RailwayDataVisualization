@@ -63,5 +63,7 @@ visualization_tab = [
     dbc.Placeholder(color="black", size="xs"),
     dbc.Row(point_color_widget),
     dbc.Placeholder(color="black", size="xs"),
-    dbc.Row(point_opacity_widget)
+    dbc.Row(point_opacity_widget),
+    dbc.Placeholder(color="black", size="xs"),
+    dbc.Row(dbc.Button("Zkreslení", id="distortion-button"))
 ]

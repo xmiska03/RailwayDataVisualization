@@ -95,11 +95,17 @@ function initializeDeck() {
     }
   });
 
+  // The context is created manually to specify "preserveDrawingBuffer: true".
+  // That is needed to enable reading the pixels of the visualisation for applying distortion.
+  const canvas = document.getElementById("visualization-canvas");
+  const context = canvas.getContext("webgl2", { preserveDrawingBuffer: true, premultipliedAlpha: false });
+
   window.deck = new Deck({
     initialViewState: INITIAL_VIEW_STATE,
     views: [VIEW],
     layers: [window.pc_layer, window.line_layer],
-    canvas: 'visualization-canvas'
+    canvas: 'visualization-canvas',
+    context: context
   });
 
   window.deck_initialized = true;
