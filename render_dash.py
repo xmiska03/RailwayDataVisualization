@@ -38,12 +38,6 @@ pc_nparray = pc.numpy(("x", "y", "z", "intensity"))
 
 #pc_nparray = pc_nparray[::10]   # reduce the size of the point cloud
 
-# load vector data (lines)
-lines1 = create_lines_data(load_csv_into_nparray("data/polyline1.csv"))
-lines2 = create_lines_data(load_csv_into_nparray("data/polyline2.csv"))
-lines3 = create_lines_data(load_csv_into_nparray("data/polyline3.csv"))
-lines_data = lines1 + lines2 + lines3
-
 # load data about camera positions (order of the columns: y, z, x)
 trans_nparray = load_csv_into_nparray("data/trans.csv")
 rot_nparray = load_csv_into_nparray("data/rot.csv")
@@ -53,6 +47,22 @@ frames_cnt = trans_nparray.shape[0]
 
 # create a pandas DataFrame
 pc_df = pd.DataFrame(pc_nparray, columns=["x", "y", "z", "intensity"])
+
+# load vector data (lines)
+lines1 = create_lines_data(load_csv_into_nparray("data/polyline1.csv"))
+lines2 = create_lines_data(load_csv_into_nparray("data/polyline2.csv"))
+lines3 = create_lines_data(load_csv_into_nparray("data/polyline3.csv"))
+
+loading_gauge = load_csv_into_nparray("data/loading_gauge.csv")
+loading_gauge_lines = []
+for camera_pos in trans_nparray[80::20]:
+    y = -1.25
+    z = -0.7
+    for point in loading_gauge:
+        loading_gauge_lines.append([camera_pos[2], camera_pos[0] + point[1] + y, camera_pos[1] + point[2] + z])
+loading_gauge_lines = create_lines_data(np.array(loading_gauge_lines))
+
+lines_data = lines1 + lines2 + lines3 + loading_gauge_lines
 
 # prepare the visualization of the point cloud using Deck.GL
 point_cloud_layer = {
