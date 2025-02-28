@@ -10,6 +10,8 @@ import data_tab_components
 import data_tab_callbacks
 import visualization_tab_components
 import visualization_tab_callbacks
+import gauge_tab_components
+import gauge_tab_callbacks
 import animation_control_components
 import animation_control_callbacks
 import params
@@ -54,15 +56,13 @@ lines2 = create_lines_data(load_csv_into_nparray("data/polyline2.csv"))
 lines3 = create_lines_data(load_csv_into_nparray("data/polyline3.csv"))
 
 loading_gauge = load_csv_into_nparray("data/loading_gauge.csv")
-loading_gauge_lines = []
-for camera_pos in trans_nparray[80::20]:
-    y = -1.25
-    z = -0.7
-    for point in loading_gauge:
-        loading_gauge_lines.append([camera_pos[2], camera_pos[0] + point[1] + y, camera_pos[1] + point[2] + z])
-loading_gauge_lines = create_lines_data(np.array(loading_gauge_lines))
+#for camera_pos in trans_nparray[80::20]:
+#    y = -1.25
+#    for point in loading_gauge:
+#        loading_gauge_lines.append([camera_pos[2], camera_pos[0] + point[1] + y, camera_pos[1] + point[2]])
+loading_gauge_data = create_lines_data(np.array(loading_gauge))
 
-lines_data = lines1 + lines2 + lines3 + loading_gauge_lines
+lines_data = lines1 + lines2 + lines3
 
 # prepare the visualization of the point cloud using Deck.GL
 point_cloud_layer = {
@@ -76,6 +76,13 @@ point_cloud_layer = {
 line_layer = {
     "data": lines_data,
     "color": [250, 100, 15],
+    "width": params.LINE_WIDTH,
+    "visible": True
+}
+
+loading_gauge_layer = {
+    "data": loading_gauge_data,
+    "color": [225, 80, 255],
     "width": params.LINE_WIDTH,
     "visible": True
 }
@@ -96,7 +103,7 @@ view = {
 deck_dict = {
     "initialViewState": view_state,
     "views": [view],
-    "layers": [point_cloud_layer, line_layer],
+    "layers": [point_cloud_layer, line_layer, loading_gauge_layer],
 }
 
 # a part of the Dash app which visualizes the data
@@ -164,8 +171,8 @@ app_right_col = dbc.Col(
                 label_style={"padding": "10px"}
             ),
             dbc.Tab(
-                "", 
-                tab_id="prof", 
+                gauge_tab_components.gauge_tab, 
+                tab_id="gauge", 
                 label="Průjezdný profil", 
                 label_style={"padding": "10px"}
             )

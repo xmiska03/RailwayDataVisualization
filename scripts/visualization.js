@@ -95,6 +95,28 @@ function initializeDeck() {
     }
   });
 
+  window.gauge_layer = new LineLayer({
+    id: 'gauge-layer',
+    data: window.data_dict.layers[2].data,
+    getColor: window.data_dict.layers[2].color,
+    getSourcePosition: d => [
+      (d.from.x + 15) * window.transf[window.position][0][0] + (d.from.y - 1.25) * window.transf[window.position][0][1] + d.from.z * window.transf[window.position][0][2] + window.transf[window.position][0][3],
+      (d.from.x + 15) * window.transf[window.position][1][0] + (d.from.y - 1.25) * window.transf[window.position][1][1] + d.from.z * window.transf[window.position][1][2] + window.transf[window.position][1][3],
+      (d.from.x + 15) * window.transf[window.position][2][0] + (d.from.y - 1.25) * window.transf[window.position][2][1] + d.from.z * window.transf[window.position][2][2] + window.transf[window.position][2][3],
+    ],
+    getTargetPosition: d => [
+      (d.to.x + 15) * window.transf[window.position][0][0] + (d.to.y - 1.25) * window.transf[window.position][0][1] + d.to.z * window.transf[window.position][0][2] + window.transf[window.position][0][3],
+      (d.to.x + 15) * window.transf[window.position][1][0] + (d.to.y - 1.25) * window.transf[window.position][1][1] + d.to.z * window.transf[window.position][1][2] + window.transf[window.position][1][3],
+      (d.to.x + 15) * window.transf[window.position][2][0] + (d.to.y - 1.25) * window.transf[window.position][2][1] + d.to.z * window.transf[window.position][2][2] + window.transf[window.position][2][3],
+    ],
+    getWidth: window.data_dict.layers[2].width,
+    visible: window.data_dict.layers[2].visible,
+    updateTriggers: {
+      getSourcePosition: [window.position],        // needed when changing getPosition or getColor
+      getTargetPosition: [window.position]
+    }
+  });
+
   // The context is created manually to specify "preserveDrawingBuffer: true".
   // That is needed to enable reading the pixels of the visualisation for applying distortion.
   const canvas = document.getElementById("visualization-canvas");
@@ -103,7 +125,7 @@ function initializeDeck() {
   window.deck = new Deck({
     initialViewState: INITIAL_VIEW_STATE,
     views: [VIEW],
-    layers: [window.pc_layer, window.line_layer],
+    layers: [window.pc_layer, window.line_layer, window.gauge_layer],
     canvas: 'visualization-canvas',
     context: context
   });
@@ -160,7 +182,30 @@ function updatePosition() {
   });
   window.line_layer = updatedLineLayer;
 
-  window.deck.setProps({layers: [updatedPCLayer, updatedLineLayer]});
+  const updatedGaugeLayer = new LineLayer({
+    id: 'gauge-layer',
+    data: window.data_dict.layers[2].data,
+    getColor: window.data_dict.layers[2].color,
+    getSourcePosition: d => [
+      (d.from.x + 15) * window.transf[new_pos][0][0] + (d.from.y - 1.25) * window.transf[new_pos][0][1] + d.from.z * window.transf[new_pos][0][2] + window.transf[new_pos][0][3],
+      (d.from.x + 15) * window.transf[new_pos][1][0] + (d.from.y - 1.25) * window.transf[new_pos][1][1] + d.from.z * window.transf[new_pos][1][2] + window.transf[new_pos][1][3],
+      (d.from.x + 15) * window.transf[new_pos][2][0] + (d.from.y - 1.25) * window.transf[new_pos][2][1] + d.from.z * window.transf[new_pos][2][2] + window.transf[new_pos][2][3],
+    ],
+    getTargetPosition: d => [
+      (d.to.x + 15) * window.transf[new_pos][0][0] + (d.to.y - 1.25) * window.transf[new_pos][0][1] + d.to.z * window.transf[new_pos][0][2] + window.transf[new_pos][0][3],
+      (d.to.x + 15) * window.transf[new_pos][1][0] + (d.to.y - 1.25) * window.transf[new_pos][1][1] + d.to.z * window.transf[new_pos][1][2] + window.transf[new_pos][1][3],
+      (d.to.x + 15) * window.transf[new_pos][2][0] + (d.to.y - 1.25) * window.transf[new_pos][2][1] + d.to.z * window.transf[new_pos][2][2] + window.transf[new_pos][2][3],
+    ],
+    getWidth: window.data_dict.layers[2].width,
+    visible: window.data_dict.layers[2].visible,
+    updateTriggers: {
+      getSourcePosition: [new_pos, window.transf],    // needed when changing getPosition or getColor
+      getTargetPosition: [new_pos, window.transf]
+    }
+  });
+  window.gauge_layer = updatedGaugeLayer;
+
+  window.deck.setProps({layers: [updatedPCLayer, updatedLineLayer, updatedGaugeLayer]});
 }
 
 
@@ -195,7 +240,7 @@ function updatePCLayerProps(visible, point_size, point_color, opacity) {
   });
   window.pc_layer = updatedPCLayer;
 
-  window.deck.setProps({layers: [updatedPCLayer, window.line_layer]});
+  window.deck.setProps({layers: [updatedPCLayer, window.line_layer, window.gauge_layer]});
 }
 
 
@@ -224,7 +269,7 @@ function updateLineLayerProps(visible) {
   });
   window.line_layer = updatedLineLayer;
   
-  window.deck.setProps({layers: [window.pc_layer, updatedLineLayer]});
+  window.deck.setProps({layers: [window.pc_layer, updatedLineLayer, window.gauge_layer]});
 }
 
 function animationStep(now, metadata) {
