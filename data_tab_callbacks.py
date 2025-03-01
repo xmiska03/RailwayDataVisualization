@@ -7,6 +7,7 @@ import pandas as pd
 from pypcd4 import PointCloud
 import time
 import os
+from scipy.spatial.transform import Rotation
 
 from general_functions import calculate_transformation_matrix
 
@@ -124,7 +125,10 @@ def get_callbacks(app):
             for line in decoded_lines:         # parse the csv
                 split_line = line.split(',')
                 if len(split_line) >= 3:
-                    data.append([float(split_line[0]), float(split_line[1]), float(split_line[2])])
+                    rot_array = [float(split_line[0]), float(split_line[1]), float(split_line[2])]
+                    rotation = Rotation.from_euler("xyz", rot_array, degrees=True)
+                    rot_mat_3x3 = rotation.as_matrix()
+                    data.append(rot_mat_3x3)
             return {"display": "none"}, {"display": "block"}, filename, data
         else:
             # file deleted (or it is the initial call)

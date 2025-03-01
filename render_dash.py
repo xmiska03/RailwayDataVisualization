@@ -42,7 +42,11 @@ pc_nparray = pc.numpy(("x", "y", "z", "intensity"))
 
 # load data about camera positions (order of the columns: y, z, x)
 trans_nparray = load_csv_into_nparray("data/trans.csv")
-rot_nparray = load_csv_into_nparray("data/rot.csv")
+rot_nparray_raw = load_csv_into_nparray("data/rot.csv")
+rot_nparray = []
+for rotation in rot_nparray_raw:
+    rotation = Rotation.from_euler("xyz", rotation, degrees=True)
+    rot_nparray.append(rotation.as_matrix())
 
 # number of frames to generate (500 in example data)
 frames_cnt = trans_nparray.shape[0]
