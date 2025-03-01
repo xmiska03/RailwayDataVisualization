@@ -6,7 +6,7 @@ gauge_tab = [
             options=[{'label': ' zobrazovat průjezdný profil', 'value': 'pcl'}],
             value=['pcl'],
             id='loading-gauge-checkbox',
-            style={'margin-top':'20px', 'margin-bottom':'20px'}
+            style={'marginTop':'20px', 'marginBottom':'20px'}
         )
     ),
     dbc.Row(html.Div("Vzdálenost průjezdného profilu:")),

@@ -34,6 +34,104 @@ function getColorYR(d) {
   ];
 }
 
+// functions the apply transformations
+// for the point cloud layer
+function getPosition(d) {
+  return [
+    d.x * window.transf[window.position][0][0] + d.y * window.transf[window.position][0][1] + d.z * window.transf[window.position][0][2] + window.transf[window.position][0][3],
+    d.x * window.transf[window.position][1][0] + d.y * window.transf[window.position][1][1] + d.z * window.transf[window.position][1][2] + window.transf[window.position][1][3],
+    d.x * window.transf[window.position][2][0] + d.y * window.transf[window.position][2][1] + d.z * window.transf[window.position][2][2] + window.transf[window.position][2][3],
+  ];
+}
+
+// for the line layer (vector data)
+function getSourcePosition(d) {
+  return [
+    d.from.x * window.transf[window.position][0][0] + d.from.y * window.transf[window.position][0][1] + d.from.z * window.transf[window.position][0][2] + window.transf[window.position][0][3],
+    d.from.x * window.transf[window.position][1][0] + d.from.y * window.transf[window.position][1][1] + d.from.z * window.transf[window.position][1][2] + window.transf[window.position][1][3],
+    d.from.x * window.transf[window.position][2][0] + d.from.y * window.transf[window.position][2][1] + d.from.z * window.transf[window.position][2][2] + window.transf[window.position][2][3],
+  ];
+}
+function getTargetPosition(d) {
+  return [
+    d.to.x * window.transf[window.position][0][0] + d.to.y * window.transf[window.position][0][1] + d.to.z * window.transf[window.position][0][2] + window.transf[window.position][0][3],
+    d.to.x * window.transf[window.position][1][0] + d.to.y * window.transf[window.position][1][1] + d.to.z * window.transf[window.position][1][2] + window.transf[window.position][1][3],
+    d.to.x * window.transf[window.position][2][0] + d.to.y * window.transf[window.position][2][1] + d.to.z * window.transf[window.position][2][2] + window.transf[window.position][2][3],
+  ];
+}
+
+// for the loading gauge layer
+function gaugeGetSourcePosition(d) {
+  return [
+    (d.from.x + 15) * window.transf[window.position][0][0] + (d.from.y - 1.25) * window.transf[window.position][0][1] + d.from.z * window.transf[window.position][0][2] + window.transf[window.position][0][3],
+    (d.from.x + 15) * window.transf[window.position][1][0] + (d.from.y - 1.25) * window.transf[window.position][1][1] + d.from.z * window.transf[window.position][1][2] + window.transf[window.position][1][3],
+    (d.from.x + 15) * window.transf[window.position][2][0] + (d.from.y - 1.25) * window.transf[window.position][2][1] + d.from.z * window.transf[window.position][2][2] + window.transf[window.position][2][3],
+  ];
+}
+function gaugeGetTargetPosition(d) {
+  return [
+    (d.to.x + 15) * window.transf[window.position][0][0] + (d.to.y - 1.25) * window.transf[window.position][0][1] + d.to.z * window.transf[window.position][0][2] + window.transf[window.position][0][3],
+    (d.to.x + 15) * window.transf[window.position][1][0] + (d.to.y - 1.25) * window.transf[window.position][1][1] + d.to.z * window.transf[window.position][1][2] + window.transf[window.position][1][3],
+    (d.to.x + 15) * window.transf[window.position][2][0] + (d.to.y - 1.25) * window.transf[window.position][2][1] + d.to.z * window.transf[window.position][2][2] + window.transf[window.position][2][3],
+  ];
+}
+
+// definifions of the layers
+
+function createPointCloudLayer() {
+  return new PointCloudLayer({
+    id: 'point-cloud-layer',
+    data: window.data_dict.layers[0].data,
+    getColor: window.data_dict.layers[0].pointColor === 'rgb'
+      ? getColorRGB 
+      : window.data_dict.layers[0].pointColor === 'rb' 
+        ? getColorRB
+        : getColorYR,
+    getPosition: getPosition,
+    opacity: window.data_dict.layers[0].opacity,
+    pointSize: window.data_dict.layers[0].pointSize,
+    visible: window.data_dict.layers[0].visible,
+    updateTriggers: {
+      getPosition: [window.position, window.transf],    // needed when changing getPosition or getColor
+      getColor: window.data_dict.layers[0].pointColor
+    }
+  });
+}
+
+function createLineLayer() {
+  return new LineLayer({
+    id: 'line-layer',
+    data: window.data_dict.layers[1].data,
+    getColor: window.data_dict.layers[1].color,
+    getSourcePosition: getSourcePosition,
+    getTargetPosition: getTargetPosition,
+    getWidth: window.data_dict.layers[1].width,
+    visible: window.data_dict.layers[1].visible,
+    updateTriggers: {
+      getSourcePosition: [window.position, window.transf], // needed when changing getPosition or getColor
+      getTargetPosition: [window.position, window.transf],
+      getColor: window.data_dict.layers[1].color
+    }
+  });
+}
+
+function createGaugeLayer() {
+  return new LineLayer({
+    id: 'gauge-layer',
+    data: window.data_dict.layers[2].data,
+    getColor: window.data_dict.layers[2].color,
+    getSourcePosition: gaugeGetSourcePosition,
+    getTargetPosition: gaugeGetTargetPosition,
+    getWidth: window.data_dict.layers[2].width,
+    visible: window.data_dict.layers[2].visible,
+    updateTriggers: {
+      getSourcePosition: [window.position, window.transf], // needed when changing getPosition or getColor
+      getTargetPosition: [window.position, window.transf],
+      getColor: window.data_dict.layers[1].color
+    }
+  });
+}
+
 // used for initializing the visualization
 // and also reinitializing when new point cloud data is uploaded 
 function initializeDeck() {
@@ -52,73 +150,12 @@ function initializeDeck() {
       controller: window.data_dict.views[0].controller
   });
 
-  window.pc_layer = new PointCloudLayer({
-    id: 'point-cloud-layer',
-    data: window.data_dict.layers[0].data,
-    getColor: window.data_dict.layers[0].pointColor === 'rgb'
-      ? getColorRGB 
-      : window.data_dict.layers[0].pointColor === 'rb' 
-        ? getColorRB
-        : getColorPY,
-    getPosition: d => [
-      d.x * window.transf[window.position][0][0] + d.y * window.transf[window.position][0][1] + d.z * window.transf[window.position][0][2] + window.transf[window.position][0][3],
-      d.x * window.transf[window.position][1][0] + d.y * window.transf[window.position][1][1] + d.z * window.transf[window.position][1][2] + window.transf[window.position][1][3],
-      d.x * window.transf[window.position][2][0] + d.y * window.transf[window.position][2][1] + d.z * window.transf[window.position][2][2] + window.transf[window.position][2][3],
-    ],
-    opacity: window.data_dict.layers[0].opacity,
-    pointSize: window.data_dict.layers[0].pointSize,
-    visible: window.data_dict.layers[0].visible,
-    updateTriggers: {
-      getPosition: [window.position]        // needed when changing getPosition or getColor
-    }
-  });
+  window.pc_layer = createPointCloudLayer();
+  window.line_layer = createLineLayer();
+  window.gauge_layer = createGaugeLayer();
 
-  window.line_layer = new LineLayer({
-    id: 'line-layer',
-    data: window.data_dict.layers[1].data,
-    getColor: window.data_dict.layers[1].color,
-    getSourcePosition: d => [
-      d.from.x * window.transf[window.position][0][0] + d.from.y * window.transf[window.position][0][1] + d.from.z * window.transf[window.position][0][2] + window.transf[window.position][0][3],
-      d.from.x * window.transf[window.position][1][0] + d.from.y * window.transf[window.position][1][1] + d.from.z * window.transf[window.position][1][2] + window.transf[window.position][1][3],
-      d.from.x * window.transf[window.position][2][0] + d.from.y * window.transf[window.position][2][1] + d.from.z * window.transf[window.position][2][2] + window.transf[window.position][2][3],
-    ],
-    getTargetPosition: d => [
-      d.to.x * window.transf[window.position][0][0] + d.to.y * window.transf[window.position][0][1] + d.to.z * window.transf[window.position][0][2] + window.transf[window.position][0][3],
-      d.to.x * window.transf[window.position][1][0] + d.to.y * window.transf[window.position][1][1] + d.to.z * window.transf[window.position][1][2] + window.transf[window.position][1][3],
-      d.to.x * window.transf[window.position][2][0] + d.to.y * window.transf[window.position][2][1] + d.to.z * window.transf[window.position][2][2] + window.transf[window.position][2][3],
-    ],
-    getWidth: window.data_dict.layers[1].width,
-    visible: window.data_dict.layers[1].visible,
-    updateTriggers: {
-      getSourcePosition: [window.position],        // needed when changing getPosition or getColor
-      getTargetPosition: [window.position]
-    }
-  });
-
-  window.gauge_layer = new LineLayer({
-    id: 'gauge-layer',
-    data: window.data_dict.layers[2].data,
-    getColor: window.data_dict.layers[2].color,
-    getSourcePosition: d => [
-      (d.from.x + 15) * window.transf[window.position][0][0] + (d.from.y - 1.25) * window.transf[window.position][0][1] + d.from.z * window.transf[window.position][0][2] + window.transf[window.position][0][3],
-      (d.from.x + 15) * window.transf[window.position][1][0] + (d.from.y - 1.25) * window.transf[window.position][1][1] + d.from.z * window.transf[window.position][1][2] + window.transf[window.position][1][3],
-      (d.from.x + 15) * window.transf[window.position][2][0] + (d.from.y - 1.25) * window.transf[window.position][2][1] + d.from.z * window.transf[window.position][2][2] + window.transf[window.position][2][3],
-    ],
-    getTargetPosition: d => [
-      (d.to.x + 15) * window.transf[window.position][0][0] + (d.to.y - 1.25) * window.transf[window.position][0][1] + d.to.z * window.transf[window.position][0][2] + window.transf[window.position][0][3],
-      (d.to.x + 15) * window.transf[window.position][1][0] + (d.to.y - 1.25) * window.transf[window.position][1][1] + d.to.z * window.transf[window.position][1][2] + window.transf[window.position][1][3],
-      (d.to.x + 15) * window.transf[window.position][2][0] + (d.to.y - 1.25) * window.transf[window.position][2][1] + d.to.z * window.transf[window.position][2][2] + window.transf[window.position][2][3],
-    ],
-    getWidth: window.data_dict.layers[2].width,
-    visible: window.data_dict.layers[2].visible,
-    updateTriggers: {
-      getSourcePosition: [window.position],        // needed when changing getPosition or getColor
-      getTargetPosition: [window.position]
-    }
-  });
-
-  // The context is created manually to specify "preserveDrawingBuffer: true".
-  // That is needed to enable reading the pixels of the visualisation for applying distortion.
+  // the context is created manually to specify "preserveDrawingBuffer: true".
+  // that is needed to enable reading the pixels of the visualisation for applying distortion.
   const canvas = document.getElementById("visualization-canvas");
   const context = canvas.getContext("webgl2", { preserveDrawingBuffer: true, premultipliedAlpha: false });
 
@@ -136,141 +173,37 @@ function initializeDeck() {
 
 // to change camera position
 function updatePosition() {
-  let new_pos = window.position;
-  const updatedPCLayer = new PointCloudLayer({
-    id: 'point-cloud-layer',
-    data: window.data_dict.layers[0].data,
-    getColor: window.data_dict.layers[0].pointColor === 'rgb'
-      ? getColorRGB 
-      : window.data_dict.layers[0].pointColor === 'rb' 
-        ? getColorRB
-        : getColorYR,
-    getPosition: d => [
-      d.x * window.transf[new_pos][0][0] + d.y * window.transf[new_pos][0][1] + d.z * window.transf[new_pos][0][2] + window.transf[new_pos][0][3],
-      d.x * window.transf[new_pos][1][0] + d.y * window.transf[new_pos][1][1] + d.z * window.transf[new_pos][1][2] + window.transf[new_pos][1][3],
-      d.x * window.transf[new_pos][2][0] + d.y * window.transf[new_pos][2][1] + d.z * window.transf[new_pos][2][2] + window.transf[new_pos][2][3],
-    ],
-    opacity: window.data_dict.layers[0].opacity,
-    pointSize: window.data_dict.layers[0].pointSize,
-    visible: window.data_dict.layers[0].visible,
-    updateTriggers: {
-      getPosition: [new_pos, window.transf]        // needed when changing getPosition or getColor
-    }
-  });
-  window.pc_layer = updatedPCLayer;
+  // recreate the layers with a new value of window.position
+  window.pc_layer = createPointCloudLayer();
+  window.line_layer = createLineLayer();
+  window.gauge_layer = createGaugeLayer();
 
-  const updatedLineLayer = new LineLayer({
-    id: 'line-layer',
-    data: window.data_dict.layers[1].data,
-    getColor: window.data_dict.layers[1].color,
-    getSourcePosition: d => [
-      d.from.x * window.transf[new_pos][0][0] + d.from.y * window.transf[new_pos][0][1] + d.from.z * window.transf[new_pos][0][2] + window.transf[new_pos][0][3],
-      d.from.x * window.transf[new_pos][1][0] + d.from.y * window.transf[new_pos][1][1] + d.from.z * window.transf[new_pos][1][2] + window.transf[new_pos][1][3],
-      d.from.x * window.transf[new_pos][2][0] + d.from.y * window.transf[new_pos][2][1] + d.from.z * window.transf[new_pos][2][2] + window.transf[new_pos][2][3],
-    ],
-    getTargetPosition: d => [
-      d.to.x * window.transf[new_pos][0][0] + d.to.y * window.transf[new_pos][0][1] + d.to.z * window.transf[new_pos][0][2] + window.transf[new_pos][0][3],
-      d.to.x * window.transf[new_pos][1][0] + d.to.y * window.transf[new_pos][1][1] + d.to.z * window.transf[new_pos][1][2] + window.transf[new_pos][1][3],
-      d.to.x * window.transf[new_pos][2][0] + d.to.y * window.transf[new_pos][2][1] + d.to.z * window.transf[new_pos][2][2] + window.transf[new_pos][2][3],
-    ],
-    getWidth: window.data_dict.layers[1].width,
-    visible: window.data_dict.layers[1].visible,
-    updateTriggers: {
-      getSourcePosition: [new_pos, window.transf],    // needed when changing getPosition or getColor
-      getTargetPosition: [new_pos, window.transf]
-    }
-  });
-  window.line_layer = updatedLineLayer;
-
-  const updatedGaugeLayer = new LineLayer({
-    id: 'gauge-layer',
-    data: window.data_dict.layers[2].data,
-    getColor: window.data_dict.layers[2].color,
-    getSourcePosition: d => [
-      (d.from.x + 15) * window.transf[new_pos][0][0] + (d.from.y - 1.25) * window.transf[new_pos][0][1] + d.from.z * window.transf[new_pos][0][2] + window.transf[new_pos][0][3],
-      (d.from.x + 15) * window.transf[new_pos][1][0] + (d.from.y - 1.25) * window.transf[new_pos][1][1] + d.from.z * window.transf[new_pos][1][2] + window.transf[new_pos][1][3],
-      (d.from.x + 15) * window.transf[new_pos][2][0] + (d.from.y - 1.25) * window.transf[new_pos][2][1] + d.from.z * window.transf[new_pos][2][2] + window.transf[new_pos][2][3],
-    ],
-    getTargetPosition: d => [
-      (d.to.x + 15) * window.transf[new_pos][0][0] + (d.to.y - 1.25) * window.transf[new_pos][0][1] + d.to.z * window.transf[new_pos][0][2] + window.transf[new_pos][0][3],
-      (d.to.x + 15) * window.transf[new_pos][1][0] + (d.to.y - 1.25) * window.transf[new_pos][1][1] + d.to.z * window.transf[new_pos][1][2] + window.transf[new_pos][1][3],
-      (d.to.x + 15) * window.transf[new_pos][2][0] + (d.to.y - 1.25) * window.transf[new_pos][2][1] + d.to.z * window.transf[new_pos][2][2] + window.transf[new_pos][2][3],
-    ],
-    getWidth: window.data_dict.layers[2].width,
-    visible: window.data_dict.layers[2].visible,
-    updateTriggers: {
-      getSourcePosition: [new_pos, window.transf],    // needed when changing getPosition or getColor
-      getTargetPosition: [new_pos, window.transf]
-    }
-  });
-  window.gauge_layer = updatedGaugeLayer;
-
-  window.deck.setProps({layers: [updatedPCLayer, updatedLineLayer, updatedGaugeLayer]});
+  window.deck.setProps({layers: [window.pc_layer, window.line_layer, window.gauge_layer]});
 }
 
 
 // to change point cloud visibility, point size or opacity
 function updatePCLayerProps(visible, point_size, point_color, opacity) {
-  var pos = window.position;
-
   window.data_dict.layers[0].visible = visible;
   window.data_dict.layers[0].pointSize = parseInt(point_size, 10);
   window.data_dict.layers[0].pointColor = point_color;
   window.data_dict.layers[0].opacity = parseFloat(opacity);
 
-  const updatedPCLayer = new PointCloudLayer({
-    id: 'point-cloud-layer',
-    data: window.data_dict.layers[0].data,
-    getColor: window.data_dict.layers[0].pointColor === 'rgb'
-              ? getColorRGB 
-              : window.data_dict.layers[0].pointColor === 'rb' 
-                ? getColorRB
-                : getColorYR,
-    getPosition: d => [
-      d.x * window.transf[pos][0][0] + d.y * window.transf[pos][0][1] + d.z * window.transf[pos][0][2] + window.transf[pos][0][3],
-      d.x * window.transf[pos][1][0] + d.y * window.transf[pos][1][1] + d.z * window.transf[pos][1][2] + window.transf[pos][1][3],
-      d.x * window.transf[pos][2][0] + d.y * window.transf[pos][2][1] + d.z * window.transf[pos][2][2] + window.transf[pos][2][3],
-    ],
-    opacity: window.data_dict.layers[0].opacity,
-    pointSize: window.data_dict.layers[0].pointSize,
-    visible: window.data_dict.layers[0].visible,
-    updateTriggers: {
-      getColor: point_color        // needed when changing getPosition or getColor
-    }
-  });
-  window.pc_layer = updatedPCLayer;
+  window.pc_layer = createPointCloudLayer();
 
-  window.deck.setProps({layers: [updatedPCLayer, window.line_layer, window.gauge_layer]});
+  window.deck.setProps({layers: [window.pc_layer, window.line_layer, window.gauge_layer]});
 }
 
 
 // to change vector data visibility
 function updateLineLayerProps(visible) {
-  var new_pos = window.position;
-
   window.data_dict.layers[1].visible = visible;
 
-  const updatedLineLayer = new LineLayer({
-    id: 'line-layer',
-    data: window.data_dict.layers[1].data,
-    getColor: window.data_dict.layers[1].color,
-    getSourcePosition: d => [
-      d.from.x * window.transf[new_pos][0][0] + d.from.y * window.transf[new_pos][0][1] + d.from.z * window.transf[new_pos][0][2] + window.transf[new_pos][0][3],
-      d.from.x * window.transf[new_pos][1][0] + d.from.y * window.transf[new_pos][1][1] + d.from.z * window.transf[new_pos][1][2] + window.transf[new_pos][1][3],
-      d.from.x * window.transf[new_pos][2][0] + d.from.y * window.transf[new_pos][2][1] + d.from.z * window.transf[new_pos][2][2] + window.transf[new_pos][2][3],
-    ],
-    getTargetPosition: d => [
-      d.to.x * window.transf[new_pos][0][0] + d.to.y * window.transf[new_pos][0][1] + d.to.z * window.transf[new_pos][0][2] + window.transf[new_pos][0][3],
-      d.to.x * window.transf[new_pos][1][0] + d.to.y * window.transf[new_pos][1][1] + d.to.z * window.transf[new_pos][1][2] + window.transf[new_pos][1][3],
-      d.to.x * window.transf[new_pos][2][0] + d.to.y * window.transf[new_pos][2][1] + d.to.z * window.transf[new_pos][2][2] + window.transf[new_pos][2][3],
-    ],
-    getWidth: window.data_dict.layers[1].width,
-    visible: window.data_dict.layers[1].visible
-  });
-  window.line_layer = updatedLineLayer;
+  window.line_layer = createLineLayer();
   
-  window.deck.setProps({layers: [window.pc_layer, updatedLineLayer, window.gauge_layer]});
+  window.deck.setProps({layers: [window.pc_layer, window.line_layer, window.gauge_layer]});
 }
+
 
 function animationStep(now, metadata) {
   const video = document.getElementById('background-video');
