@@ -263,6 +263,7 @@ app.clientside_callback(
 # add callbacks defined in other files
 visualization_tab_callbacks.get_callbacks(app)
 data_tab_callbacks.get_callbacks(app)
+gauge_tab_callbacks.get_callbacks(app)
 animation_control_callbacks.get_callbacks(app)
 
 if __name__ == "__main__":

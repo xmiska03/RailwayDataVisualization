@@ -6,9 +6,8 @@ window.deck_initialized = false;
 window.frames_cnt = 500;
 window.position = 0;
 window.animation_running = false;
-window.frame_duration = 40;   // milliseconds
-
-window.gauge_distance = 80;
+window.frame_duration = 40;   // in milliseconds
+window.gauge_distance = 80;   // in virtual camera positions
 
 // color scales - mapping point intensity to colors
 // red - green - blue (from greatest to lowest intensity)
@@ -65,9 +64,10 @@ function getTargetPosition(d) {
 // for the loading gauge layer
 function gaugeGetSourcePosition(d) {
   const gauge_pos = Math.min(window.position + window.gauge_distance, frames_cnt - 1);
-  const x = d.from.x * window.transf_inv[gauge_pos][0][0] + (d.from.y - 1.25) * window.transf_inv[gauge_pos][0][1] + d.from.z * window.transf_inv[gauge_pos][0][2] + window.transf_inv[gauge_pos][0][3];
-  const y = d.from.x * window.transf_inv[gauge_pos][1][0] + (d.from.y - 1.25) * window.transf_inv[gauge_pos][1][1] + d.from.z * window.transf_inv[gauge_pos][1][2] + window.transf_inv[gauge_pos][1][3];
-  const z = d.from.x * window.transf_inv[gauge_pos][2][0] + (d.from.y - 1.25) * window.transf_inv[gauge_pos][2][1] + d.from.z * window.transf_inv[gauge_pos][2][2] + window.transf_inv[gauge_pos][2][3];
+
+  const x = d.from.x * window.transf_inv[gauge_pos][0][0] + (d.from.y - 1.2) * window.transf_inv[gauge_pos][0][1] + d.from.z * window.transf_inv[gauge_pos][0][2] + window.transf_inv[gauge_pos][0][3];
+  const y = d.from.x * window.transf_inv[gauge_pos][1][0] + (d.from.y - 1.2) * window.transf_inv[gauge_pos][1][1] + d.from.z * window.transf_inv[gauge_pos][1][2] + window.transf_inv[gauge_pos][1][3];
+  const z = d.from.x * window.transf_inv[gauge_pos][2][0] + (d.from.y - 1.2) * window.transf_inv[gauge_pos][2][1] + d.from.z * window.transf_inv[gauge_pos][2][2] + window.transf_inv[gauge_pos][2][3];
 
   return [
     x * window.transf[window.position][0][0] + y * window.transf[window.position][0][1] + z * window.transf[window.position][0][2] + window.transf[window.position][0][3],
@@ -78,9 +78,9 @@ function gaugeGetSourcePosition(d) {
 function gaugeGetTargetPosition(d) {
   const gauge_pos = Math.min(window.position + window.gauge_distance, frames_cnt - 1);
 
-  const x = d.to.x * window.transf_inv[gauge_pos][0][0] + (d.to.y - 1.25) * window.transf_inv[gauge_pos][0][1] + d.to.z * window.transf_inv[gauge_pos][0][2] + window.transf_inv[gauge_pos][0][3];
-  const y = d.to.x * window.transf_inv[gauge_pos][1][0] + (d.to.y - 1.25) * window.transf_inv[gauge_pos][1][1] + d.to.z * window.transf_inv[gauge_pos][1][2] + window.transf_inv[gauge_pos][1][3];
-  const z = d.to.x * window.transf_inv[gauge_pos][2][0] + (d.to.y - 1.25) * window.transf_inv[gauge_pos][2][1] + d.to.z * window.transf_inv[gauge_pos][2][2] + window.transf_inv[gauge_pos][2][3];
+  const x = d.to.x * window.transf_inv[gauge_pos][0][0] + (d.to.y - 1.2) * window.transf_inv[gauge_pos][0][1] + d.to.z * window.transf_inv[gauge_pos][0][2] + window.transf_inv[gauge_pos][0][3];
+  const y = d.to.x * window.transf_inv[gauge_pos][1][0] + (d.to.y - 1.2) * window.transf_inv[gauge_pos][1][1] + d.to.z * window.transf_inv[gauge_pos][1][2] + window.transf_inv[gauge_pos][1][3];
+  const z = d.to.x * window.transf_inv[gauge_pos][2][0] + (d.to.y - 1.2) * window.transf_inv[gauge_pos][2][1] + d.to.z * window.transf_inv[gauge_pos][2][2] + window.transf_inv[gauge_pos][2][3];
 
   return [
     x * window.transf[window.position][0][0] + y * window.transf[window.position][0][1] + z * window.transf[window.position][0][2] + window.transf[window.position][0][3],
@@ -138,9 +138,10 @@ function createGaugeLayer() {
     getWidth: window.data_dict.layers[2].width,
     visible: window.data_dict.layers[2].visible,
     updateTriggers: {
-      getSourcePosition: [window.position, window.transf], // needed when changing getPosition or getColor
-      getTargetPosition: [window.position, window.transf],
-      getColor: window.data_dict.layers[1].color
+      // needed when changing getPosition or getColor
+      getSourcePosition: [window.position, window.transf, window.gauge_distance],
+      getTargetPosition: [window.position, window.transf, window.gauge_distance],
+      getColor: window.data_dict.layers[2].color
     }
   });
 }
@@ -213,6 +214,17 @@ function updateLineLayerProps(visible) {
   window.data_dict.layers[1].visible = visible;
 
   window.line_layer = createLineLayer();
+  
+  window.deck.setProps({layers: [window.pc_layer, window.line_layer, window.gauge_layer]});
+}
+
+
+// to change loading visibility
+function updateGaugeLayerProps(visible, distance) {
+  window.data_dict.layers[2].visible = visible;
+  window.gauge_distance = distance;
+
+  window.gauge_layer = createGaugeLayer();
   
   window.deck.setProps({layers: [window.pc_layer, window.line_layer, window.gauge_layer]});
 }
@@ -320,5 +332,6 @@ window.initializeDeck = initializeDeck;
 window.updatePosition = updatePosition;
 window.updatePCLayerProps = updatePCLayerProps;
 window.updateLineLayerProps = updateLineLayerProps;
+window.updateGaugeLayerProps = updateGaugeLayerProps;
 window.runDeckAnimation = runDeckAnimation;
 window.stopDeckAnimation = stopDeckAnimation;
