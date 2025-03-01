@@ -44,9 +44,11 @@ pc_nparray = pc.numpy(("x", "y", "z", "intensity"))
 trans_nparray = load_csv_into_nparray("data/trans.csv")
 rot_nparray_raw = load_csv_into_nparray("data/rot.csv")
 rot_nparray = []
+rot_inv_nparray = []
 for rotation in rot_nparray_raw:
-    rotation = Rotation.from_euler("xyz", rotation, degrees=True)
+    rotation = Rotation.from_euler("zyx", rotation, degrees=True)
     rot_nparray.append(rotation.as_matrix())
+    rot_inv_nparray.append(rotation.inv().as_matrix())
 
 # number of frames to generate (500 in example data)
 frames_cnt = trans_nparray.shape[0]
@@ -225,7 +227,14 @@ app.layout = html.Div(
             data=rot_nparray
         ),
         dcc.Store(
+            id='rotations-inv-data',   # for the loading gauge
+            data=rot_inv_nparray
+        ),
+        dcc.Store(
             id='transformations-data'
+        ),
+        dcc.Store(
+            id='transformations-inv-data'   # for the loading gauge
         ),
     ],
     style={

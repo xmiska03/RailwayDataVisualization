@@ -8,6 +8,8 @@ window.position = 0;
 window.animation_running = false;
 window.frame_duration = 40;   // milliseconds
 
+window.gauge_distance = 80;
+
 // color scales - mapping point intensity to colors
 // red - green - blue (from greatest to lowest intensity)
 function getColorRGB(d) {
@@ -62,17 +64,28 @@ function getTargetPosition(d) {
 
 // for the loading gauge layer
 function gaugeGetSourcePosition(d) {
+  const gauge_pos = Math.min(window.position + window.gauge_distance, frames_cnt - 1);
+  const x = d.from.x * window.transf_inv[gauge_pos][0][0] + (d.from.y - 1.25) * window.transf_inv[gauge_pos][0][1] + d.from.z * window.transf_inv[gauge_pos][0][2] + window.transf_inv[gauge_pos][0][3];
+  const y = d.from.x * window.transf_inv[gauge_pos][1][0] + (d.from.y - 1.25) * window.transf_inv[gauge_pos][1][1] + d.from.z * window.transf_inv[gauge_pos][1][2] + window.transf_inv[gauge_pos][1][3];
+  const z = d.from.x * window.transf_inv[gauge_pos][2][0] + (d.from.y - 1.25) * window.transf_inv[gauge_pos][2][1] + d.from.z * window.transf_inv[gauge_pos][2][2] + window.transf_inv[gauge_pos][2][3];
+
   return [
-    (d.from.x + 15) * window.transf[window.position][0][0] + (d.from.y - 1.25) * window.transf[window.position][0][1] + d.from.z * window.transf[window.position][0][2] + window.transf[window.position][0][3],
-    (d.from.x + 15) * window.transf[window.position][1][0] + (d.from.y - 1.25) * window.transf[window.position][1][1] + d.from.z * window.transf[window.position][1][2] + window.transf[window.position][1][3],
-    (d.from.x + 15) * window.transf[window.position][2][0] + (d.from.y - 1.25) * window.transf[window.position][2][1] + d.from.z * window.transf[window.position][2][2] + window.transf[window.position][2][3],
+    x * window.transf[window.position][0][0] + y * window.transf[window.position][0][1] + z * window.transf[window.position][0][2] + window.transf[window.position][0][3],
+    x * window.transf[window.position][1][0] + y * window.transf[window.position][1][1] + z * window.transf[window.position][1][2] + window.transf[window.position][1][3],
+    x * window.transf[window.position][2][0] + y * window.transf[window.position][2][1] + z * window.transf[window.position][2][2] + window.transf[window.position][2][3],
   ];
 }
 function gaugeGetTargetPosition(d) {
+  const gauge_pos = Math.min(window.position + window.gauge_distance, frames_cnt - 1);
+
+  const x = d.to.x * window.transf_inv[gauge_pos][0][0] + (d.to.y - 1.25) * window.transf_inv[gauge_pos][0][1] + d.to.z * window.transf_inv[gauge_pos][0][2] + window.transf_inv[gauge_pos][0][3];
+  const y = d.to.x * window.transf_inv[gauge_pos][1][0] + (d.to.y - 1.25) * window.transf_inv[gauge_pos][1][1] + d.to.z * window.transf_inv[gauge_pos][1][2] + window.transf_inv[gauge_pos][1][3];
+  const z = d.to.x * window.transf_inv[gauge_pos][2][0] + (d.to.y - 1.25) * window.transf_inv[gauge_pos][2][1] + d.to.z * window.transf_inv[gauge_pos][2][2] + window.transf_inv[gauge_pos][2][3];
+
   return [
-    (d.to.x + 15) * window.transf[window.position][0][0] + (d.to.y - 1.25) * window.transf[window.position][0][1] + d.to.z * window.transf[window.position][0][2] + window.transf[window.position][0][3],
-    (d.to.x + 15) * window.transf[window.position][1][0] + (d.to.y - 1.25) * window.transf[window.position][1][1] + d.to.z * window.transf[window.position][1][2] + window.transf[window.position][1][3],
-    (d.to.x + 15) * window.transf[window.position][2][0] + (d.to.y - 1.25) * window.transf[window.position][2][1] + d.to.z * window.transf[window.position][2][2] + window.transf[window.position][2][3],
+    x * window.transf[window.position][0][0] + y * window.transf[window.position][0][1] + z * window.transf[window.position][0][2] + window.transf[window.position][0][3],
+    x * window.transf[window.position][1][0] + y * window.transf[window.position][1][1] + z * window.transf[window.position][1][2] + window.transf[window.position][1][3],
+    x * window.transf[window.position][2][0] + y * window.transf[window.position][2][1] + z * window.transf[window.position][2][2] + window.transf[window.position][2][3],
   ];
 }
 

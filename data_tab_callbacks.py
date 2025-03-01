@@ -9,7 +9,7 @@ import time
 import os
 from scipy.spatial.transform import Rotation
 
-from general_functions import calculate_transformation_matrix
+from general_functions import calculate_transformation_matrix, calculate_loading_gauge_transformation_matrix
 
 
 def get_callbacks(app):
@@ -17,8 +17,12 @@ def get_callbacks(app):
     # copy the transformations data from a store to the window object
     app.clientside_callback(
         """
-        function(transf_data) {
+        function(transf_data, transf_inv_data, translations_data, rotations_data, rotations_inv_data) {
             window.transf = transf_data;  // make the data accessible for the visualization.js script
+            window.transf_inv = transf_inv_data;
+            window.translations = translations_data;
+            window.rotations = rotations_data;
+            window.rotations_inv = rotations_inv_data;
             // update the visualization if it is already created
             if (window.deck_initialized) {
                 window.updatePosition();  // call function defined in the JavaScript file
@@ -27,24 +31,35 @@ def get_callbacks(app):
         }
         """,
         Output('transformations-data', 'id'),  # dummy output needed so that the initial call occurs
-        Input('transformations-data', 'data')
+        Input('transformations-data', 'data'),
+        State('transformations-inv-data', 'data'),
+        State('translations-data', 'data'),
+        State('rotations-data', 'data'),
+        State('rotations-inv-data', 'data')
     )
     
     # calculate new transformations when new translations or rotations are uploaded
     @app.callback(
-        Output('transformations-data', 'data'),  # dummy output needed so that the initial call occurs
+        Output('transformations-data', 'data'),
+        Output('transformations-inv-data', 'data'),
         Input('translations-data', 'data'),
-        Input('rotations-data', 'data')
+        Input('rotations-data', 'data'),
+        State('rotations-inv-data', 'data')
     )
-    def create_transformations(trans_data, rot_data):
+    def create_transformations(trans_data, rot_data, inv_rot_data):
         trans_nparray = np.array(trans_data)  # convert from lists to numpy arrays
         rot_nparray = np.array(rot_data)
+        inv_rot_nparray = np.array(inv_rot_data)
 
         transf_matrices = []
+        inv_transf_matrices = []
         for i in range(min(trans_nparray.shape[0], rot_nparray.shape[0])):
             transf_matrix = calculate_transformation_matrix(trans_nparray[i], rot_nparray[i])
             transf_matrices.append(transf_matrix)
-        return transf_matrices
+            inv_transf_matrix = calculate_loading_gauge_transformation_matrix(trans_nparray[i],
+                                                                              inv_rot_nparray[i])
+            inv_transf_matrices.append(inv_transf_matrix)
+        return transf_matrices, inv_transf_matrices
 
     # upload/delete file with point cloud
     @app.callback(
@@ -112,6 +127,7 @@ def get_callbacks(app):
         Output('rotations-uploaded-file-div', 'style'),
         Output('rotations-filename-div', 'children'),
         Output('rotations-data', 'data'),
+        Output('rotations-inv-data', 'data'),
         Input('rotations-upload', 'contents'),
         State('rotations-upload', 'filename'),
         prevent_initial_call = True
@@ -122,17 +138,19 @@ def get_callbacks(app):
             content_type, content_string = file_content.split(',')
             decoded_lines = base64.b64decode(content_string).decode("utf-8").split('\n')
             data = []
+            inv_data = []
             for line in decoded_lines:         # parse the csv
                 split_line = line.split(',')
                 if len(split_line) >= 3:
                     rot_array = [float(split_line[0]), float(split_line[1]), float(split_line[2])]
-                    rotation = Rotation.from_euler("xyz", rot_array, degrees=True)
+                    rotation = Rotation.from_euler("zyx", rot_array, degrees=True)
                     rot_mat_3x3 = rotation.as_matrix()
                     data.append(rot_mat_3x3)
-            return {"display": "none"}, {"display": "block"}, filename, data
+                    inv_data.append(rot_mat_3x3)
+            return {"display": "none"}, {"display": "block"}, filename, data, inv_data
         else:
             # file deleted (or it is the initial call)
-            return {"display": "block"}, {"display": "none"}, "", Patch()
+            return {"display": "block"}, {"display": "none"}, "", Patch(), Patch()
 
     # upload/delete file with video
     @app.callback(
