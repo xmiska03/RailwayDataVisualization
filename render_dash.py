@@ -96,14 +96,12 @@ loading_gauge_layer = {
 view_state = {
     "bearing": params.BEARING,
     "pitch": params.PITCH,
-    "position": params.POSITION,
-    "zoom": params.ZOOM
+    "position": params.POSITION
 }
 
 view = {
-    "far": params.FAR_PLANE,
-    "fovy": params.FOVY,
-    "controller": False
+    #"projectionMatrix": ...,
+    "controller": True
 }
 
 deck_dict = {
