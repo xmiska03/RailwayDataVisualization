@@ -81,15 +81,15 @@ point_cloud_layer = {
 
 line_layer = {
     "data": lines_data,
-    "color": [250, 100, 15],
+    "color": [250, 100, 15],    # #fa650f
     "width": params.LINE_WIDTH,
     "visible": True
 }
 
 loading_gauge_layer = {
     "data": loading_gauge_data,
-    "color": [225, 80, 255],
-    "width": params.LINE_WIDTH,
+    "color": [225, 80, 255],    # #e250ff
+    "width": params.GAUGE_LINE_WIDTH,
     "visible": True
 }
 
@@ -166,7 +166,8 @@ app_right_col = dbc.Col(
                 visualization_tab_components.visualization_tab,
                 tab_id="vis",
                 label="Zobrazení",
-                label_style={"padding": "10px"}
+                label_style={"padding": "10px"},
+                style={"height": "70vh", "overflow-y": "auto", "overflow-x":"hidden"}
             ),
             dbc.Tab(
                 data_tab_components.data_tab, 
@@ -182,7 +183,7 @@ app_right_col = dbc.Col(
             )
         ],
         active_tab="vis"
-    ), width=3
+    ), style={}, width=4
 )
 
 
