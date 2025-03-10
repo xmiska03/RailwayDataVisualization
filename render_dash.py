@@ -167,7 +167,7 @@ app_right_col = dbc.Col(
                 tab_id="vis",
                 label="Zobrazení",
                 label_style={"padding": "10px"},
-                style={"height": "70vh", "overflow-y": "auto", "overflow-x":"hidden"}
+                style={"height": "70vh", "overflowY": "auto", "overflowX":"hidden"}
             ),
             dbc.Tab(
                 data_tab_components.data_tab, 

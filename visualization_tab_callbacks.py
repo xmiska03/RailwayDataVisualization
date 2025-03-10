@@ -35,17 +35,19 @@ def get_callbacks(app):
         prevent_initial_call=True
     )
 
-    # change vector data visibility
+    # change vector data visibility, line width or color
     app.clientside_callback(
         """
-        function(layers) {
+        function(layers, line_width, line_color) {
             if (window.updateLineLayerProps) {
                 // call function defined in the JavaScript file
-                window.updateLineLayerProps(layers.includes('vec'));
+                window.updateLineLayerProps(layers.includes('vec'), line_width, line_color);
             }
         }
         """,
         Input('vector-data-checkbox', 'value'),
+        Input('line-width-input', 'value'),
+        Input('line-color-picker', 'value'),
         prevent_initial_call=True
     )
 

@@ -34,7 +34,7 @@ gauge_tab = [
     ),
     dbc.Row(html.Div("Vzdálenost průjezdného profilu:")),
     dbc.Row(dcc.Input(
-        value=110,
+        value=100,
         id="gauge-distance-slider-input",
         type="range",
         min=10,

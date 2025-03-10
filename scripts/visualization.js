@@ -7,7 +7,7 @@ window.frames_cnt = 500;
 window.position = 0;
 window.animation_running = false;
 window.frame_duration = 40;   // in milliseconds
-window.gauge_distance = 80;   // in virtual camera positions
+window.gauge_distance = 100;   // in virtual camera positions
 
 // color scales - mapping point intensity to colors
 // red - green - blue (from greatest to lowest intensity)
@@ -215,9 +215,15 @@ function updatePCLayerProps(visible, point_size, point_color, opacity) {
 }
 
 
-// to change vector data visibility
-function updateLineLayerProps(visible) {
+// to change vector data visibility, line width or color
+function updateLineLayerProps(visible, line_width, line_color) {
+  // convert to RGB
+  // the following line is taken from a piece of example code in deck.gl documentation (PathLayer section)
+  const new_color = line_color.match(/[0-9a-f]{2}/g).map(x => parseInt(x, 16));
+
   window.data_dict.layers[1].visible = visible;
+  window.data_dict.layers[1].width = parseInt(line_width, 10);
+  window.data_dict.layers[1].color = new_color;
 
   window.line_layer = createLineLayer();
   
@@ -225,10 +231,16 @@ function updateLineLayerProps(visible) {
 }
 
 
-// to change loading visibility
-function updateGaugeLayerProps(visible, distance) {
+// to change loading gauge visibility, distance, line width or color
+function updateGaugeLayerProps(visible, distance, line_width, line_color) {
+  // convert to RGB
+  // the following line is taken from a piece of example code in deck.gl documentation (PathLayer section)
+  const new_color = line_color.match(/[0-9a-f]{2}/g).map(x => parseInt(x, 16));
+
   window.data_dict.layers[2].visible = visible;
   window.gauge_distance = distance;
+  window.data_dict.layers[2].width = parseInt(line_width, 10);
+  window.data_dict.layers[2].color = new_color;
 
   window.gauge_layer = createGaugeLayer();
   
