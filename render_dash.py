@@ -23,17 +23,6 @@ def load_csv_into_nparray(file_address):
         data = list(reader)
         return np.array(data, dtype=float)
 
-# creates a JSON-like array of lines from a numpy array of points representing a polyline
-def create_lines_data(points_nparray):
-    lines = []
-    for i in range(len(points_nparray) - 1):
-        line = {
-            "from": {"x": points_nparray[i, 0], "y": points_nparray[i, 1], "z": points_nparray[i, 2]},
-            "to": {"x": points_nparray[i+1, 0], "y": points_nparray[i+1, 1], "z": points_nparray[i+1, 2]}
-        }
-        lines.append(line)
-    return lines
-
 # load point cloud
 pc = PointCloud.from_path("data/scans.pcd")
 pc_nparray = pc.numpy(("x", "y", "z", "intensity"))
@@ -56,19 +45,15 @@ frames_cnt = trans_nparray.shape[0]
 # create a pandas DataFrame
 pc_df = pd.DataFrame(pc_nparray, columns=["x", "y", "z", "intensity"])
 
-# load vector data (lines)
-lines1 = create_lines_data(load_csv_into_nparray("data/polyline1.csv"))
-lines2 = create_lines_data(load_csv_into_nparray("data/polyline2.csv"))
-lines3 = create_lines_data(load_csv_into_nparray("data/polyline3.csv"))
+# load vector data (polylines)
+paths_data = [
+    load_csv_into_nparray("data/polyline1.csv"),
+    load_csv_into_nparray("data/polyline2.csv"),
+    load_csv_into_nparray("data/polyline3.csv")
+]
 
-loading_gauge = load_csv_into_nparray("data/loading_gauge.csv")
-#for camera_pos in trans_nparray[80::20]:
-#    y = -1.25
-#    for point in loading_gauge:
-#        loading_gauge_lines.append([camera_pos[2], camera_pos[0] + point[1] + y, camera_pos[1] + point[2]])
-loading_gauge_data = create_lines_data(np.array(loading_gauge))
-
-lines_data = lines1 + lines2 + lines3
+# load loading gauge data
+gauge_data = [load_csv_into_nparray("data/loading_gauge.csv")]
 
 # prepare the visualization of the point cloud using Deck.GL
 point_cloud_layer = {
@@ -79,15 +64,15 @@ point_cloud_layer = {
     "visible": True
 }
 
-line_layer = {
-    "data": lines_data,
+path_layer = {
+    "data": paths_data,
     "color": [250, 100, 15],    # #fa650f
     "width": params.LINE_WIDTH,
     "visible": True
 }
 
 loading_gauge_layer = {
-    "data": loading_gauge_data,
+    "data": gauge_data,
     "color": [225, 80, 255],    # #e250ff
     "width": params.GAUGE_LINE_WIDTH,
     "visible": True
@@ -107,7 +92,7 @@ view = {
 deck_dict = {
     "initialViewState": view_state,
     "views": [view],
-    "layers": [point_cloud_layer, line_layer, loading_gauge_layer],
+    "layers": [point_cloud_layer, path_layer, loading_gauge_layer],
 }
 
 # a part of the Dash app which visualizes the data

@@ -43,9 +43,9 @@ line_width_widget = [
         value=f"{LINE_WIDTH}",
         id="line-width-input",
         type="number",
-        min=10,
-        max=150,
-        step=5
+        min=1,
+        max=15,
+        step=1
     ), width=6)
 ]
 

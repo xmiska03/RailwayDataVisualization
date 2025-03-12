@@ -1,6 +1,5 @@
 import {Deck, FirstPersonView} from '@deck.gl/core';
-import {PointCloudLayer} from '@deck.gl/layers';
-import {LineLayer} from '@deck.gl/layers';
+import {PathLayer, PointCloudLayer,} from '@deck.gl/layers';
 
 window.deck_initialized = false;
 window.frames_cnt = 500;
@@ -45,48 +44,36 @@ function getPosition(d) {
   ];
 }
 
-// for the line layer (vector data)
-function getSourcePosition(d) {
-  return [
-    d.from.x * window.transf[window.position][0][0] + d.from.y * window.transf[window.position][0][1] + d.from.z * window.transf[window.position][0][2] + window.transf[window.position][0][3],
-    d.from.x * window.transf[window.position][1][0] + d.from.y * window.transf[window.position][1][1] + d.from.z * window.transf[window.position][1][2] + window.transf[window.position][1][3],
-    d.from.x * window.transf[window.position][2][0] + d.from.y * window.transf[window.position][2][1] + d.from.z * window.transf[window.position][2][2] + window.transf[window.position][2][3],
-  ];
-}
-function getTargetPosition(d) {
-  return [
-    d.to.x * window.transf[window.position][0][0] + d.to.y * window.transf[window.position][0][1] + d.to.z * window.transf[window.position][0][2] + window.transf[window.position][0][3],
-    d.to.x * window.transf[window.position][1][0] + d.to.y * window.transf[window.position][1][1] + d.to.z * window.transf[window.position][1][2] + window.transf[window.position][1][3],
-    d.to.x * window.transf[window.position][2][0] + d.to.y * window.transf[window.position][2][1] + d.to.z * window.transf[window.position][2][2] + window.transf[window.position][2][3],
-  ];
+// for the path layer (vector data)
+function getPath(d) {
+  const points = new Array(d.length);
+  for (let i = 0; i < d.length; i++) {
+    points[i] = [
+      d[i][0] * window.transf[window.position][0][0] + d[i][1] * window.transf[window.position][0][1] + d[i][2] * window.transf[window.position][0][2] + window.transf[window.position][0][3],
+      d[i][0] * window.transf[window.position][1][0] + d[i][1] * window.transf[window.position][1][1] + d[i][2] * window.transf[window.position][1][2] + window.transf[window.position][1][3],
+      d[i][0] * window.transf[window.position][2][0] + d[i][1] * window.transf[window.position][2][1] + d[i][2] * window.transf[window.position][2][2] + window.transf[window.position][2][3],
+    ];
+  }
+  return points;
 }
 
 // for the loading gauge layer
-function gaugeGetSourcePosition(d) {
+function gaugeGetPath(d) {
   const gauge_pos = Math.min(window.position + window.gauge_distance, frames_cnt - 1);
+  const points = new Array(d.length);
+  
+  for (let i = 0; i < d.length; i++) {
+    const x = d[i][0] * window.transf_inv[gauge_pos][0][0] + (d[i][1] - 1.2) * window.transf_inv[gauge_pos][0][1] + d[i][2] * window.transf_inv[gauge_pos][0][2] + window.transf_inv[gauge_pos][0][3];
+    const y = d[i][0] * window.transf_inv[gauge_pos][1][0] + (d[i][1] - 1.2) * window.transf_inv[gauge_pos][1][1] + d[i][2] * window.transf_inv[gauge_pos][1][2] + window.transf_inv[gauge_pos][1][3];
+    const z = d[i][0] * window.transf_inv[gauge_pos][2][0] + (d[i][1] - 1.2) * window.transf_inv[gauge_pos][2][1] + d[i][2] * window.transf_inv[gauge_pos][2][2] + window.transf_inv[gauge_pos][2][3];
 
-  const x = d.from.x * window.transf_inv[gauge_pos][0][0] + (d.from.y - 1.2) * window.transf_inv[gauge_pos][0][1] + d.from.z * window.transf_inv[gauge_pos][0][2] + window.transf_inv[gauge_pos][0][3];
-  const y = d.from.x * window.transf_inv[gauge_pos][1][0] + (d.from.y - 1.2) * window.transf_inv[gauge_pos][1][1] + d.from.z * window.transf_inv[gauge_pos][1][2] + window.transf_inv[gauge_pos][1][3];
-  const z = d.from.x * window.transf_inv[gauge_pos][2][0] + (d.from.y - 1.2) * window.transf_inv[gauge_pos][2][1] + d.from.z * window.transf_inv[gauge_pos][2][2] + window.transf_inv[gauge_pos][2][3];
-
-  return [
-    x * window.transf[window.position][0][0] + y * window.transf[window.position][0][1] + z * window.transf[window.position][0][2] + window.transf[window.position][0][3],
-    x * window.transf[window.position][1][0] + y * window.transf[window.position][1][1] + z * window.transf[window.position][1][2] + window.transf[window.position][1][3],
-    x * window.transf[window.position][2][0] + y * window.transf[window.position][2][1] + z * window.transf[window.position][2][2] + window.transf[window.position][2][3],
-  ];
-}
-function gaugeGetTargetPosition(d) {
-  const gauge_pos = Math.min(window.position + window.gauge_distance, frames_cnt - 1);
-
-  const x = d.to.x * window.transf_inv[gauge_pos][0][0] + (d.to.y - 1.2) * window.transf_inv[gauge_pos][0][1] + d.to.z * window.transf_inv[gauge_pos][0][2] + window.transf_inv[gauge_pos][0][3];
-  const y = d.to.x * window.transf_inv[gauge_pos][1][0] + (d.to.y - 1.2) * window.transf_inv[gauge_pos][1][1] + d.to.z * window.transf_inv[gauge_pos][1][2] + window.transf_inv[gauge_pos][1][3];
-  const z = d.to.x * window.transf_inv[gauge_pos][2][0] + (d.to.y - 1.2) * window.transf_inv[gauge_pos][2][1] + d.to.z * window.transf_inv[gauge_pos][2][2] + window.transf_inv[gauge_pos][2][3];
-
-  return [
-    x * window.transf[window.position][0][0] + y * window.transf[window.position][0][1] + z * window.transf[window.position][0][2] + window.transf[window.position][0][3],
-    x * window.transf[window.position][1][0] + y * window.transf[window.position][1][1] + z * window.transf[window.position][1][2] + window.transf[window.position][1][3],
-    x * window.transf[window.position][2][0] + y * window.transf[window.position][2][1] + z * window.transf[window.position][2][2] + window.transf[window.position][2][3],
-  ];
+    points[i] = [
+      x * window.transf[window.position][0][0] + y * window.transf[window.position][0][1] + z * window.transf[window.position][0][2] + window.transf[window.position][0][3],
+      x * window.transf[window.position][1][0] + y * window.transf[window.position][1][1] + z * window.transf[window.position][1][2] + window.transf[window.position][1][3],
+      x * window.transf[window.position][2][0] + y * window.transf[window.position][2][1] + z * window.transf[window.position][2][2] + window.transf[window.position][2][3],
+    ];
+  }
+  return points;
 }
 
 // definifions of the layers
@@ -111,37 +98,40 @@ function createPointCloudLayer() {
   });
 }
 
-function createLineLayer() {
-  return new LineLayer({
-    id: 'line-layer',
+function createPathLayer() {
+  return new PathLayer({
+    id: 'path-layer',
     data: window.data_dict.layers[1].data,
     getColor: window.data_dict.layers[1].color,
-    getSourcePosition: getSourcePosition,
-    getTargetPosition: getTargetPosition,
+    getPath: getPath,
     getWidth: window.data_dict.layers[1].width,
+    billboard: true,     // lines turned towards the camera
     visible: window.data_dict.layers[1].visible,
     updateTriggers: {
-      getSourcePosition: [window.position, window.transf], // needed when changing getPosition or getColor
-      getTargetPosition: [window.position, window.transf],
+      getPath: [window.position, window.transf],  // needed when changing data accessors
       getColor: window.data_dict.layers[1].color
+    },
+    parameters: {
+      depthCompare: 'always'    // the layer will be on top of previous layers
     }
   });
 }
 
 function createGaugeLayer() {
-  return new LineLayer({
+  return new PathLayer({
     id: 'gauge-layer',
     data: window.data_dict.layers[2].data,
     getColor: window.data_dict.layers[2].color,
-    getSourcePosition: gaugeGetSourcePosition,
-    getTargetPosition: gaugeGetTargetPosition,
+    getPath: gaugeGetPath,
     getWidth: window.data_dict.layers[2].width,
+    billboard: true,
     visible: window.data_dict.layers[2].visible,
     updateTriggers: {
-      // needed when changing getPosition or getColor
-      getSourcePosition: [window.position, window.transf, window.gauge_distance],
-      getTargetPosition: [window.position, window.transf, window.gauge_distance],
+      getPath: [window.position, window.transf, window.gauge_distance], // needed when changing data accessors
       getColor: window.data_dict.layers[2].color
+    },
+    parameters: {
+      depthCompare: 'always'    // the layer will be on top of previous layers
     }
   });
 }
@@ -171,7 +161,7 @@ function initializeDeck() {
   });
 
   window.pc_layer = createPointCloudLayer();
-  window.line_layer = createLineLayer();
+  window.path_layer = createPathLayer();
   window.gauge_layer = createGaugeLayer();
 
   // the context is created manually to specify "preserveDrawingBuffer: true".
@@ -182,7 +172,7 @@ function initializeDeck() {
   window.deck = new Deck({
     initialViewState: INITIAL_VIEW_STATE,
     views: [VIEW],
-    layers: [window.pc_layer, window.line_layer, window.gauge_layer],
+    layers: [window.pc_layer, window.path_layer, window.gauge_layer],
     canvas: 'visualization-canvas',
     context: context
   });
@@ -195,10 +185,10 @@ function initializeDeck() {
 function updatePosition() {
   // recreate the layers with a new value of window.position
   window.pc_layer = createPointCloudLayer();
-  window.line_layer = createLineLayer();
+  window.path_layer = createPathLayer();
   window.gauge_layer = createGaugeLayer();
 
-  window.deck.setProps({layers: [window.pc_layer, window.line_layer, window.gauge_layer]});
+  window.deck.setProps({layers: [window.pc_layer, window.path_layer, window.gauge_layer]});
 }
 
 
@@ -211,12 +201,12 @@ function updatePCLayerProps(visible, point_size, point_color, opacity) {
 
   window.pc_layer = createPointCloudLayer();
 
-  window.deck.setProps({layers: [window.pc_layer, window.line_layer, window.gauge_layer]});
+  window.deck.setProps({layers: [window.pc_layer, window.path_layer, window.gauge_layer]});
 }
 
 
 // to change vector data visibility, line width or color
-function updateLineLayerProps(visible, line_width, line_color) {
+function updatePathLayerProps(visible, line_width, line_color) {
   // convert to RGB
   // the following line is taken from a piece of example code in deck.gl documentation (PathLayer section)
   const new_color = line_color.match(/[0-9a-f]{2}/g).map(x => parseInt(x, 16));
@@ -225,9 +215,9 @@ function updateLineLayerProps(visible, line_width, line_color) {
   window.data_dict.layers[1].width = parseInt(line_width, 10);
   window.data_dict.layers[1].color = new_color;
 
-  window.line_layer = createLineLayer();
+  window.path_layer = createPathLayer();
   
-  window.deck.setProps({layers: [window.pc_layer, window.line_layer, window.gauge_layer]});
+  window.deck.setProps({layers: [window.pc_layer, window.path_layer, window.gauge_layer]});
 }
 
 
@@ -244,7 +234,7 @@ function updateGaugeLayerProps(visible, distance, line_width, line_color) {
 
   window.gauge_layer = createGaugeLayer();
   
-  window.deck.setProps({layers: [window.pc_layer, window.line_layer, window.gauge_layer]});
+  window.deck.setProps({layers: [window.pc_layer, window.path_layer, window.gauge_layer]});
 }
 
 
@@ -349,7 +339,7 @@ function stopDeckAnimation() {
 window.initializeDeck = initializeDeck;
 window.updatePosition = updatePosition;
 window.updatePCLayerProps = updatePCLayerProps;
-window.updateLineLayerProps = updateLineLayerProps;
+window.updatePathLayerProps = updatePathLayerProps;
 window.updateGaugeLayerProps = updateGaugeLayerProps;
 window.runDeckAnimation = runDeckAnimation;
 window.stopDeckAnimation = stopDeckAnimation;

@@ -39,9 +39,9 @@ def get_callbacks(app):
     app.clientside_callback(
         """
         function(layers, line_width, line_color) {
-            if (window.updateLineLayerProps) {
+            if (window.updatePathLayerProps) {
                 // call function defined in the JavaScript file
-                window.updateLineLayerProps(layers.includes('vec'), line_width, line_color);
+                window.updatePathLayerProps(layers.includes('vec'), line_width, line_color);
             }
         }
         """,
