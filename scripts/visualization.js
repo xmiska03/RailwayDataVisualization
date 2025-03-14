@@ -149,13 +149,7 @@ function initializeDeck() {
   const INITIAL_VIEW_STATE = window.data_dict.initialViewState;
   
   const VIEW = new FirstPersonView({
-      //projectionMatrix: window.data_dict.views[0].projectionMatrix,
-      projectionMatrix: [
-        2.37993,  0,        0,        0,
-        0,        3.18091,  0,        0,
-        0.00621, -0.050,    -1.00067, -1,
-        0,        0,        -0.20007,  0
-      ],
+      projectionMatrix: window.data_dict.views[0].projectionMatrix,
       //far: window.data_dict.views[0].far,
       controller: window.data_dict.views[0].controller
   });

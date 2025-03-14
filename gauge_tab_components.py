@@ -9,9 +9,9 @@ gauge_line_width_widget = [
         value=f"{GAUGE_LINE_WIDTH}",
         id="gauge-line-width-input",
         type="number",
-        min=10,
-        max=150,
-        step=5
+        min=1,
+        max=15,
+        step=1
     ), width=6)
 ]
 

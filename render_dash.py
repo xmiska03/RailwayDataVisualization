@@ -3,7 +3,6 @@ import dash_bootstrap_components as dbc
 import pandas as pd
 import numpy as np
 from pypcd4 import PointCloud
-import csv
 from scipy.spatial.transform import Rotation
 
 import data_tab_components
@@ -15,19 +14,19 @@ import gauge_tab_callbacks
 import animation_control_components
 import animation_control_callbacks
 import params
+from general_functions import load_csv_into_nparray, load_yaml_into_dict, calculate_projection_matrix
 
-# loads a csv file into a numpy array
-def load_csv_into_nparray(file_address):
-    with open(file_address, 'r') as f:
-        reader = csv.reader(f)
-        data = list(reader)
-        return np.array(data, dtype=float)
 
 # load point cloud
 pc = PointCloud.from_path("data/scans.pcd")
 pc_nparray = pc.numpy(("x", "y", "z", "intensity"))
 
 #pc_nparray = pc_nparray[::10]   # reduce the size of the point cloud
+
+# load camera parameters
+camera_params_dict = load_yaml_into_dict("data/camera_azd.yaml")
+distortion_coeffs = camera_params_dict['DistCoeffs']['data']
+proj_matrix = calculate_projection_matrix(camera_params_dict)
 
 # load data about camera positions (order of the columns: y, z, x)
 trans_nparray = load_csv_into_nparray("data/trans.csv")
@@ -85,7 +84,7 @@ view_state = {
 }
 
 view = {
-    #"projectionMatrix": ...,
+    "projectionMatrix": proj_matrix,
     "controller": True
 }
 

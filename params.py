@@ -8,5 +8,5 @@ PITCH = 0.3                    # turn the camera up/down
 NEAR_PLANE = 0.1
 FAR_PLANE = 300
 OPACITY = 0.7
-LINE_WIDTH = 5
-GAUGE_LINE_WIDTH = 5
+LINE_WIDTH = 3
+GAUGE_LINE_WIDTH = 3
