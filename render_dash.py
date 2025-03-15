@@ -1,7 +1,5 @@
 from dash import Dash, html, dcc, callback, Output, Input, State, Patch, ctx, clientside_callback
 import dash_bootstrap_components as dbc
-import pandas as pd
-import numpy as np
 from pypcd4 import PointCloud
 from scipy.spatial.transform import Rotation
 
@@ -41,9 +39,6 @@ for rotation in rot_nparray_raw:
 # number of frames to generate (500 in example data)
 frames_cnt = trans_nparray.shape[0]
 
-# create a pandas DataFrame
-pc_df = pd.DataFrame(pc_nparray, columns=["x", "y", "z", "intensity"])
-
 # load vector data (polylines)
 paths_data = [
     load_csv_into_nparray("data/polyline1.csv"),
@@ -56,7 +51,7 @@ gauge_data = [load_csv_into_nparray("data/loading_gauge.csv")]
 
 # prepare the visualization of the point cloud using Deck.GL
 point_cloud_layer = {
-    "data": pc_df.to_dict(orient="records"),
+    "data": pc_nparray,
     "pointSize": params.POINT_SIZE,
     "pointColor": 'rgb',
     "opacity": params.OPACITY,
