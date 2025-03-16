@@ -8,6 +8,20 @@ window.animation_running = false;
 window.frame_duration = 40;   // in milliseconds
 window.gauge_distance = 100;   // in virtual camera positions
 
+/*
+// multiplies two 4x4 matrices stored in 1D arrays
+function multiply_matrices(matrix1, matrix2, result) {
+  var i, j, k;
+  for (i = 0; i < 4; i++) {
+    for (j = 0; j < 4; j++) {
+      result[4*i+j] = 0;
+      for (k = 0; k < 4; k++) {
+        result[4*i+j] += matrix1[4*i+k] * matrix2[4*k+j];
+      }
+    }
+  }
+}*/
+
 // color scales - mapping point intensity (d[3]) to colors
 // red - green - blue (from greatest to lowest intensity)
 function getColorRGB(d) {
@@ -119,6 +133,27 @@ function initializeDeck() {
     return;
   }
 
+  /*const rot_transp_matrix = [
+    window.rotations[0][2][2], window.rotations[0][0][2], window.rotations[0][1][2], 0,
+    window.rotations[0][2][0], window.rotations[0][0][0], window.rotations[0][1][0], 0,
+    window.rotations[0][2][1], window.rotations[0][0][1], window.rotations[0][1][1], 0,
+    0, 0, 0, 1
+  ];
+
+  const trans_transp_matrix = [
+    1, 0, 0, 0,
+    0, 1, 0, 0,
+    0, 0, 1, 0,
+    -window.translations[0][2], -window.translations[0][0], -window.translations[0][1], 1
+  ];
+
+  var transf_matrix = new Array(16);
+  multiply_matrices(trans_transp_matrix, rot_transp_matrix, transf_matrix);
+  var combined_matrix = new Array(16);
+  multiply_matrices(transf_matrix, window.data_dict.views[0].projectionMatrix, combined_matrix);
+  //multiply_matrices(trans_transp_matrix, window.data_dict.views[0].projectionMatrix, combined_matrix);
+  */
+
   const VIEW = new FirstPersonView({
     projectionMatrix: window.data_dict.views[0].projectionMatrix,
     controller: window.data_dict.views[0].controller
@@ -157,7 +192,7 @@ function initializeDeck() {
 
 // to change camera position
 function updatePosition() {
-  // make a new viewstate from the new position
+  // make a new viewstate for the new position
   const INITIAL_VIEW_STATE = {
     bearing: window.data_dict.initialViewState.bearing,
     pitch: window.data_dict.initialViewState.pitch,
