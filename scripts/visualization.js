@@ -4,32 +4,38 @@ import {PathLayer, PointCloudLayer,} from '@deck.gl/layers';
 window.deck_initialized = false;
 window.frames_cnt = 500;
 window.position = 0;
+window.pcl_position = 0;
 window.animation_running = false;
 window.frame_duration = 40;   // in milliseconds
 window.gauge_distance = 100;   // in virtual camera positions
+const pcl_layers_cnt = 10;
+
+var pcl_layers_positions = new Array(pcl_layers_cnt).fill(0);
+var pcl_layers_index = 0;  // marks the oldest data which are to be replaced
+var layers = new Array(pcl_layers_cnt + 2);
 
 // color scales - mapping point intensity to colors
 // red - green - blue (from greatest to lowest intensity)
 function getColorRGB(d) {
   return [
-    d.intensity > 6 ? 7 * (d.intensity - 6) : 0,
-    d.intensity > 6 ? 255 - 7 * (d.intensity - 6) : 51 * d.intensity,
-    d.intensity > 6 ? 0 : 255 - 51 * d.intensity
+    d[3] > 6 ? 7 * (d[3] - 6) : 0,
+    d[3] > 6 ? 255 - 7 * (d[3] - 6) : 51 * d[3],
+    d[3] > 6 ? 0 : 255 - 51 * d[3]
   ];
 }
 
 function getColorRB(d) {
   return [
-    6 * d.intensity,
+    6 * d[3],
     0,
-    255 - 6 * d.intensity
+    255 - 6 * d[3]
   ];
 }
 
 function getColorYR(d) {
   return [
     255,
-    6 * d.intensity,
+    6 * d[3],
     0
   ];
 }
@@ -38,9 +44,9 @@ function getColorYR(d) {
 // for the point cloud layer
 function getPosition(d) {
   return [
-    d.x * window.transf[window.position][0][0] + d.y * window.transf[window.position][0][1] + d.z * window.transf[window.position][0][2] + window.transf[window.position][0][3],
-    d.x * window.transf[window.position][1][0] + d.y * window.transf[window.position][1][1] + d.z * window.transf[window.position][1][2] + window.transf[window.position][1][3],
-    d.x * window.transf[window.position][2][0] + d.y * window.transf[window.position][2][1] + d.z * window.transf[window.position][2][2] + window.transf[window.position][2][3],
+    d[0] * window.transf[window.position][0][0] + d[1] * window.transf[window.position][0][1] + d[2] * window.transf[window.position][0][2] + window.transf[window.position][0][3],
+    d[0] * window.transf[window.position][1][0] + d[1] * window.transf[window.position][1][1] + d[2] * window.transf[window.position][1][2] + window.transf[window.position][1][3],
+    d[0] * window.transf[window.position][2][0] + d[1] * window.transf[window.position][2][1] + d[2] * window.transf[window.position][2][2] + window.transf[window.position][2][3],
   ];
 }
 
@@ -78,10 +84,10 @@ function gaugeGetPath(d) {
 
 // definifions of the layers
 
-function createPointCloudLayer() {
+function createPointCloudLayer(n) {
   return new PointCloudLayer({
     id: 'point-cloud-layer',
-    data: window.data_dict.layers[0].data,
+    data: window.data_dict.layers[0].data[pcl_layers_positions[n]],
     getColor: window.data_dict.layers[0].pointColor === 'rgb'
       ? getColorRGB 
       : window.data_dict.layers[0].pointColor === 'rb' 
@@ -153,10 +159,14 @@ function initializeDeck() {
       //far: window.data_dict.views[0].far,
       controller: window.data_dict.views[0].controller
   });
-
-  window.pc_layer = createPointCloudLayer();
-  window.path_layer = createPathLayer();
-  window.gauge_layer = createGaugeLayer();
+  
+  // create the layers
+  for (var i = 0; i < pcl_layers_cnt; i++) {
+    layers[i] = createPointCloudLayer(i);
+  }
+  layers[pcl_layers_cnt] = createPathLayer();
+  layers[pcl_layers_cnt + 1] = createGaugeLayer();
+  
 
   // the context is created manually to specify "preserveDrawingBuffer: true".
   // that is needed to enable reading the pixels of the visualisation for applying distortion.
@@ -166,7 +176,7 @@ function initializeDeck() {
   window.deck = new Deck({
     initialViewState: INITIAL_VIEW_STATE,
     views: [VIEW],
-    layers: [window.pc_layer, window.path_layer, window.gauge_layer],
+    layers: layers,
     canvas: 'visualization-canvas',
     context: context
   });
@@ -177,12 +187,15 @@ function initializeDeck() {
 
 // to change camera position
 function updatePosition() {
-  // recreate the layers with a new value of window.position
-  window.pc_layer = createPointCloudLayer();
-  window.path_layer = createPathLayer();
-  window.gauge_layer = createGaugeLayer();
+  // recreate the layers (in a new view and maybe with new data)
+  layers = []
+  for (var i = 0; i < pcl_layers_cnt; i++) {
+    layers[i] = createPointCloudLayer(i);
+  }
+  layers[pcl_layers_cnt] = createPathLayer();
+  layers[pcl_layers_cnt + 1] = createGaugeLayer();
 
-  window.deck.setProps({layers: [window.pc_layer, window.path_layer, window.gauge_layer]});
+  window.deck.setProps({layers: layers});
 }
 
 
@@ -289,9 +302,23 @@ function animationStep(now, metadata) {
     const label = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`
     dash_clientside.set_props("current-time-div", {children: label});
   }
- 
+
+  // change point cloud data if necessary
+  if (metadata) {
+    while(window.pcl_timestamps[window.pcl_position] < metadata.mediaTime) {
+      // move to new position
+      window.pcl_position++;
+      // rewrite old data with new data
+      pcl_layers_positions[pcl_layers_index] = window.pcl_position;
+      // mark the next set of data as old data
+      pcl_layers_index = (pcl_layers_index + 1) % pcl_layers_cnt;
+    }
+  }
+  console.log(pcl_layers_positions);
+
   // update the visualization
   window.updatePosition();
+
   // update GUI elements
   document.getElementById("camera-position-input").value = window.position;         // update input value
   document.getElementById("camera-position-slider-input").value = window.position;  // update slider value

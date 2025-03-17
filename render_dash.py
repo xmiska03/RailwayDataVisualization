@@ -1,7 +1,5 @@
 from dash import Dash, html, dcc, callback, Output, Input, State, Patch, ctx, clientside_callback
 import dash_bootstrap_components as dbc
-import pandas as pd
-import numpy as np
 from pypcd4 import PointCloud
 from scipy.spatial.transform import Rotation
 
@@ -17,9 +15,19 @@ import params
 from general_functions import load_csv_into_nparray, load_yaml_into_dict, calculate_projection_matrix
 
 
-# load point cloud
-pc = PointCloud.from_path("data/scans.pcd")
-pc_nparray = pc.numpy(("x", "y", "z", "intensity"))
+# load point cloud data
+pc_nparray = []
+for i in range(596):
+    pc = PointCloud.from_path(f"data/pcd_files/pcd_{i}.pcd")
+    pc_nparray.append(pc.numpy(("x", "y", "z", "intensity")))
+
+# load point cloud timestamps
+pcl_timestamps = []
+with open("data/pcl_timestamps.txt", "r") as f:
+    for line in f:
+        split_line = line.split()
+        if len(split_line) >= 2:
+            pcl_timestamps.append(float(split_line[1]))
 
 #pc_nparray = pc_nparray[::10]   # reduce the size of the point cloud
 
@@ -41,9 +49,6 @@ for rotation in rot_nparray_raw:
 # number of frames to generate (500 in example data)
 frames_cnt = trans_nparray.shape[0]
 
-# create a pandas DataFrame
-pc_df = pd.DataFrame(pc_nparray, columns=["x", "y", "z", "intensity"])
-
 # load vector data (polylines)
 paths_data = [
     load_csv_into_nparray("data/polyline1.csv"),
@@ -56,7 +61,7 @@ gauge_data = [load_csv_into_nparray("data/loading_gauge.csv")]
 
 # prepare the visualization of the point cloud using Deck.GL
 point_cloud_layer = {
-    "data": pc_df.to_dict(orient="records"),
+    "data": pc_nparray,
     "pointSize": params.POINT_SIZE,
     "pointColor": 'rgb',
     "opacity": params.OPACITY,
@@ -219,6 +224,10 @@ app.layout = html.Div(
         dcc.Store(
             id='transformations-inv-data'   # for the loading gauge
         ),
+        dcc.Store(
+            id='pcl-timestamps-data',
+            data=pcl_timestamps
+        ),
     ],
     style={
         "fontSize": "16px"
@@ -231,16 +240,18 @@ app.layout = html.Div(
 # (re)initialize the deck visualization
 app.clientside_callback(
     """
-    function(data_dict) {
+    function(data_dict, pcl_timestamps) {
         if (window.initializeDeck) {
             window.data_dict = data_dict;  // make the data accessible to visualizations.js
+            window.pcl_timestamps = pcl_timestamps;
             window.initializeDeck();       // call function defined in the JavaScript file
         }
         return dash_clientside.no_update;
     }
     """,
     Output('visualization-data', 'id'),  # dummy output needed so that the initial call occurs
-    Input('visualization-data', 'data')
+    Input('visualization-data', 'data'),
+    State('pcl-timestamps-data', 'data')
 )
 
 # add callbacks defined in other files
