@@ -15,14 +15,60 @@ point_size_widget = [
     ), width=6)
 ]
 
-point_color_widget = [
+color_scale_widget = [
     dbc.Col(html.Div("Barevná škála: "), width=5),
     dbc.Col(dcc.Dropdown(
         options={'rgb': 'rudo-zeleno-modrá', 'rb': 'rudo-modrá', 'yr': 'žluto-rudá'},
         value='rgb',
         clearable=False,
-        id='point-color-dropdown'
+        id='color-scale-dropdown'
     ), width=6)
+]
+
+color_scale_graph = [
+    dbc.Col(dcc.Graph(
+        id='color-scale-graph',
+        figure={
+            'data': [{
+                'y': [1 for _ in range(43)],
+                'type': 'bar',
+                'marker': {'color': ['#FFFFFF' for _ in range(43)]}
+            }],
+            'layout': {
+                'height': 100,
+                'margin': {'l': 0, 'r': 0, 't': 0, 'b': 0},
+                'xaxis': {'showticklabels': False},
+                'yaxis': {'showticklabels': False},
+                'bargap': 0.6
+            }
+        },
+        config={'displayModeBar': False},
+        style={'height': '100px'}
+    ), width=7),
+    dcc.Store(
+        id='visualization-data-aggregation',  # needed for the graph
+    )
+]
+
+color_scale_interval_widget = [
+    dbc.Col(html.Div("Od: "), width=1),
+    dbc.Col(dbc.Input(
+        value=0,
+        id="scale-from-input",
+        type="number",
+        min=0,
+        max=43,
+        step=1
+    ), width=3),
+    dbc.Col(html.Div("Do: "), width=1),
+    dbc.Col(dbc.Input(
+        value=18,
+        id="scale-to-input",
+        type="number",
+        min=0,
+        max=43,
+        step=1
+    ), width=3)
 ]
 
 point_opacity_widget = [
@@ -84,7 +130,11 @@ visualization_tab = [
     dbc.Row(html.Div("Mračno bodů", style={"fontWeight": "bold", "textAlign": "center", "paddingBottom": "0.5em",})),
     dbc.Row(point_size_widget),
     dbc.Placeholder(color="black", size="xs"),
-    dbc.Row(point_color_widget),
+    dbc.Row(color_scale_widget),
+    dbc.Placeholder(color="black", size="xs"),
+    dbc.Row(color_scale_graph, justify="center"),
+    dbc.Placeholder(color="black", size="xs"),
+    dbc.Row(color_scale_interval_widget, justify="center"),
     dbc.Placeholder(color="black", size="xs"),
     dbc.Row(point_opacity_widget),
     dbc.Placeholder(color="black", size="xs"),

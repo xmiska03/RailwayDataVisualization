@@ -30,10 +30,61 @@ def get_callbacks(app):
         """,
         Input('point-cloud-checkbox', 'value'),
         Input('point-size-input', 'value'),  # Dash sometimes gives number inputs as strings, sometimes as numbers!
-        Input('point-color-dropdown', 'value'),
+        Input('color-scale-dropdown', 'value'),
         Input('point-opacity-input', 'value'),
         prevent_initial_call=True
     )
+
+    # count an aggregation of the point cloud data by intensity for the color scale graph
+    @app.callback(
+        Output('visualization-data-aggregation', 'data'),
+        Input('visualization-data', 'data')
+    )
+    def recount_data_aggregation(visualization_data):
+        new_aggregation = [0 for _ in range(43)]
+        for point in visualization_data["layers"][0]["data"]:
+            if int(point[3]) < 43:
+                new_aggregation[int(point[3])] += 1
+        return new_aggregation
+
+    # change the interval of the color scale
+    @app.callback(
+        Output('color-scale-graph', 'figure'),
+        Input('scale-from-input', 'value'),
+        Input('scale-to-input', 'value'),
+        Input('visualization-data-aggregation', 'data')
+    )
+    def change_scale_interval(scale_from_raw, scale_to_raw, data):
+        scale_from = int(scale_from_raw)
+        scale_to = int(scale_to_raw)
+        patched_figure = Patch()
+        
+        # write data into the graph
+        for i in range(43):
+            patched_figure["data"][0]["y"][i] = data[i]
+        
+        # color the graph according to the boundaries
+        for i in range(43):        
+            if i <= scale_from:
+                patched_figure["data"][0]["marker"]["color"][i] = '#0000FF'   # low intensity - blue
+            elif i >= scale_to:
+                patched_figure["data"][0]["marker"]["color"][i] = '#FF0000'   # high intensity - red
+            else:
+                # intensity is somewhere on the scale                                              
+                middle_point = (scale_from + scale_to) / 2    # calculate the color
+                r, g, b = 0, 0, 0
+                if i < middle_point:
+                    r = 0
+                    g = int((i - scale_from) / (middle_point - scale_from) * 255)
+                    b = int(255 - (i - scale_from) / (middle_point - scale_from) * 255)
+                else:
+                    r = int((i - middle_point) / (scale_to - middle_point) * 255)
+                    g = int(255 - (i - middle_point) / (scale_to - middle_point) * 255)
+                    b = 0
+                # convert to HEX color format
+                patched_figure["data"][0]["marker"]["color"][i] = '#{:02x}{:02x}{:02x}'.format(r, g, b) 
+
+        return patched_figure
 
     # change vector data visibility, line width or color
     app.clientside_callback(

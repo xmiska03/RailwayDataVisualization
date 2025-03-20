@@ -12,24 +12,24 @@ window.gauge_distance = 100;   // in virtual camera positions
 // red - green - blue (from greatest to lowest intensity)
 function getColorRGB(d) {
   return [
-    d.intensity > 6 ? 7 * (d.intensity - 6) : 0,
-    d.intensity > 6 ? 255 - 7 * (d.intensity - 6) : 51 * d.intensity,
-    d.intensity > 6 ? 0 : 255 - 51 * d.intensity
+    d[3] > 6 ? 7 * (d[3] - 6) : 0,
+    d[3] > 6 ? 255 - 7 * (d[3] - 6) : 51 * d[3],
+    d[3] > 6 ? 0 : 255 - 51 * d[3]
   ];
 }
 
 function getColorRB(d) {
   return [
-    6 * d.intensity,
+    6 * d[3],
     0,
-    255 - 6 * d.intensity
+    255 - 6 * d[3]
   ];
 }
 
 function getColorYR(d) {
   return [
     255,
-    6 * d.intensity,
+    6 * d[3],
     0
   ];
 }
@@ -38,9 +38,9 @@ function getColorYR(d) {
 // for the point cloud layer
 function getPosition(d) {
   return [
-    d.x * window.transf[window.position][0][0] + d.y * window.transf[window.position][0][1] + d.z * window.transf[window.position][0][2] + window.transf[window.position][0][3],
-    d.x * window.transf[window.position][1][0] + d.y * window.transf[window.position][1][1] + d.z * window.transf[window.position][1][2] + window.transf[window.position][1][3],
-    d.x * window.transf[window.position][2][0] + d.y * window.transf[window.position][2][1] + d.z * window.transf[window.position][2][2] + window.transf[window.position][2][3],
+    d[0] * window.transf[window.position][0][0] + d[1] * window.transf[window.position][0][1] + d[2] * window.transf[window.position][0][2] + window.transf[window.position][0][3],
+    d[0] * window.transf[window.position][1][0] + d[1] * window.transf[window.position][1][1] + d[2] * window.transf[window.position][1][2] + window.transf[window.position][1][3],
+    d[0] * window.transf[window.position][2][0] + d[1] * window.transf[window.position][2][1] + d[2] * window.transf[window.position][2][2] + window.transf[window.position][2][3],
   ];
 }
 
