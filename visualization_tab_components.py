@@ -18,8 +18,8 @@ point_size_widget = [
 color_scale_widget = [
     dbc.Col(html.Div("Barevná škála: "), width=5),
     dbc.Col(dcc.Dropdown(
-        options={'rgb': 'rudo-zeleno-modrá', 'rb': 'rudo-modrá', 'yr': 'žluto-rudá'},
-        value='rgb',
+        options={'bgr': 'modro-zeleno-rudá', 'yp': 'žluto-fialová'},
+        value='bgr',
         clearable=False,
         id='color-scale-dropdown'
     ), width=6)
@@ -50,6 +50,10 @@ color_scale_graph = [
     ),
     dcc.Store(
         id='scale-boundaries-store'
+    ),
+    dcc.Store(
+        id='scale-colors-store',  # needed for the graph
+        data='bgr'
     )
 ]
 

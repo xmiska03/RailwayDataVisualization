@@ -5,16 +5,20 @@ window.deck_initialized = false;
 window.frames_cnt = 500;
 window.position = 0;
 window.animation_running = false;
-window.frame_duration = 40;   // in milliseconds
+window.frame_duration = 40;    // in milliseconds
 window.gauge_distance = 100;   // in virtual camera positions
-window.scale_from = 0;        // boundaries of the point cloud color scale
+window.scale_from = 0;         // boundaries of the point cloud color scale
 window.scale_to = 18;
 window.scale_middle = 9;
 
 // color scales - mapping point intensity to colors
 // red - green - blue (from greatest to lowest intensity)
-function getColorRGB(d) {
-  if (d[3] < window.scale_middle) {
+function getColorBGR(d) {
+  if (d[3] < window.scale_from) {
+    return [0, 0, 255]   // under the scale - blue
+  } else if (d[3] > window.scale_to) {
+    return [255, 0, 0]   // over the scale - red
+  } else if (d[3] < window.scale_middle) {   // on the scale
     return [
       0, 
       Math.floor((d[3] - window.scale_from) / (window.scale_middle - window.scale_from) * 255),
@@ -29,20 +33,18 @@ function getColorRGB(d) {
   }
 }
 
-function getColorRB(d) {
-  return [
-    6 * d[3],
-    0,
-    255 - 6 * d[3]
-  ];
-}
-
-function getColorYR(d) {
-  return [
-    255,
-    6 * d[3],
-    0
-  ];
+function getColorYP(d) {
+  if (d[3] < window.scale_from) {
+    return [255, 255, 0]   // under the scale - yellow
+  } else if (d[3] > window.scale_to) {
+    return [255, 0, 255]   // over the scale - purple
+  } else {     // on the scale
+    return [
+      255,
+      Math.floor(255 - (d[3] - window.scale_from) / (window.scale_to - window.scale_from) * 255),
+      Math.floor((d[3] - window.scale_from) / (window.scale_to - window.scale_from) * 255)
+    ]
+  }
 }
 
 // functions the apply transformations
@@ -93,11 +95,9 @@ function createPointCloudLayer() {
   return new PointCloudLayer({
     id: 'point-cloud-layer',
     data: window.data_dict.layers[0].data,
-    getColor: window.data_dict.layers[0].pointColor === 'rgb'
-      ? getColorRGB 
-      : window.data_dict.layers[0].pointColor === 'rb' 
-        ? getColorRB
-        : getColorYR,
+    getColor: window.data_dict.layers[0].pointColor === 'bgr'
+      ? getColorBGR
+      : getColorYP,
     getPosition: getPosition,
     opacity: window.data_dict.layers[0].opacity,
     pointSize: window.data_dict.layers[0].pointSize,

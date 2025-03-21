@@ -53,7 +53,7 @@ gauge_data = [load_csv_into_nparray("data/loading_gauge.csv")]
 point_cloud_layer = {
     "data": pc_nparray,
     "pointSize": params.POINT_SIZE,
-    "pointColor": 'rgb',
+    "pointColor": 'bgr',
     "opacity": params.OPACITY,
     "visible": True
 }

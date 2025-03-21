@@ -22,12 +22,14 @@ def get_callbacks(app):
     app.clientside_callback(
         """
         function(layers, point_size, color_scale, opacity) {  
-                if (window.updatePCLayerProps) {
+            if (window.updatePCLayerProps) {
                 // call function defined in the JavaScript file
                 window.updatePCLayerProps(layers.includes('pcl'), point_size, color_scale, opacity);
             }
+            return color_scale;
         }
         """,
+        Output('scale-colors-store', 'data'),
         Input('point-cloud-checkbox', 'value'),
         Input('point-size-input', 'value'),  # Dash sometimes gives number inputs as strings, sometimes as numbers!
         Input('color-scale-dropdown', 'value'),
@@ -47,15 +49,16 @@ def get_callbacks(app):
                 new_aggregation[int(point[3])] += 1
         return new_aggregation
 
-    # change the graph of the color scale (when there is new data or new lower/upper scale boundary)
+    # change the graph of the color scale (when there is new data, new scale boundaries or colors)
     @app.callback(
         Output('color-scale-graph', 'figure'),
         Output('scale-boundaries-store', 'data'),
         Input('scale-from-input', 'value'),
         Input('scale-to-input', 'value'),
-        Input('visualization-data-aggregation', 'data')
+        Input('visualization-data-aggregation', 'data'),
+        Input('scale-colors-store', 'data')
     )
-    def change_scale_graph(scale_from_raw, scale_to_raw, data):
+    def change_scale_graph(scale_from_raw, scale_to_raw, data, colors):
         scale_from = int(scale_from_raw)
         scale_to = int(scale_to_raw)
         patched_figure = Patch()
@@ -64,26 +67,40 @@ def get_callbacks(app):
         for i in range(43):
             patched_figure["data"][0]["y"][i] = data[i]
         
-        # color the graph according to the boundaries
-        for i in range(43):        
-            if i <= scale_from:
-                patched_figure["data"][0]["marker"]["color"][i] = '#0000FF'   # low intensity - blue
-            elif i >= scale_to:
-                patched_figure["data"][0]["marker"]["color"][i] = '#FF0000'   # high intensity - red
-            else:
-                # intensity is somewhere on the scale                                              
-                middle_point = (scale_from + scale_to) / 2    # calculate the color
-                r, g, b = 0, 0, 0
-                if i < middle_point:
-                    r = 0
-                    g = int((i - scale_from) / (middle_point - scale_from) * 255)
-                    b = int(255 - (i - scale_from) / (middle_point - scale_from) * 255)
+        # color the graph according to the boundaries and the set colors
+        for i in range(43):
+            if colors == 'bgr': 
+                # blue - green - red      
+                if i <= scale_from:
+                    patched_figure["data"][0]["marker"]["color"][i] = '#0000FF'   # low intensity - blue
+                elif i >= scale_to:
+                    patched_figure["data"][0]["marker"]["color"][i] = '#FF0000'   # high intensity - red
                 else:
-                    r = int((i - middle_point) / (scale_to - middle_point) * 255)
-                    g = int(255 - (i - middle_point) / (scale_to - middle_point) * 255)
-                    b = 0
-                # convert to HEX color format
-                patched_figure["data"][0]["marker"]["color"][i] = '#{:02x}{:02x}{:02x}'.format(r, g, b) 
+                    # intensity is somewhere on the scale                                              
+                    middle_point = (scale_from + scale_to) / 2    # calculate the color
+                    if i < middle_point:
+                        r = 0
+                        g = int((i - scale_from) / (middle_point - scale_from) * 255)
+                        b = int(255 - (i - scale_from) / (middle_point - scale_from) * 255)
+                    else:
+                        r = int((i - middle_point) / (scale_to - middle_point) * 255)
+                        g = int(255 - (i - middle_point) / (scale_to - middle_point) * 255)
+                        b = 0
+                    # convert to HEX color format
+                    patched_figure["data"][0]["marker"]["color"][i] = '#{:02x}{:02x}{:02x}'.format(r, g, b) 
+            else:
+                # yellow - purple
+                if i <= scale_from:
+                    patched_figure["data"][0]["marker"]["color"][i] = '#FFFF00'   # low intensity - yellow
+                elif i >= scale_to:
+                    patched_figure["data"][0]["marker"]["color"][i] = '#FF00FF'   # high intensity - purple
+                else:
+                    # intensity is somewhere on the scale
+                    r = 255
+                    g = int(255 - (i - scale_from) / (scale_to - scale_from) * 255)
+                    b = int((i - scale_from) / (scale_to - scale_from) * 255)
+                    # convert to HEX color format
+                    patched_figure["data"][0]["marker"]["color"][i] = '#{:02x}{:02x}{:02x}'.format(r, g, b)
 
         return patched_figure, [scale_from, scale_to]
 
