@@ -1,5 +1,5 @@
 import {Deck, FirstPersonView} from '@deck.gl/core';
-import {PathLayer, PointCloudLayer,} from '@deck.gl/layers';
+import {PathLayer, PointCloudLayer} from '@deck.gl/layers';
 
 window.deck_initialized = false;
 window.frames_cnt = 500;
@@ -7,15 +7,26 @@ window.position = 0;
 window.animation_running = false;
 window.frame_duration = 40;   // in milliseconds
 window.gauge_distance = 100;   // in virtual camera positions
+window.scale_from = 0;        // boundaries of the point cloud color scale
+window.scale_to = 18;
+window.scale_middle = 9;
 
 // color scales - mapping point intensity to colors
 // red - green - blue (from greatest to lowest intensity)
 function getColorRGB(d) {
-  return [
-    d[3] > 6 ? 7 * (d[3] - 6) : 0,
-    d[3] > 6 ? 255 - 7 * (d[3] - 6) : 51 * d[3],
-    d[3] > 6 ? 0 : 255 - 51 * d[3]
-  ];
+  if (d[3] < window.scale_middle) {
+    return [
+      0, 
+      Math.floor((d[3] - window.scale_from) / (window.scale_middle - window.scale_from) * 255),
+      Math.floor(255 - (d[3] - window.scale_from) / (window.scale_middle - window.scale_from) * 255)
+    ]
+  } else {
+    return [
+      Math.floor((d[3] - window.scale_middle) / (window.scale_to - window.scale_middle) * 255),
+      Math.floor(255 - (d[3] - window.scale_middle) / (window.scale_to - window.scale_middle) * 255),
+      0
+    ]
+  }
 }
 
 function getColorRB(d) {
@@ -93,7 +104,7 @@ function createPointCloudLayer() {
     visible: window.data_dict.layers[0].visible,
     updateTriggers: {
       getPosition: [window.position, window.transf],    // needed when changing getPosition or getColor
-      getColor: window.data_dict.layers[0].pointColor
+      getColor: [window.scale_from, window.scale_to, window.data_dict.layers[0].pointColor]
     }
   });
 }
@@ -176,7 +187,7 @@ function initializeDeck() {
 
 
 // to change camera position
-function updatePosition() {
+function updateDeck() {
   // recreate the layers with a new value of window.position
   window.pc_layer = createPointCloudLayer();
   window.path_layer = createPathLayer();
@@ -291,7 +302,7 @@ function animationStep(now, metadata) {
   }
  
   // update the visualization
-  window.updatePosition();
+  window.updateDeck();
   // update GUI elements
   document.getElementById("camera-position-input").value = window.position;         // update input value
   document.getElementById("camera-position-slider-input").value = window.position;  // update slider value
@@ -306,7 +317,7 @@ function runDeckAnimation() {
     const video = document.getElementById('background-video');
     video.currentTime = 0;
     window.position = 0;
-    window.updatePosition();
+    window.updateDeck();
   }
   
   window.animation_running = true;
@@ -331,7 +342,7 @@ function stopDeckAnimation() {
 
 // make the functions global
 window.initializeDeck = initializeDeck;
-window.updatePosition = updatePosition;
+window.updateDeck = updateDeck;
 window.updatePCLayerProps = updatePCLayerProps;
 window.updatePathLayerProps = updatePathLayerProps;
 window.updateGaugeLayerProps = updateGaugeLayerProps;

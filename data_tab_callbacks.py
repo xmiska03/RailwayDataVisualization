@@ -25,7 +25,7 @@ def get_callbacks(app):
             window.rotations_inv = rotations_inv_data;
             // update the visualization if it is already created
             if (window.deck_initialized) {
-                window.updatePosition();  // call function defined in the JavaScript file
+                window.updateDeck();  // call function defined in the JavaScript file
             }
             return dash_clientside.no_update;
         }

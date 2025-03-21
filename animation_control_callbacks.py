@@ -45,7 +45,7 @@ def get_callbacks(app):
                 if (new_pos != window.position) {
                     // update deck.gl visualization
                     window.position = new_pos;
-                    window.updatePosition();  // call function defined in the JavaScript file
+                    window.updateDeck();  // call function defined in the JavaScript file
                     
                     // update video
                     const video = document.getElementById('background-video');

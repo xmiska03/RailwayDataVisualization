@@ -47,14 +47,15 @@ def get_callbacks(app):
                 new_aggregation[int(point[3])] += 1
         return new_aggregation
 
-    # change the interval of the color scale
+    # change the graph of the color scale (when there is new data or new lower/upper scale boundary)
     @app.callback(
         Output('color-scale-graph', 'figure'),
+        Output('scale-boundaries-store', 'data'),
         Input('scale-from-input', 'value'),
         Input('scale-to-input', 'value'),
         Input('visualization-data-aggregation', 'data')
     )
-    def change_scale_interval(scale_from_raw, scale_to_raw, data):
+    def change_scale_graph(scale_from_raw, scale_to_raw, data):
         scale_from = int(scale_from_raw)
         scale_to = int(scale_to_raw)
         patched_figure = Patch()
@@ -84,7 +85,22 @@ def get_callbacks(app):
                 # convert to HEX color format
                 patched_figure["data"][0]["marker"]["color"][i] = '#{:02x}{:02x}{:02x}'.format(r, g, b) 
 
-        return patched_figure
+        return patched_figure, [scale_from, scale_to]
+
+    # rewrite the change of the boundaries of the color scale to JavaScript so that the visualization updates
+    app.clientside_callback(
+        """
+        function(scale_boundaries) { 
+            window.scale_from = scale_boundaries[0];
+            window.scale_to = scale_boundaries[1];
+            window.scale_middle = (scale_boundaries[0] + scale_boundaries[1]) / 2;
+            window.updateDeck();
+            return dash_clientside.no_update;
+        }
+        """,
+        Output('scale-from-input', 'id'),  # dummy output so that the initial call occurs
+        Input('scale-boundaries-store', 'data')
+    )
 
     # change vector data visibility, line width or color
     app.clientside_callback(
