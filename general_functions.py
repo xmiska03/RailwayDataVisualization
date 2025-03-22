@@ -36,6 +36,19 @@ def calculate_projection_matrix(camera_params_dict):
     ])
     return proj_mat.transpose().flatten()
 
+# calculates camera position offset according to the extrinsic matrix
+def calculate_translation_from_extr_mat(camera_params_dict):
+    # extracts T from matrix E = RT
+    extr_mat = camera_params_dict['ExtrinsicMat']['data']
+    extr_fourth_col = np.array([extr_mat[3], extr_mat[7], extr_mat[11]]).transpose()
+    R = np.array([
+        [extr_mat[0], extr_mat[1], extr_mat[2]],
+        [extr_mat[4], extr_mat[5], extr_mat[6]],
+        [extr_mat[8], extr_mat[9], extr_mat[10]]
+    ])
+    T = np.matmul(np.linalg.inv(R), extr_fourth_col) * -1
+    return [T[2], T[0], T[1]]
+
 # creates transformation matrix from translation and rotation data
 def calculate_transformation_matrix(trans, rot_mat_3x3):
     trans_matrix = np.array([

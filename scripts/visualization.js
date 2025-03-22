@@ -151,7 +151,7 @@ function createGaugeLayer() {
 // and also reinitializing when new point cloud data is uploaded 
 function initializeDeck() {
 
-  if (window.transf == null) {
+  if (window.translations == null) {
     // transformation data was not yet defined by the callback, wait until it is
     setTimeout(initializeDeck, 40);  // try again in 40 ms
     return;

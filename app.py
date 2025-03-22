@@ -12,7 +12,7 @@ import gauge_tab_callbacks
 import animation_control_components
 import animation_control_callbacks
 import params
-from general_functions import load_csv_into_nparray, load_yaml_into_dict, calculate_projection_matrix
+from general_functions import load_csv_into_nparray, load_yaml_into_dict, calculate_projection_matrix, calculate_translation_from_extr_mat
 
 
 # load point cloud
@@ -25,6 +25,7 @@ pc_nparray = pc.numpy(("x", "y", "z", "intensity"))
 camera_params_dict = load_yaml_into_dict("data/camera_azd.yaml")
 distortion_coeffs = camera_params_dict['DistCoeffs']['data']
 proj_matrix = calculate_projection_matrix(camera_params_dict)
+camera_translation = calculate_translation_from_extr_mat(camera_params_dict)
 
 # load data about camera positions (order of the columns: y, z, x)
 trans_nparray = load_csv_into_nparray("data/trans.csv")
@@ -75,7 +76,9 @@ loading_gauge_layer = {
 view_state = {
     "bearing": params.BEARING,
     "pitch": params.PITCH,
-    "position": params.POSITION
+    "position": [camera_translation[0] + params.POSITION_OFFSET[0],
+                 camera_translation[1] + params.POSITION_OFFSET[1],
+                 camera_translation[2] + params.POSITION_OFFSET[2]]
 }
 
 view = {
@@ -165,6 +168,32 @@ app_right_col = dbc.Col(
     ), style={}, width=4
 )
 
+# stores used for storing data on the clients side
+stores = [
+    dcc.Store(
+        id='visualization-data',
+        data=deck_dict
+    ),
+    dcc.Store(
+        id='translations-data',
+        data=trans_nparray
+    ),
+    dcc.Store(
+        id='rotations-data',
+        data=rot_nparray
+    ),
+    dcc.Store(
+        id='rotations-inv-data',   # for the loading gauge
+        data=rot_inv_nparray
+    ),
+    dcc.Store(
+        id='transformations-data'
+    ),
+    dcc.Store(
+        id='transformations-inv-data'   # for the loading gauge
+    )
+] 
+
 
 # create a Dash app
 app = Dash(
@@ -190,30 +219,7 @@ app.layout = html.Div(
             ],
             justify="center"
         ),
-
-        # stores used for storing data on the clients side
-        dcc.Store(
-            id='visualization-data',
-            data=deck_dict
-        ),
-        dcc.Store(
-            id='translations-data',
-            data=trans_nparray
-        ),
-        dcc.Store(
-            id='rotations-data',
-            data=rot_nparray
-        ),
-        dcc.Store(
-            id='rotations-inv-data',   # for the loading gauge
-            data=rot_inv_nparray
-        ),
-        dcc.Store(
-            id='transformations-data'
-        ),
-        dcc.Store(
-            id='transformations-inv-data'   # for the loading gauge
-        ),
+        dbc.Row(stores)
     ],
     style={
         "fontSize": "16px"
