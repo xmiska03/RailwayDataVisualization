@@ -17,12 +17,13 @@ def get_callbacks(app):
     # copy the transformations data from a store to the window object
     app.clientside_callback(
         """
-        function(transf_data, transf_inv_data, translations_data, rotations_data, rotations_inv_data) {
+        function(transf_data, transf_inv_data, translations_data, rotations_data, rotations_inv_data, bearing_pitch_data) {
             window.transf = transf_data;  // make the data accessible for the visualization.js script
             window.transf_inv = transf_inv_data;
             window.translations = translations_data;
             window.rotations = rotations_data;
             window.rotations_inv = rotations_inv_data;
+            window.bearing_pitch = bearing_pitch_data;
             // update the visualization if it is already created
             if (window.deck_initialized) {
                 window.updatePosition();  // call function defined in the JavaScript file
@@ -35,7 +36,8 @@ def get_callbacks(app):
         State('transformations-inv-data', 'data'),
         State('translations-data', 'data'),
         State('rotations-data', 'data'),
-        State('rotations-inv-data', 'data')
+        State('rotations-inv-data', 'data'),
+        State('bearing-pitch-data', 'data')
     )
     
     # calculate new transformations when new translations or rotations are uploaded
@@ -146,7 +148,6 @@ def get_callbacks(app):
                     rotation = Rotation.from_euler("zyx", rot_array, degrees=True)
                     rot_mat_3x3 = rotation.as_matrix()
                     data.append(rot_mat_3x3)
-                    inv_data.append(rot_mat_3x3)
             return {"display": "none"}, {"display": "block"}, filename, data, inv_data
         else:
             # file deleted (or it is the initial call)

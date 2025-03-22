@@ -31,10 +31,25 @@ trans_nparray = load_csv_into_nparray("data/trans.csv")
 rot_nparray_raw = load_csv_into_nparray("data/rot.csv")
 rot_nparray = []
 rot_inv_nparray = []
+bearing_pitch_array = []
 for rotation in rot_nparray_raw:
-    rotation = Rotation.from_euler("zyx", rotation, degrees=True)
-    rot_nparray.append(rotation.as_matrix())
-    rot_inv_nparray.append(rotation.inv().as_matrix())
+    rotation_old = Rotation.from_euler("zyx", rotation, degrees=True)
+    rot_nparray.append(rotation_old.as_matrix())
+    rot_inv_nparray.append(rotation_old.inv().as_matrix())
+
+    rotation_new = Rotation.from_euler("xzy", rotation, degrees=True)
+    rotation_my = rotation_new.inv().as_euler("zyx", degrees=True)
+    # rotation_zyx = rotation_new.as_euler("zyx", degrees=True)  # almost good
+    # inverted, because it will now be applied to the camera, not the points
+    bearing_pitch_array.append([-rotation_my[0], rotation_my[1]]) # only bearing and pitch - z and y
+
+    # adept 1
+    rotation1 = rotation_new.as_euler("zyx", degrees=True)
+    print("1: ", [rotation1[0], -rotation1[1]])
+    # adept 2
+    rotation2 = rotation_new.inv().as_euler("zyx", degrees=True)
+    print("2: ", [-rotation2[0], rotation2[1]])
+
 
 # number of frames to generate (500 in example data)
 frames_cnt = trans_nparray.shape[0]
@@ -203,6 +218,10 @@ app.layout = html.Div(
         dcc.Store(
             id='rotations-data',
             data=rot_nparray
+        ),
+        dcc.Store(
+            id='bearing-pitch-data',
+            data=bearing_pitch_array
         ),
         dcc.Store(
             id='rotations-inv-data',   # for the loading gauge

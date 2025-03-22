@@ -2,6 +2,7 @@ import numpy as np
 import csv
 import yaml
 from params import NEAR_PLANE, FAR_PLANE
+from scipy.spatial.transform import Rotation
 
 
 # loads a csv file into a numpy array
@@ -50,6 +51,29 @@ def calculate_transformation_matrix(trans, rot_mat_3x3):
         [rot_mat_3x3[1][2], rot_mat_3x3[1][0], rot_mat_3x3[1][1], 0],
         [0, 0, 0, 1]
     ])
+
+    # loaded as zyx, order of matrix changed
+    #rot_old = Rotation.from_matrix([
+    #    [rot_mat_3x3[2][2], rot_mat_3x3[2][0], rot_mat_3x3[2][1]],
+    #    [rot_mat_3x3[0][2], rot_mat_3x3[0][0], rot_mat_3x3[0][1]],
+    #    [rot_mat_3x3[1][2], rot_mat_3x3[1][0], rot_mat_3x3[1][1]]
+    #])
+    #print("zyx: ", rot_old.as_euler('zyx', degrees=True))
+    #print("zxy: ", rot_old.as_euler('zxy', degrees=True))
+
+    # loaded as xzy
+    #rot_new = Rotation.from_euler("xzy", [-1.704866598136265121e-01,3.070029780899988792e-01,-7.677646139145230531e-02], degrees=True)
+    #print("new zyx: ", rot_new.as_euler('zyx', degrees=True))
+    
+    #print("inv: ", rot.inv().as_euler('xyz', degrees=True))
+    #print("xzy: ", rot.as_euler('xzy', degrees=True))
+    #print("yxz: ", rot.as_euler('yxz', degrees=True))
+    #print("xyz: ", rot.as_euler('xyz', degrees=True))
+    # trans. nacitavam ako yzx namiesto xyz, potom by som rot. mala nacitavat ako xzy namiesto zyx
+    # yxz: y - bearing, x - pitch, (z - roll)
+    #print("zxy: ", rot.as_euler('zxy', degrees=True))
+
+
     return rot_matrix @ trans_matrix
 
 # function used for loading gauge positioning

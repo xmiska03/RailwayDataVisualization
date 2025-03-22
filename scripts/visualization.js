@@ -160,8 +160,8 @@ function initializeDeck() {
   });
 
   const INITIAL_VIEW_STATE = {
-    bearing: window.data_dict.initialViewState.bearing,
-    pitch: window.data_dict.initialViewState.pitch,
+    bearing: window.data_dict.initialViewState.bearing + window.bearing_pitch[window.position][0],
+    pitch: window.data_dict.initialViewState.pitch + window.bearing_pitch[window.position][1],
     position: [
       window.data_dict.initialViewState.position[0] + window.translations[window.position][2],
       window.data_dict.initialViewState.position[1] + window.translations[window.position][0],
@@ -194,8 +194,8 @@ function initializeDeck() {
 function updatePosition() {
   // make a new viewstate for the new position
   const INITIAL_VIEW_STATE = {
-    bearing: window.data_dict.initialViewState.bearing,
-    pitch: window.data_dict.initialViewState.pitch,
+    bearing: window.data_dict.initialViewState.bearing + window.bearing_pitch[window.position][0],
+    pitch: window.data_dict.initialViewState.pitch + window.bearing_pitch[window.position][1],
     position: [
       window.data_dict.initialViewState.position[0] + window.translations[window.position][2],
       window.data_dict.initialViewState.position[1] + window.translations[window.position][0],
