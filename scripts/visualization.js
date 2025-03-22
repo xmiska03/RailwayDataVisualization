@@ -47,44 +47,17 @@ function getColorYP(d) {
   }
 }
 
-// functions the apply transformations
-// for the point cloud layer
-function getPosition(d) {
-  return [
-    d[0] * window.transf[window.position][0][0] + d[1] * window.transf[window.position][0][1] + d[2] * window.transf[window.position][0][2] + window.transf[window.position][0][3],
-    d[0] * window.transf[window.position][1][0] + d[1] * window.transf[window.position][1][1] + d[2] * window.transf[window.position][1][2] + window.transf[window.position][1][3],
-    d[0] * window.transf[window.position][2][0] + d[1] * window.transf[window.position][2][1] + d[2] * window.transf[window.position][2][2] + window.transf[window.position][2][3],
-  ];
-}
-
-// for the path layer (vector data)
-function getPath(d) {
-  const points = new Array(d.length);
-  for (let i = 0; i < d.length; i++) {
-    points[i] = [
-      d[i][0] * window.transf[window.position][0][0] + d[i][1] * window.transf[window.position][0][1] + d[i][2] * window.transf[window.position][0][2] + window.transf[window.position][0][3],
-      d[i][0] * window.transf[window.position][1][0] + d[i][1] * window.transf[window.position][1][1] + d[i][2] * window.transf[window.position][1][2] + window.transf[window.position][1][3],
-      d[i][0] * window.transf[window.position][2][0] + d[i][1] * window.transf[window.position][2][1] + d[i][2] * window.transf[window.position][2][2] + window.transf[window.position][2][3],
-    ];
-  }
-  return points;
-}
-
-// for the loading gauge layer
+// transformation for the loading gauge
 function gaugeGetPath(d) {
   const gauge_pos = Math.min(window.position + window.gauge_distance, frames_cnt - 1);
   const points = new Array(d.length);
   
   for (let i = 0; i < d.length; i++) {
-    const x = d[i][0] * window.transf_inv[gauge_pos][0][0] + (d[i][1] - 1.2) * window.transf_inv[gauge_pos][0][1] + d[i][2] * window.transf_inv[gauge_pos][0][2] + window.transf_inv[gauge_pos][0][3];
-    const y = d[i][0] * window.transf_inv[gauge_pos][1][0] + (d[i][1] - 1.2) * window.transf_inv[gauge_pos][1][1] + d[i][2] * window.transf_inv[gauge_pos][1][2] + window.transf_inv[gauge_pos][1][3];
-    const z = d[i][0] * window.transf_inv[gauge_pos][2][0] + (d[i][1] - 1.2) * window.transf_inv[gauge_pos][2][1] + d[i][2] * window.transf_inv[gauge_pos][2][2] + window.transf_inv[gauge_pos][2][3];
+    const x = d[i][0] * window.gauge_transf[gauge_pos][0][0] + (d[i][1] - 1.2) * window.gauge_transf[gauge_pos][0][1] + d[i][2] * window.gauge_transf[gauge_pos][0][2] + window.gauge_transf[gauge_pos][0][3];
+    const y = d[i][0] * window.gauge_transf[gauge_pos][1][0] + (d[i][1] - 1.2) * window.gauge_transf[gauge_pos][1][1] + d[i][2] * window.gauge_transf[gauge_pos][1][2] + window.gauge_transf[gauge_pos][1][3];
+    const z = d[i][0] * window.gauge_transf[gauge_pos][2][0] + (d[i][1] - 1.2) * window.gauge_transf[gauge_pos][2][1] + d[i][2] * window.gauge_transf[gauge_pos][2][2] + window.gauge_transf[gauge_pos][2][3];
 
-    points[i] = [
-      x * window.transf[window.position][0][0] + y * window.transf[window.position][0][1] + z * window.transf[window.position][0][2] + window.transf[window.position][0][3],
-      x * window.transf[window.position][1][0] + y * window.transf[window.position][1][1] + z * window.transf[window.position][1][2] + window.transf[window.position][1][3],
-      x * window.transf[window.position][2][0] + y * window.transf[window.position][2][1] + z * window.transf[window.position][2][2] + window.transf[window.position][2][3],
-    ];
+    points[i] = [x, y, z];
   }
   return points;
 }
@@ -98,12 +71,11 @@ function createPointCloudLayer() {
     getColor: window.data_dict.layers[0].pointColor === 'bgr'
       ? getColorBGR
       : getColorYP,
-    getPosition: getPosition,
+    getPosition: (d) => d,
     opacity: window.data_dict.layers[0].opacity,
     pointSize: window.data_dict.layers[0].pointSize,
     visible: window.data_dict.layers[0].visible,
-    updateTriggers: {
-      getPosition: [window.position, window.transf],    // needed when changing getPosition or getColor
+    updateTriggers: {      // needed when changing getPosition or getColor (data accessors)
       getColor: [window.scale_from, window.scale_to, window.data_dict.layers[0].pointColor]
     }
   });
@@ -114,12 +86,11 @@ function createPathLayer() {
     id: 'path-layer',
     data: window.data_dict.layers[1].data,
     getColor: window.data_dict.layers[1].color,
-    getPath: getPath,
+    getPath: (d) => d,
     getWidth: window.data_dict.layers[1].width,
     billboard: true,     // lines turned towards the camera
     visible: window.data_dict.layers[1].visible,
     updateTriggers: {
-      getPath: [window.position, window.transf],  // needed when changing data accessors
       getColor: window.data_dict.layers[1].color
     },
     parameters: {
@@ -138,7 +109,7 @@ function createGaugeLayer() {
     billboard: true,
     visible: window.data_dict.layers[2].visible,
     updateTriggers: {
-      getPath: [window.position, window.transf, window.gauge_distance], // needed when changing data accessors
+      getPath: [window.position, window.gauge_transf, window.gauge_distance], // needed when changing data accessors
       getColor: window.data_dict.layers[2].color
     },
     parameters: {
@@ -157,12 +128,19 @@ function initializeDeck() {
     return;
   }
 
-  const INITIAL_VIEW_STATE = window.data_dict.initialViewState;
+  const INITIAL_VIEW_STATE = {
+    bearing: window.data_dict.initialViewState.bearing + window.bearing_pitch[window.position][0],
+    pitch: window.data_dict.initialViewState.pitch + window.bearing_pitch[window.position][1],
+    position: [
+      window.data_dict.initialViewState.position[0] + window.translations[window.position][0],
+      window.data_dict.initialViewState.position[1] + window.translations[window.position][1],
+      window.data_dict.initialViewState.position[2] + window.translations[window.position][2]
+    ]
+  };
   
   const VIEW = new FirstPersonView({
-      projectionMatrix: window.data_dict.views[0].projectionMatrix,
-      //far: window.data_dict.views[0].far,
-      controller: window.data_dict.views[0].controller
+    projectionMatrix: window.data_dict.views[0].projectionMatrix,
+    controller: window.data_dict.views[0].controller
   });
 
   window.pc_layer = createPointCloudLayer();
@@ -188,11 +166,20 @@ function initializeDeck() {
 
 // to change camera position
 function updateDeck() {
-  // recreate the layers with a new value of window.position
-  window.pc_layer = createPointCloudLayer();
-  window.path_layer = createPathLayer();
-  window.gauge_layer = createGaugeLayer();
+  // make a new viewstate from the new position
+  const INITIAL_VIEW_STATE = {
+    bearing: window.data_dict.initialViewState.bearing + window.bearing_pitch[window.position][0],
+    pitch: window.data_dict.initialViewState.pitch + window.bearing_pitch[window.position][1],
+    position: [
+      window.data_dict.initialViewState.position[0] + window.translations[window.position][0],
+      window.data_dict.initialViewState.position[1] + window.translations[window.position][1],
+      window.data_dict.initialViewState.position[2] + window.translations[window.position][2]
+    ]
+  };
+  window.deck.setProps({initialViewState: INITIAL_VIEW_STATE});
 
+  // the loading gauge needs to move to a new position, so it needs a layer update
+  window.gauge_layer = createGaugeLayer();
   window.deck.setProps({layers: [window.pc_layer, window.path_layer, window.gauge_layer]});
 }
 
