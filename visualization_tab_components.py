@@ -111,6 +111,63 @@ line_color_widget = [
     ), width=6)
 ]
 
+camera_position_x_widget = [
+    dbc.Col(html.Div("Posunutí po osi x: "), width=4),
+    dbc.Col(dcc.Input(
+        value=0,
+        id="camera-x-slider-input",
+        type="range",
+        min=-1,
+        max=1,
+        style={"margin": "10px", "width": "95%"}
+    ), width=7)
+]
+camera_position_y_widget = [
+    dbc.Col(html.Div("Posunutí po osi y: "), width=4),
+    dbc.Col(dcc.Input(
+        value=0,
+        id="camera-y-slider-input",
+        type="range",
+        min=-1,
+        max=1,
+        style={"margin": "10px", "width": "95%"}
+    ), width=7)
+]
+camera_position_z_widget = [
+    dbc.Col(html.Div("Posunutí po osi z: "), width=4),
+    dbc.Col(dcc.Input(
+        value=0,
+        id="camera-z-slider-input",
+        type="range",
+        min=-1,
+        max=1,
+        style={"margin": "10px", "width": "95%"}
+    ), width=7)
+]
+camera_position_yaw_widget = [
+    dbc.Col(html.Div("Otočení doleva/doprava: "), width=4),
+    dbc.Col(dcc.Input(
+        value=0,
+        id="camera-yaw-slider-input",
+        type="range",
+        min=-1,
+        max=1,
+        style={"margin": "10px", "width": "95%"}
+    ), width=7)
+]
+camera_position_pitch_widget = [
+    dbc.Col(html.Div("Otočení nahoru/dolů: "), width=4),
+    dbc.Col(dcc.Input(
+        value=0,
+        id="camera-pitch-slider-input",
+        type="range",
+        min=-1,
+        max=1,
+        style={"margin": "10px", "width": "95%"}
+    ), width=7)
+]
+
+
 visualization_tab = [
     dbc.Row(dbc.Placeholder(color="white")),
     dbc.Row(html.Div("Zobrazení vrstev:")),
@@ -134,6 +191,7 @@ visualization_tab = [
     ),
     dbc.Placeholder(color="black", size="xs"),
     dbc.Row(html.Hr()),
+    
     dbc.Row(html.Div("Mračno bodů", style={"fontWeight": "bold", "textAlign": "center", "paddingBottom": "0.5em",})),
     dbc.Row(point_size_widget),
     dbc.Placeholder(color="black", size="xs"),
@@ -146,11 +204,21 @@ visualization_tab = [
     dbc.Row(point_opacity_widget),
     dbc.Placeholder(color="black", size="xs"),
     dbc.Row(html.Hr()),
+    
     dbc.Row(html.Div("Vektorová data", style={"fontWeight": "bold", "textAlign": "center", "paddingBottom": "0.5em",})),
     dbc.Row(line_width_widget),
     dbc.Placeholder(color="black", size="xs"),
     dbc.Row(line_color_widget),
     dbc.Placeholder(color="black", size="xs"),
     dbc.Row(html.Hr()),
+    
+    dbc.Row(html.Div("Poloha virtuální kamery", style={"fontWeight": "bold", "textAlign": "center", "paddingBottom": "0.5em",})),
+    dbc.Row(camera_position_x_widget),
+    dbc.Row(camera_position_y_widget),
+    dbc.Row(camera_position_z_widget),
+    dbc.Row(camera_position_yaw_widget),
+    dbc.Row(camera_position_pitch_widget),
+    dbc.Row(html.Hr()),
+    
     dbc.Row(dbc.Button("Zkreslení", id="distortion-button"), style={"width":"10em", "margin": "1px"}),  
 ]
