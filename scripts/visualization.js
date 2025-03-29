@@ -10,6 +10,11 @@ window.gauge_distance = 100;   // in virtual camera positions
 window.scale_from = 0;         // boundaries of the point cloud color scale
 window.scale_to = 18;
 window.scale_middle = 9;
+window.camera_offset_x = 0;    // camera offset set manually by the user
+window.camera_offset_y = 0;
+window.camera_offset_z = 0;
+window.camera_offset_yaw = 0;
+window.camera_offset_pitch = 0;
 
 // color scales - mapping point intensity to colors
 // red - green - blue (from greatest to lowest intensity)
@@ -166,15 +171,33 @@ function initializeDeck() {
 
 // to change camera position
 function updateDeck() {
+  /*
+  The final position of the virtual camera is a combination of:
+    - camera offset settings from a file + initial parameters set in the Python code 
+      (window.data_dict.initialViewState)
+    - custom camera offset set by the user (window.camera_offset_*)
+    - current position of the train (determined by the window.position variable, data is in arrays 
+      window.translations, window.rotations_inv, window.bearing_pitch)
+  */
+  const pos = window.position;
+
+  const offset_x = window.data_dict.initialViewState.position[0] + window.camera_offset_x;
+  const offset_y = window.data_dict.initialViewState.position[1] + window.camera_offset_y;
+  const offset_z = window.data_dict.initialViewState.position[2] + window.camera_offset_z;
+  const sum_x = offset_x + window.rotations[pos][0][0] * window.translations[pos][0] + window.rotations[pos][0][1] * window.translations[pos][1] + window.rotations[pos][0][2] * window.translations[pos][2];
+  const sum_y = offset_y + window.rotations[pos][1][0] * window.translations[pos][0] + window.rotations[pos][1][1] * window.translations[pos][1] + window.rotations[pos][1][2] * window.translations[pos][2];
+  const sum_z = offset_z + window.rotations[pos][2][0] * window.translations[pos][0] + window.rotations[pos][2][1] * window.translations[pos][1] + window.rotations[pos][2][2] * window.translations[pos][2];
+
+  // multiply sum_* by inverse rotation matrix
+  const final_x = window.rotations_inv[pos][0][0] * sum_x + window.rotations_inv[pos][0][1] * sum_y + window.rotations_inv[pos][0][2] * sum_z;
+  const final_y = window.rotations_inv[pos][1][0] * sum_x + window.rotations_inv[pos][1][1] * sum_y + window.rotations_inv[pos][1][2] * sum_z;
+  const final_z = window.rotations_inv[pos][2][0] * sum_x + window.rotations_inv[pos][2][1] * sum_y + window.rotations_inv[pos][2][2] * sum_z;
+
   // make a new viewstate from the new position
   const INITIAL_VIEW_STATE = {
-    bearing: window.data_dict.initialViewState.bearing + window.bearing_pitch[window.position][0],
-    pitch: window.data_dict.initialViewState.pitch + window.bearing_pitch[window.position][1],
-    position: [
-      window.data_dict.initialViewState.position[0] + window.translations[window.position][0],
-      window.data_dict.initialViewState.position[1] + window.translations[window.position][1],
-      window.data_dict.initialViewState.position[2] + window.translations[window.position][2]
-    ]
+    bearing: window.data_dict.initialViewState.bearing + window.bearing_pitch[pos][0] + window.camera_offset_yaw,
+    pitch: window.data_dict.initialViewState.pitch + window.bearing_pitch[pos][1] + window.camera_offset_pitch,
+    position: [final_x, final_y, final_z]
   };
   window.deck.setProps({initialViewState: INITIAL_VIEW_STATE});
 
@@ -224,6 +247,17 @@ function updateGaugeLayerProps(visible, distance, line_width, line_color) {
   window.data_dict.layers[2].width = parseInt(line_width, 10);
   window.data_dict.layers[2].color = new_color;
 
+  window.gauge_layer = createGaugeLayer();
+  window.deck.setProps({layers: [window.pc_layer, window.path_layer, window.gauge_layer]});
+}
+
+
+function updateCameraProps(x, y, z, yaw, pitch) {
+
+
+  // update all layers
+  window.pc_layer = createPointCloudLayer();
+  window.path_layer = createPathLayer();
   window.gauge_layer = createGaugeLayer();
   window.deck.setProps({layers: [window.pc_layer, window.path_layer, window.gauge_layer]});
 }
@@ -333,5 +367,6 @@ window.updatePCLayerProps = updatePCLayerProps;
 window.updatePCLayer = updatePCLayer;
 window.updatePathLayerProps = updatePathLayerProps;
 window.updateGaugeLayerProps = updateGaugeLayerProps;
+window.updateCameraProps = updateCameraProps;
 window.runDeckAnimation = runDeckAnimation;
 window.stopDeckAnimation = stopDeckAnimation;

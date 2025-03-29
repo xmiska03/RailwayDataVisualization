@@ -117,8 +117,8 @@ camera_position_x_widget = [
         value=0,
         id="camera-x-slider-input",
         type="range",
-        min=-1,
-        max=1,
+        min=-2,
+        max=2,
         style={"margin": "10px", "width": "95%"}
     ), width=7)
 ]
@@ -150,8 +150,8 @@ camera_position_yaw_widget = [
         value=0,
         id="camera-yaw-slider-input",
         type="range",
-        min=-1,
-        max=1,
+        min=-4,
+        max=4,
         style={"margin": "10px", "width": "95%"}
     ), width=7)
 ]
@@ -161,10 +161,15 @@ camera_position_pitch_widget = [
         value=0,
         id="camera-pitch-slider-input",
         type="range",
-        min=-1,
-        max=1,
+        min=-4,
+        max=4,
         style={"margin": "10px", "width": "95%"}
     ), width=7)
+]
+
+back_to_default_button = [
+    dbc.Col(html.Div(""), width=7),
+    dbc.Col(dbc.Button("Vrátit původní", id="back-to-default-button", style={"width": "100%"}), width=4)
 ]
 
 
@@ -218,7 +223,9 @@ visualization_tab = [
     dbc.Row(camera_position_z_widget),
     dbc.Row(camera_position_yaw_widget),
     dbc.Row(camera_position_pitch_widget),
+    dbc.Row(back_to_default_button),
+    dbc.Placeholder(color="black", size="xs"),
     dbc.Row(html.Hr()),
     
-    dbc.Row(dbc.Button("Zkreslení", id="distortion-button"), style={"width":"10em", "margin": "1px"}),  
+    dbc.Row(dbc.Button("Zkreslení", id="distortion-button"), style={"width":"10em", "marginLeft": "1px"})
 ]

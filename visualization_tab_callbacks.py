@@ -135,6 +135,46 @@ def get_callbacks(app):
         prevent_initial_call=True
     )
 
+    # change virtual camera position
+    app.clientside_callback(
+        """
+        function(x, y, z, yaw, pitch) {
+            if (window.updateDeck) {
+                window.camera_offset_x = parseFloat(x);
+                window.camera_offset_y = parseFloat(y);
+                window.camera_offset_z = parseFloat(z);
+                window.camera_offset_yaw = parseFloat(yaw);
+                window.camera_offset_pitch = parseFloat(pitch);
+                console.log("new virtual camera settings: ", x, y, z, yaw, pitch)
+
+                // call function defined in the JavaScript file
+                window.updateDeck();
+            }
+        }
+        """,
+        Input('camera-x-slider-input', 'value'),
+        Input('camera-y-slider-input', 'value'),
+        Input('camera-z-slider-input', 'value'),
+        Input('camera-yaw-slider-input', 'value'),
+        Input('camera-pitch-slider-input', 'value'),
+        prevent_initial_call=True
+    )
+
+    # set the sliders back to default
+    app.clientside_callback(
+        """
+        function(btn) {
+            dash_clientside.set_props("camera-x-slider-input", {value: 0});
+            dash_clientside.set_props("camera-y-slider-input", {value: 0});
+            dash_clientside.set_props("camera-z-slider-input", {value: 0});
+            dash_clientside.set_props("camera-yaw-slider-input", {value: 0});
+            dash_clientside.set_props("camera-pitch-slider-input", {value: 0});
+        }
+        """,
+        Input('back-to-default-button', 'n_clicks'),
+        prevent_initial_call=True
+    )
+
     # distort the point cloud
     app.clientside_callback(
         """

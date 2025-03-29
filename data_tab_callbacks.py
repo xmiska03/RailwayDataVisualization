@@ -17,10 +17,12 @@ def get_callbacks(app):
     # copy the transformations data from a store to the window object
     app.clientside_callback(
         """
-        function(gauge_transf_data, translations_data, bearing_pitch_data) {
+        function(gauge_transf_data, translations_data, rotations_data, rotations_inv_data, bearing_pitch_data) {
             // make the data accessible for the visualization.js script
             window.gauge_transf = gauge_transf_data;
             window.translations = translations_data;
+            window.rotations = rotations_data;
+            window.rotations_inv = rotations_inv_data;
             window.bearing_pitch = bearing_pitch_data;
             // update the visualization if it is already created
             if (window.deck_initialized) {
@@ -32,6 +34,8 @@ def get_callbacks(app):
         Output('translations-data', 'id'),  # dummy output needed so that the initial call occurs
         Input('gauge-transf-data', 'data'),
         State('translations-data', 'data'),
+        State('rotations-data', 'data'),
+        State('rotations-inv-data', 'data'),
         State('bearing-pitch-data', 'data')
     )
     
@@ -119,6 +123,7 @@ def get_callbacks(app):
         Output('rotations-uploaded-file-div', 'style'),
         Output('rotations-filename-div', 'children'),
         Output('bearing-pitch-data', 'data'),
+        Output('rotations-data', 'data'),
         Output('rotations-inv-data', 'data'),
         Input('rotations-upload', 'contents'),
         State('rotations-upload', 'filename'),
@@ -129,6 +134,7 @@ def get_callbacks(app):
             # new file uploaded
             content_type, content_string = file_content.split(',')
             decoded_lines = base64.b64decode(content_string).decode("utf-8").split('\n')
+            rotations = []
             inv_rotations = []
             bearing_pitch_array = []
             for line in decoded_lines:         # parse the csv
@@ -138,12 +144,13 @@ def get_callbacks(app):
                     rotation = Rotation.from_euler("xzy", rot_array, degrees=True)
                     rotation_zyx = rotation.inv().as_euler("zyx", degrees=True)
                     bearing_pitch_array.append([-rotation_zyx[0], rotation_zyx[1]])  # only bearing (z) and pitch (y)
-                    inv_rotations.append(rotation.inv().as_matrix())  # for the loading gauge positioning
+                    rotations.append(rotation.as_matrix())
+                    inv_rotations.append(rotation.inv().as_matrix())
             
-            return {"display": "none"}, {"display": "block"}, filename, bearing_pitch_array, inv_rotations
+            return {"display": "none"}, {"display": "block"}, filename, bearing_pitch_array, rotations, inv_rotations
         else:
             # file deleted (or it is the initial call)
-            return {"display": "block"}, {"display": "none"}, "", Patch(), Patch()
+            return {"display": "block"}, {"display": "none"}, "", Patch(), Patch(), Patch()
 
     # upload/delete file with video
     @app.callback(

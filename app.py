@@ -33,6 +33,7 @@ trans_nparray = load_csv_into_nparray("data/trans.csv")
 # fix the order of columns in the translations array: yzx -> xyz
 trans_nparray = trans_nparray[:, [2, 0, 1]]
 rot_nparray_raw = load_csv_into_nparray("data/rot.csv")
+rot_nparray = []
 rot_inv_nparray = []
 bearing_pitch_array = []
 for rotation_xzy in rot_nparray_raw:
@@ -40,6 +41,7 @@ for rotation_xzy in rot_nparray_raw:
     rotation = Rotation.from_euler("xzy", rotation_xzy, degrees=True)
     rotation_zyx = rotation.inv().as_euler("zyx", degrees=True)
     bearing_pitch_array.append([-rotation_zyx[0], rotation_zyx[1]])  # only bearing (z) and pitch (y)
+    rot_nparray.append(rotation.as_matrix())
     rot_inv_nparray.append(rotation.inv().as_matrix())
 
 # number of frames to generate (500 in example data)
@@ -184,7 +186,11 @@ stores = [
         data=trans_nparray
     ),
     dcc.Store(
-        id='rotations-inv-data',   # for the loading gauge transformation
+        id='rotations-data',
+        data=rot_nparray
+    ),
+    dcc.Store(
+        id='rotations-inv-data',
         data=rot_inv_nparray
     ),
     dcc.Store(
