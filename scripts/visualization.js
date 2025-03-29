@@ -190,12 +190,13 @@ function updatePCLayerProps(visible, point_size, point_color, opacity) {
   window.data_dict.layers[0].pointSize = parseInt(point_size, 10);
   window.data_dict.layers[0].pointColor = point_color;
   window.data_dict.layers[0].opacity = parseFloat(opacity);
-
-  window.pc_layer = createPointCloudLayer();
-
-  window.deck.setProps({layers: [window.pc_layer, window.path_layer, window.gauge_layer]});
+  updatePCLayer();
 }
 
+function updatePCLayer() {
+  window.pc_layer = createPointCloudLayer();
+  window.deck.setProps({layers: [window.pc_layer, window.path_layer, window.gauge_layer]});
+}
 
 // to change vector data visibility, line width or color
 function updatePathLayerProps(visible, line_width, line_color) {
@@ -208,7 +209,6 @@ function updatePathLayerProps(visible, line_width, line_color) {
   window.data_dict.layers[1].color = new_color;
 
   window.path_layer = createPathLayer();
-  
   window.deck.setProps({layers: [window.pc_layer, window.path_layer, window.gauge_layer]});
 }
 
@@ -225,7 +225,6 @@ function updateGaugeLayerProps(visible, distance, line_width, line_color) {
   window.data_dict.layers[2].color = new_color;
 
   window.gauge_layer = createGaugeLayer();
-  
   window.deck.setProps({layers: [window.pc_layer, window.path_layer, window.gauge_layer]});
 }
 
@@ -331,6 +330,7 @@ function stopDeckAnimation() {
 window.initializeDeck = initializeDeck;
 window.updateDeck = updateDeck;
 window.updatePCLayerProps = updatePCLayerProps;
+window.updatePCLayer = updatePCLayer;
 window.updatePathLayerProps = updatePathLayerProps;
 window.updateGaugeLayerProps = updateGaugeLayerProps;
 window.runDeckAnimation = runDeckAnimation;
