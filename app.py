@@ -112,7 +112,7 @@ deck_dict = {
 visualization = html.Div(
     [
         html.Video(
-            src="/assets/new_video_compatible.mp4",
+            src="/assets/video_prolonged_compatible.mp4",
             id="background-video",
             style={'width': '100%', 'height': 'auto', "display": "block"}
         ),

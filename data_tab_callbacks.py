@@ -236,11 +236,12 @@ def get_callbacks(app):
     def delete_video(btn):
         return None
 
-    # update the total time label and the range of the slider & input which control train position 
-    # when new timestamps data is uploaded
+    # update window.frames_cnt, the total time label as well as the range of the slider & input 
+    # which control train position when new timestamps data is uploaded
     app.clientside_callback(
         """
         function(camera_timestamps) {
+            window.frames_cnt = camera_timestamps.length;
             
             // we get the total time by reading the last timestamp
             const time_sec = Math.floor(camera_timestamps[camera_timestamps.length - 1]); 

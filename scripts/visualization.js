@@ -251,18 +251,6 @@ function updateGaugeLayerProps(visible, distance, line_width, line_color) {
   window.deck.setProps({layers: [window.pc_layer, window.path_layer, window.gauge_layer]});
 }
 
-
-function updateCameraProps(x, y, z, yaw, pitch) {
-
-
-  // update all layers
-  window.pc_layer = createPointCloudLayer();
-  window.path_layer = createPathLayer();
-  window.gauge_layer = createGaugeLayer();
-  window.deck.setProps({layers: [window.pc_layer, window.path_layer, window.gauge_layer]});
-}
-
-
 function animationStep(now, metadata) {
   const video = document.getElementById('background-video');
   if (window.animation_running) video.requestVideoFrameCallback(animationStep);
@@ -345,6 +333,5 @@ window.updatePCLayerProps = updatePCLayerProps;
 window.updatePCLayer = updatePCLayer;
 window.updatePathLayerProps = updatePathLayerProps;
 window.updateGaugeLayerProps = updateGaugeLayerProps;
-window.updateCameraProps = updateCameraProps;
 window.runDeckAnimation = runDeckAnimation;
 window.stopDeckAnimation = stopDeckAnimation;

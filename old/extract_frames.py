@@ -1,4 +1,6 @@
 import cv2
+import numpy as np
+
 """
 # create pictures from video
 cap = cv2.VideoCapture("data/youtube_video.mkv")
@@ -27,10 +29,15 @@ cap.release()
 """
 # create video from pictures
 fourcc = cv2.VideoWriter_fourcc(*'mp4v')  # Codec for mp4 format
-out = cv2.VideoWriter("assets/new_video.mp4", fourcc, 25, (2048,1536))
+out = cv2.VideoWriter("../assets/video_prolonged.mp4", fourcc, 25, (2048,1536))
 
 for i in range(500):
-    frame = cv2.imread(f"assets/video_frames/{i}.jpg")
+    frame = cv2.imread(f"video_frames/{i}.jpg")
     out.write(frame)
+
+# prolong the video to the needed length by adding white frames
+white_frame = np.ones((1536, 2048, 3), dtype=np.uint8) * 255
+for _ in range(988):
+    out.write(white_frame)
 
 out.release()
