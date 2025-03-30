@@ -13,7 +13,8 @@ import animation_control_components
 import animation_control_callbacks
 import params
 from general_functions import load_csv_into_nparray, load_yaml_into_dict, calculate_projection_matrix, \
-                              calculate_translation_from_extr_mat, load_timestamps_into_nparray
+                              calculate_translation_from_extr_mat, load_timestamps_into_nparray, \
+                              load_space_separated_into_nparray
 
 
 # load point cloud
@@ -30,10 +31,8 @@ proj_matrix = calculate_projection_matrix(camera_params_dict)
 camera_translation = calculate_translation_from_extr_mat(camera_params_dict)
 
 # load data about camera positions
-# load translations
-trans_nparray = load_csv_into_nparray("data/joined/trans_joined.csv")
-# fix the order of columns in the translations array: yzx -> xyz
-trans_nparray = trans_nparray[:, [2, 0, 1]]
+# load translations and fix the order of columns in the translations array: yzx -> xyz
+trans_nparray = load_csv_into_nparray("data/joined/trans_joined.csv")[:, [2, 0, 1]]
 # load rotations
 rot_nparray_raw = load_csv_into_nparray("data/joined/rot_joined.csv")
 rot_nparray = []
@@ -55,15 +54,35 @@ timestamps_nparray = (timestamps_nparray - timestamp0) / 1000000000  # nanosecon
 # number of frames to generate
 frames_cnt = trans_nparray.shape[0]
 
+# load loading gauge data
+gauge_data = [load_csv_into_nparray("data/loading_gauge.csv")]
+# load predicted translations in distances 25m, 50m, 75m, 100m
+gauge_translations = [
+    load_space_separated_into_nparray("data/joined/profile/profile_trans_25.csv")[:, [2, 0, 1]],
+    load_space_separated_into_nparray("data/joined/profile/profile_trans_50.csv")[:, [2, 0, 1]],
+    load_space_separated_into_nparray("data/joined/profile/profile_trans_75.csv")[:, [2, 0, 1]],
+    load_space_separated_into_nparray("data/joined/profile/profile_trans_100.csv")[:, [2, 0, 1]]
+]
+# load predicted rotations in distances 25m, 50m, 75m, 100m
+gauge_rotations_inv = [[] for _ in range(4)]
+for i in range(4):
+    gauge_rotations_raw = load_space_separated_into_nparray(f"data/joined/profile/profile_rot_{25 + i*25}.csv")
+    for rotation_xzy in rot_nparray_raw:
+        # if translations are in order yzx instead of xyz, then rotations are in order xzy instead of zyx
+        rotation = Rotation.from_euler("xzy", rotation_xzy, degrees=True)
+        gauge_rotations_inv[i].append(rotation.inv().as_matrix())
+
 # load vector data (polylines)
 paths_data = [
+    # for now only the loading gauge line is here
+    [gauge_translations[0]],
+    [gauge_translations[1]],
+    [gauge_translations[2]],
+    [gauge_translations[3]]
     #load_csv_into_nparray("data/polyline1.csv"),
     #load_csv_into_nparray("data/polyline2.csv"),
     #load_csv_into_nparray("data/polyline3.csv")
 ]
-
-# load loading gauge data
-gauge_data = [load_csv_into_nparray("data/loading_gauge.csv")]
 
 # prepare the visualization of the point cloud using Deck.GL
 point_cloud_layer = {
@@ -202,9 +221,19 @@ stores = [
         id='rotations-inv-data',
         data=rot_inv_nparray
     ),
+    
+    dcc.Store(
+        id='gauge-trans-data',         # for the loading gauge (train profile)
+        data=gauge_translations
+    ),
+    dcc.Store(
+        id='gauge-rot-inv-data',
+        data=gauge_rotations_inv
+    ),
     dcc.Store(
         id='gauge-transf-data'
     ),
+    
     dcc.Store(
         id='bearing-pitch-data',   # special rotations for deck.gl 
         data=bearing_pitch_array

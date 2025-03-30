@@ -54,13 +54,14 @@ function getColorYP(d) {
 
 // transformation for the loading gauge
 function gaugeGetPath(d) {
-  const gauge_pos = Math.min(window.position + window.gauge_distance, frames_cnt - 1);
+  const pos = window.position;
   const points = new Array(d.length);
   
   for (let i = 0; i < d.length; i++) {
-    const x = d[i][0] * window.gauge_transf[gauge_pos][0][0] + (d[i][1] - 1.2) * window.gauge_transf[gauge_pos][0][1] + d[i][2] * window.gauge_transf[gauge_pos][0][2] + window.gauge_transf[gauge_pos][0][3];
-    const y = d[i][0] * window.gauge_transf[gauge_pos][1][0] + (d[i][1] - 1.2) * window.gauge_transf[gauge_pos][1][1] + d[i][2] * window.gauge_transf[gauge_pos][1][2] + window.gauge_transf[gauge_pos][1][3];
-    const z = d[i][0] * window.gauge_transf[gauge_pos][2][0] + (d[i][1] - 1.2) * window.gauge_transf[gauge_pos][2][1] + d[i][2] * window.gauge_transf[gauge_pos][2][2] + window.gauge_transf[gauge_pos][2][3];
+    //window.gauge_transf[0] - 25m distance
+    const x = d[i][0] * window.gauge_transf[0][pos][0][0] + d[i][1] * window.gauge_transf[0][pos][0][1] + d[i][2] * window.gauge_transf[0][pos][0][2] + window.gauge_transf[0][pos][0][3];
+    const y = d[i][0] * window.gauge_transf[0][pos][1][0] + d[i][1] * window.gauge_transf[0][pos][1][1] + d[i][2] * window.gauge_transf[0][pos][1][2] + window.gauge_transf[0][pos][1][3];
+    const z = d[i][0] * window.gauge_transf[0][pos][2][0] + d[i][1] * window.gauge_transf[0][pos][2][1] + d[i][2] * window.gauge_transf[0][pos][2][2] + window.gauge_transf[0][pos][2][3];
 
     points[i] = [x, y, z];
   }
@@ -89,7 +90,7 @@ function createPointCloudLayer() {
 function createPathLayer() {
   return new PathLayer({
     id: 'path-layer',
-    data: window.data_dict.layers[1].data,
+    data: window.data_dict.layers[1].data[0],   // loading gauge at 25m distance
     getColor: window.data_dict.layers[1].color,
     getPath: (d) => d,
     getWidth: window.data_dict.layers[1].width,
@@ -98,9 +99,9 @@ function createPathLayer() {
     updateTriggers: {
       getColor: window.data_dict.layers[1].color
     },
-    parameters: {
+    /*parameters: {
       depthCompare: 'always'    // the layer will be on top of previous layers
-    }
+    }*/
   });
 }
 

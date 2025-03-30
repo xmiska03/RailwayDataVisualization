@@ -190,8 +190,6 @@ def get_callbacks(app):
             const width = 910;
             const height = 682;
 
-            console.log(width, height);
-
             window.dist_array = new Array(height);
 
             // for every pixel on the canvas
@@ -225,8 +223,7 @@ def get_callbacks(app):
                     window.dist_array[y][x] = [y_dist, x_dist];
                 }
             }
-            console.log("distortion pre-calculation took", Date.now() - beg_time, "ms");
-            console.log(window.dist_array);
+            //console.log("distortion pre-calculation took", Date.now() - beg_time, "ms");
             return dash_clientside.no_update;
         }
         """,
@@ -257,8 +254,6 @@ def get_callbacks(app):
             const width = canvas.width;
             const height = canvas.height;
 
-            console.log(width, height);
-
             dist_canvas.width = width;    // set the same size for the canvas with distorted image
             dist_canvas.height = height;
             dist_canvas.style.width = canvas.style.width;
@@ -277,8 +272,6 @@ def get_callbacks(app):
                     const g = pixelData[(y * width + x) * 4 + 1];
                     const b = pixelData[(y * width + x) * 4 + 2];
                     const a = pixelData[(y * width + x) * 4 + 3];
-
-                    // calculate new coordinates for the pixel
                     
                     if (a == 0) {
                         continue;    // empty space, no need to write anything

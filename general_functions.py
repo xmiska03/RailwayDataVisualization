@@ -10,6 +10,14 @@ def load_csv_into_nparray(file_address):
         reader = csv.reader(f)
         data = list(reader)
         return np.array(data, dtype=float)
+    
+# loads a space separated file into a numpy array
+def load_space_separated_into_nparray(file_address):
+    data = []
+    with open(file_address, 'r') as f:
+        for line in f:
+            data.append(line.split())
+        return np.array(data, dtype=float)
 
 # loads timestamps from file (like csv, but skips first line and saves only the first column)
 def load_timestamps_into_nparray(file_address):

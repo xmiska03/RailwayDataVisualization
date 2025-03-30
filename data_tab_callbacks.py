@@ -39,21 +39,23 @@ def get_callbacks(app):
         State('bearing-pitch-data', 'data')
     )
     
-    # calculate new loading gauge transformations when new translations or rotations are uploaded
+    # calculate new loading gauge transformations when new guage translations or rotations are uploaded
     @app.callback(
         Output('gauge-transf-data', 'data'),
-        Input('translations-data', 'data'),
-        State('rotations-inv-data', 'data')
+        Input('gauge-trans-data', 'data'),
+        State('gauge-rot-inv-data', 'data')
     )
     def create_loading_gauge_transformations(trans_data, inv_rot_data):
-        trans_nparray = np.array(trans_data)  # convert from lists to numpy arrays
-        inv_rot_nparray = np.array(inv_rot_data)
-
-        inv_transf_matrices = []
-        for i in range(min(trans_nparray.shape[0], inv_rot_nparray.shape[0])):
-            inv_transf_matrix = calculate_loading_gauge_transformation_matrix(trans_nparray[i],
-                                                                              inv_rot_nparray[i])
-            inv_transf_matrices.append(inv_transf_matrix)
+        inv_transf_matrices = [[] for _ in range(4)]
+        
+        # calculate transformations for distances 25m, 50m, 75m, 100m
+        for i in range(4):
+            trans_nparray = np.array(trans_data[i])  # convert from lists to numpy arrays
+            inv_rot_nparray = np.array(inv_rot_data[i])
+            for j in range(min(trans_nparray.shape[0], inv_rot_nparray.shape[0])):
+                inv_transf_matrix = calculate_loading_gauge_transformation_matrix(trans_nparray[j],
+                                                                                inv_rot_nparray[j])
+                inv_transf_matrices[i].append(inv_transf_matrix)
         return inv_transf_matrices
 
     # upload/delete file with point cloud
