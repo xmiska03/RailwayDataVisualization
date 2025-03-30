@@ -267,37 +267,15 @@ function animationStep(now, metadata) {
   const video = document.getElementById('background-video');
   if (window.animation_running) video.requestVideoFrameCallback(animationStep);
   
-  console.log("called after: ", Date.now() - window.call_time, "ms");  // for debugging
-  window.call_time = Date.now();
-  
-  // calculate new position from video time
+  // determine new position from video time and camera timestamps
   if (metadata) {
-    if (window.animation_running) {
-      // needs to be 1 frame forward to be in sync with the video
-      window.position = Math.floor(metadata.mediaTime * 25) + 1;
-    } else {
-      // the final position when stopping needs to be exact
-      window.position = Math.floor(metadata.mediaTime * 25);
+    while (window.camera_timestamps[Math.max(window.position - 1, 0)] < metadata.mediaTime) {
+      console.log("mediaTime is:", metadata.mediaTime, "on position", window.position, "timestamp", window.camera_timestamps[window.position]);
+      window.position += 1;
     }
   }
 
-  /*const video = document.getElementById('background-video');
-  if (window.animation_running) requestAnimationFrame(animationStep);
-  //if (window.animation_running) setTimeout(animationStep, 40);
-
-  console.log("called after: ", Date.now() - window.call_time, "ms");  // for debugging
-  window.call_time = Date.now();
-  
-  // calculate new position from video time
-  if (window.animation_running) {
-    // needs to be 1 frame forward to be in sync with the video
-    window.position = Math.floor(video.currentTime * 25) + 1;
-  } else {
-    // the final position when stopping needs to be exact
-    window.position = Math.floor(video.currentTime * 25);
-  }
-  */
-
+  //if (window.animation_running) requestAnimationFrame(animationStep);
   //console.log("animationStep - video.currentTime is: ", video.currentTime);
   //if (metadata) console.log("animationStep - metadata.mediaTime is: ", metadata.mediaTime);
   //console.log("animationStep - setting position: ", window.position);

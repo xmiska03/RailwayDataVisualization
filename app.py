@@ -13,11 +13,11 @@ import animation_control_components
 import animation_control_callbacks
 import params
 from general_functions import load_csv_into_nparray, load_yaml_into_dict, calculate_projection_matrix, \
-                              calculate_translation_from_extr_mat
+                              calculate_translation_from_extr_mat, load_timestamps_into_nparray
 
 
 # load point cloud
-pc = PointCloud.from_path("data/scans.pcd")
+pc = PointCloud.from_path("data/joined/scans.pcd")
 pc_nparray = pc.numpy(("x", "y", "z", "intensity"))
 
 #pc_nparray = pc_nparray[::10]   # reduce the size of the point cloud
@@ -25,14 +25,17 @@ pc_nparray = pc.numpy(("x", "y", "z", "intensity"))
 # load camera parameters
 camera_params_dict = load_yaml_into_dict("data/camera_azd.yaml")
 distortion_coeffs = camera_params_dict['DistCoeffs']['data']
+#calibration_matrix = load_csv_into_nparray("data/joined/K.csv")
 proj_matrix = calculate_projection_matrix(camera_params_dict)
 camera_translation = calculate_translation_from_extr_mat(camera_params_dict)
 
 # load data about camera positions
-trans_nparray = load_csv_into_nparray("data/trans.csv")
+# load translations
+trans_nparray = load_csv_into_nparray("data/joined/trans_joined.csv")
 # fix the order of columns in the translations array: yzx -> xyz
 trans_nparray = trans_nparray[:, [2, 0, 1]]
-rot_nparray_raw = load_csv_into_nparray("data/rot.csv")
+# load rotations
+rot_nparray_raw = load_csv_into_nparray("data/joined/rot_joined.csv")
 rot_nparray = []
 rot_inv_nparray = []
 bearing_pitch_array = []
@@ -43,15 +46,20 @@ for rotation_xzy in rot_nparray_raw:
     bearing_pitch_array.append([-rotation_zyx[0], rotation_zyx[1]])  # only bearing (z) and pitch (y)
     rot_nparray.append(rotation.as_matrix())
     rot_inv_nparray.append(rotation.inv().as_matrix())
+# load timestamps
+timestamps_nparray = load_timestamps_into_nparray("data/joined/imu_joined_timestamps.csv")
+# convert timestamps so that they start from 0 and are in seconds
+timestamp0 = int(timestamps_nparray[0])
+timestamps_nparray = (timestamps_nparray - timestamp0) / 1000000000  # nanoseconds to seconds
 
-# number of frames to generate (500 in example data)
+# number of frames to generate
 frames_cnt = trans_nparray.shape[0]
 
 # load vector data (polylines)
 paths_data = [
-    load_csv_into_nparray("data/polyline1.csv"),
-    load_csv_into_nparray("data/polyline2.csv"),
-    load_csv_into_nparray("data/polyline3.csv")
+    #load_csv_into_nparray("data/polyline1.csv"),
+    #load_csv_into_nparray("data/polyline2.csv"),
+    #load_csv_into_nparray("data/polyline3.csv")
 ]
 
 # load loading gauge data
@@ -83,9 +91,10 @@ loading_gauge_layer = {
 view_state = {
     "bearing": params.BEARING,
     "pitch": params.PITCH,
-    "position": [camera_translation[0] + params.POSITION_OFFSET[0],
-                 camera_translation[1] + params.POSITION_OFFSET[1],
-                 camera_translation[2] + params.POSITION_OFFSET[2]]
+    "position": [params.POSITION_OFFSET[0], params.POSITION_OFFSET[1], params.POSITION_OFFSET[2]]
+    #[camera_translation[0] + params.POSITION_OFFSET[0],
+    #camera_translation[1] + params.POSITION_OFFSET[1],
+    #camera_translation[2] + params.POSITION_OFFSET[2]]
 }
 
 view = {
@@ -199,6 +208,10 @@ stores = [
     dcc.Store(
         id='bearing-pitch-data',   # special rotations for deck.gl 
         data=bearing_pitch_array
+    ),
+    dcc.Store(
+        id='camera-timestamps-data',
+        data=timestamps_nparray
     )
 ] 
 
@@ -240,16 +253,18 @@ app.layout = html.Div(
 # (re)initialize the deck visualization
 app.clientside_callback(
     """
-    function(data_dict) {
+    function(data_dict, camera_timestamps) {
         if (window.initializeDeck) {
             window.data_dict = data_dict;  // make the data accessible to visualizations.js
+            window.camera_timestamps = camera_timestamps;
             window.initializeDeck();       // call function defined in the JavaScript file
         }
         return dash_clientside.no_update;
     }
     """,
     Output('visualization-data', 'id'),  # dummy output needed so that the initial call occurs
-    Input('visualization-data', 'data')
+    Input('visualization-data', 'data'),
+    Input('camera-timestamps-data', 'data')
 )
 
 # add callbacks defined in other files

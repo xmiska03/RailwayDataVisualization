@@ -236,3 +236,26 @@ def get_callbacks(app):
     def delete_video(btn):
         return None
 
+    # update the total time label and the range of the slider & input which control train position 
+    # when new timestamps data is uploaded
+    app.clientside_callback(
+        """
+        function(camera_timestamps) {
+            
+            // we get the total time by reading the last timestamp
+            const time_sec = Math.floor(camera_timestamps[camera_timestamps.length - 1]); 
+            const minutes = Math.floor(time_sec / 60);
+            const seconds = time_sec % 60;
+            const label = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`
+            dash_clientside.set_props("total-time-div", {children: label});
+
+            // update the range of the slider and number input
+            dash_clientside.set_props("camera-position-slider-input", {max: camera_timestamps.length - 1});
+            dash_clientside.set_props("camera-position-input", {max: camera_timestamps.length - 1});
+            
+            return dash_clientside.no_update;
+        }
+        """,
+        Output('camera-timestamps-data', 'id'),  # dummy output needed so that the initial call occurs
+        Input('camera-timestamps-data', 'data')
+    )

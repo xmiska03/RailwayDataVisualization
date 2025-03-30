@@ -11,6 +11,17 @@ def load_csv_into_nparray(file_address):
         data = list(reader)
         return np.array(data, dtype=float)
 
+# loads timestamps from file (like csv, but skips first line and saves only the first column)
+def load_timestamps_into_nparray(file_address):
+    with open(file_address, 'r') as f:
+        reader = csv.reader(f)
+        data = list(reader)
+        
+        result = []
+        for row in data[1:]:
+            result.append(row[0])
+        return np.array(result, dtype=float)
+
 # loads a yaml file into a python dictionary
 def load_yaml_into_dict(file_address):
     with open(file_address, 'r') as f:
@@ -18,13 +29,20 @@ def load_yaml_into_dict(file_address):
         return data
 
 # creates a deck.gl-style projection matrix according to camera parameters
-def calculate_projection_matrix(camera_params_dict):
+def calculate_projection_matrix(camera_params_dict, K=np.array([])):
     w = camera_params_dict['Camera.width']
     h = camera_params_dict['Camera.height']
     f_x = camera_params_dict['CameraMat']['data'][0]
     f_y = camera_params_dict['CameraMat']['data'][4]
     c_x = camera_params_dict['CameraMat']['data'][2]
     c_y = camera_params_dict['CameraMat']['data'][5]
+
+    if K.any():  # a special calibration matrix is given
+        f_x = K[0][0]
+        f_y = K[1][1]
+        c_x = K[0][2]
+        c_y = K[1][2]
+
     f = FAR_PLANE
     n = NEAR_PLANE
 

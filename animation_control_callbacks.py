@@ -49,7 +49,7 @@ def get_callbacks(app):
                     
                     // update video
                     const video = document.getElementById('background-video');
-                    const videoTime = new_pos / 25;
+                    const videoTime = window.camera_timestamps[new_pos];
                     video.currentTime = videoTime;
 
                     // update slider and input field and time label
