@@ -3,6 +3,17 @@ import dash_bootstrap_components as dbc
 
 from params import GAUGE_LINE_WIDTH
 
+gauge_distance_widget = [
+    dbc.Col(html.Div("Vzdálenost průj. profilu: "), width=5),
+    dbc.Col(dcc.Dropdown(
+        options={'25': '25m', '50': '50m', '75': '75m', '100': '100m'},
+        value='25',
+        clearable=False,
+        id='gauge-distance-dropdown',
+        #style={'width':'80px'}
+    ), width=6)
+]
+
 gauge_line_width_widget = [
     dbc.Col(html.Div("Tloušťka čar: "), width=5),
     dbc.Col(dbc.Input(
@@ -32,15 +43,8 @@ gauge_tab = [
             style={'marginTop':'20px', 'marginBottom':'20px'}
         )
     ),
-    dbc.Row(html.Div("Vzdálenost průjezdného profilu:")),
-    dbc.Row(dcc.Input(
-        value=100,
-        id="gauge-distance-slider-input",
-        type="range",
-        min=10,
-        max=210,
-        style={"margin":"10px", "width": "90%"}
-    )),
+    dbc.Row(gauge_distance_widget),
+    dbc.Placeholder(color="black", size="xs"),
     dbc.Row(gauge_line_width_widget),
     dbc.Placeholder(color="black", size="xs"),
     dbc.Row(gauge_line_color_widget),

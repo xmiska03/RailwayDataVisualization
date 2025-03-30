@@ -6,7 +6,7 @@ window.frames_cnt = 500;
 window.position = 0;
 window.animation_running = false;
 window.frame_duration = 40;    // in milliseconds
-window.gauge_distance = 100;   // in virtual camera positions
+window.gauge_distance = '25';  // 25 meters
 window.scale_from = 0;         // boundaries of the point cloud color scale
 window.scale_to = 18;
 window.scale_middle = 9;
@@ -52,16 +52,35 @@ function getColorYP(d) {
   }
 }
 
+// converts loading gauge distance (in meters) to index in paths data and transformations data
+function gauge_distance_to_index(gauge_dist) {
+  var i = 0;  // default is '25'
+  switch (window.gauge_distance) {
+    case '50':
+      i = 1;
+      break;
+    case '75':
+      i = 2;
+      break;
+    case '100':
+      i = 3;
+      break;
+  }
+  return i;
+}
+
+
 // transformation for the loading gauge
 function gaugeGetPath(d) {
   const pos = window.position;
+  const n = gauge_distance_to_index(window.gauge_distance);
   const points = new Array(d.length);
   
   for (let i = 0; i < d.length; i++) {
     //window.gauge_transf[0] - 25m distance
-    const x = d[i][0] * window.gauge_transf[0][pos][0][0] + d[i][1] * window.gauge_transf[0][pos][0][1] + d[i][2] * window.gauge_transf[0][pos][0][2] + window.gauge_transf[0][pos][0][3];
-    const y = d[i][0] * window.gauge_transf[0][pos][1][0] + d[i][1] * window.gauge_transf[0][pos][1][1] + d[i][2] * window.gauge_transf[0][pos][1][2] + window.gauge_transf[0][pos][1][3];
-    const z = d[i][0] * window.gauge_transf[0][pos][2][0] + d[i][1] * window.gauge_transf[0][pos][2][1] + d[i][2] * window.gauge_transf[0][pos][2][2] + window.gauge_transf[0][pos][2][3];
+    const x = d[i][0] * window.gauge_transf[n][pos][0][0] + d[i][1] * window.gauge_transf[n][pos][0][1] + d[i][2] * window.gauge_transf[n][pos][0][2] + window.gauge_transf[n][pos][0][3];
+    const y = d[i][0] * window.gauge_transf[n][pos][1][0] + d[i][1] * window.gauge_transf[n][pos][1][1] + d[i][2] * window.gauge_transf[n][pos][1][2] + window.gauge_transf[n][pos][1][3];
+    const z = d[i][0] * window.gauge_transf[n][pos][2][0] + d[i][1] * window.gauge_transf[n][pos][2][1] + d[i][2] * window.gauge_transf[n][pos][2][2] + window.gauge_transf[n][pos][2][3];
 
     points[i] = [x, y, z];
   }
@@ -90,7 +109,7 @@ function createPointCloudLayer() {
 function createPathLayer() {
   return new PathLayer({
     id: 'path-layer',
-    data: window.data_dict.layers[1].data[0],   // loading gauge at 25m distance
+    data: window.data_dict.layers[1].data[gauge_distance_to_index(window.gauge_distance)],
     getColor: window.data_dict.layers[1].color,
     getPath: (d) => d,
     getWidth: window.data_dict.layers[1].width,
@@ -231,20 +250,22 @@ function updatePathLayerProps(visible, line_width, line_color) {
   window.data_dict.layers[1].visible = visible;
   window.data_dict.layers[1].width = parseInt(line_width, 10);
   window.data_dict.layers[1].color = new_color;
+  updatePathLayer();
+}
 
+function updatePathLayer() {
   window.path_layer = createPathLayer();
   window.deck.setProps({layers: [window.pc_layer, window.path_layer, window.gauge_layer]});
 }
 
 
-// to change loading gauge visibility, distance, line width or color
-function updateGaugeLayerProps(visible, distance, line_width, line_color) {
+// to change loading gauge visibility, line width or color
+function updateGaugeLayerProps(visible, line_width, line_color) {
   // convert to RGB
   // the following line is taken from a piece of example code in deck.gl documentation (PathLayer section)
   const new_color = line_color.match(/[0-9a-f]{2}/g).map(x => parseInt(x, 16));
 
   window.data_dict.layers[2].visible = visible;
-  window.gauge_distance = distance;
   window.data_dict.layers[2].width = parseInt(line_width, 10);
   window.data_dict.layers[2].color = new_color;
 
@@ -333,6 +354,7 @@ window.updateDeck = updateDeck;
 window.updatePCLayerProps = updatePCLayerProps;
 window.updatePCLayer = updatePCLayer;
 window.updatePathLayerProps = updatePathLayerProps;
+window.updatePathLayer = updatePathLayer;
 window.updateGaugeLayerProps = updateGaugeLayerProps;
 window.runDeckAnimation = runDeckAnimation;
 window.stopDeckAnimation = stopDeckAnimation;
