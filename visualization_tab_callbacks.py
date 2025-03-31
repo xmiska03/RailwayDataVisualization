@@ -44,7 +44,7 @@ def get_callbacks(app):
     )
     def recount_data_aggregation(visualization_data):
         new_aggregation = [0 for _ in range(43)]
-        for point in visualization_data["layers"][0]["data"]:
+        for point in visualization_data["layers"][0]["data"][0]:    # TODO fix this
             if int(point[3]) < 43:
                 new_aggregation[int(point[3])] += 1
         return new_aggregation

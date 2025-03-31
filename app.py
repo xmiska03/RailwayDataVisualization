@@ -17,9 +17,19 @@ from general_functions import load_csv_into_nparray, load_yaml_into_dict, calcul
                               load_space_separated_into_nparray
 
 
-# load point cloud
-pc = PointCloud.from_path("data/joined/scans.pcd")
-pc_nparray = pc.numpy(("x", "y", "z", "intensity"))
+# load point cloud data
+pc_nparray = []
+for i in range(596):
+    pc = PointCloud.from_path(f"data/joined/joined_pcd_files/pcd_{i}.pcd")
+    pc_nparray.append(pc.numpy(("x", "y", "z", "intensity")))
+
+# load point cloud timestamps
+pcl_timestamps = []
+with open("data/joined/joined_pcl_timestamps.txt", "r") as f:
+    for line in f:
+        split_line = line.split()
+        if len(split_line) >= 2:
+            pcl_timestamps.append(float(split_line[1]))
 
 #pc_nparray = pc_nparray[::10]   # reduce the size of the point cloud
 
@@ -241,6 +251,10 @@ stores = [
     dcc.Store(
         id='camera-timestamps-data',
         data=timestamps_nparray
+    ),
+    dcc.Store(
+        id='pcl-timestamps-data',
+        data=pcl_timestamps
     )
 ] 
 
@@ -282,9 +296,10 @@ app.layout = html.Div(
 # (re)initialize the deck visualization
 app.clientside_callback(
     """
-    function(data_dict, camera_timestamps) {
+    function(data_dict, camera_timestamps, pcl_timestamps) {
         if (window.initializeDeck) {
             window.data_dict = data_dict;  // make the data accessible to visualizations.js
+            window.pcl_timestamps = pcl_timestamps;
             window.camera_timestamps = camera_timestamps;
             window.initializeDeck();       // call function defined in the JavaScript file
         }
@@ -293,7 +308,8 @@ app.clientside_callback(
     """,
     Output('visualization-data', 'id'),  # dummy output needed so that the initial call occurs
     Input('visualization-data', 'data'),
-    Input('camera-timestamps-data', 'data')
+    Input('camera-timestamps-data', 'data'),
+    State('pcl-timestamps-data', 'data')
 )
 
 # add callbacks defined in other files
