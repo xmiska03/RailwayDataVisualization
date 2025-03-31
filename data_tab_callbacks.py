@@ -1,6 +1,6 @@
 # This file contains definitions of dash callbacks used in the "data" tab of the app.
 
-from dash import Output, Input, State, Patch
+from dash import Output, Input, State, Patch, ctx
 import base64
 import numpy as np
 import pandas as pd
@@ -8,6 +8,7 @@ from pypcd4 import PointCloud
 import time
 import os
 from scipy.spatial.transform import Rotation
+import tomllib
 
 from general_functions import calculate_loading_gauge_transformation_matrix
 
@@ -60,18 +61,56 @@ def get_callbacks(app):
 
     # upload/delete file with point cloud
     @app.callback(
+        Output('project-file-upload-div', 'style'),
+        Output('project-file-uploaded-file-div', 'style'),
+        Output('project-file-filename-div', 'children'),
+        Output('pcd-path-store', 'data'),
+        Output('update-project-file-store', 'data'),
+        Input('project-file-upload', 'contents'),
+        State('project-file-upload', 'filename'),
+        State('update-project-file-store', 'data'),
+        prevent_initial_call = True
+    )
+    def upload_point_cloud(file_content, filename, update_number):
+        if file_content is not None:
+            # new file uploaded
+            content_type, content_string = file_content.split(',')
+            decoded = base64.b64decode(content_string)
+
+            data = tomllib.loads(decoded.decode("utf-8"))
+            pcd_path = os.path.join(data['project_path'], data['pcd_path'])
+
+            return {"display": "none"}, {"display": "block"}, filename, pcd_path, update_number+1
+        else:
+            # file deleted (or it is the initial call)
+            return {"display": "block"}, {"display": "none"}, "", Patch(), update_number+1
+
+    # upload/delete file with point cloud
+    @app.callback(
         Output('point-cloud-upload-div', 'style'),
         Output('point-cloud-uploaded-file-div', 'style'),
         Output('point-cloud-filename-div', 'children'),
         Output('visualization-data', 'data'),
         Output('update-pcd-store', 'data'),
         Input('point-cloud-upload', 'contents'),
+        Input('pcd-path-store', 'data'),
         State('point-cloud-upload', 'filename'),
         State('update-pcd-store', 'data'),
         prevent_initial_call = True
     )
-    def upload_point_cloud(file_content, filename, update_number):
-        if file_content is not None:
+    def upload_point_cloud(file_content, pcd_path, filename, update_number):
+        if ctx.triggered_id == 'pcd-path-store':
+            # the file path was set by the project file
+            # get filename
+            filename = os.path.basename(pcd_path)
+            # read the file
+            pc = PointCloud.from_path(pcd_path)
+            pc_nparray = pc.numpy(("x", "y", "z", "intensity"))
+            # create a patch for the visualization data store
+            patched_data = Patch()
+            patched_data["layers"][0]["data"] = pc_nparray
+            return {"display": "none"}, {"display": "block"}, filename, patched_data, update_number+1
+        elif file_content is not None:
             # new file uploaded
             content_type, content_string = file_content.split(',')
             decoded = base64.b64decode(content_string)
@@ -82,10 +121,9 @@ def get_callbacks(app):
             # read the temporary file
             pc = PointCloud.from_path(server_filename)
             pc_nparray = pc.numpy(("x", "y", "z", "intensity"))
-            pc_df = pd.DataFrame(pc_nparray, columns=["x", "y", "z", "intensity"])
             # create a patch for the visualization data store
             patched_data = Patch()
-            patched_data["layers"][0]["data"] = pc_df.to_dict(orient="records")
+            patched_data["layers"][0]["data"] = pc_nparray
             # delete the temporary file
             os.remove(server_filename)
             return {"display": "none"}, {"display": "block"}, filename, patched_data, update_number+1
@@ -206,6 +244,14 @@ def get_callbacks(app):
                 if now - int(filename[15:-4]) > 120:  # determine if the file is at least 2 minutes old
                     os.remove(file_path)
 
+    # delete project file
+    @app.callback(
+        Output('project-file-upload', 'contents'),
+        Input('project-file-delete-button', 'n_clicks')
+    )
+    def delete_project_file(btn):
+        return None
+    
     # delete file with point cloud
     @app.callback(
         Output('point-cloud-upload', 'contents'),

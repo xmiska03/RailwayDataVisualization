@@ -22,6 +22,12 @@ upload_design = html.Div([
     'Vybrat soubor'
 ])
 
+project_file_upload = dcc.Upload(
+    id='project-file-upload',
+    children=upload_design,
+    style=upload_box_style
+)
+
 point_cloud_upload = dcc.Upload(
     id='point-cloud-upload',
     children=upload_design,
@@ -46,6 +52,24 @@ video_upload = dcc.Upload(
     style=upload_box_style
 )
 
+project_file_uploaded_file = dbc.Stack(
+    [
+        html.I(className="bi bi-file-earmark-text"),
+        html.Div("", id="project-file-filename-div"),
+        html.Div(
+            "",
+            className="ms-auto",   # works as a spacer
+        ),
+        dbc.Button(
+            html.I(className="bi bi-x-lg"),
+            id='project-file-delete-button', 
+            style={"background": "none", "border": "none", "color": "inherit", "padding": "0"}
+        ),
+        # a special store used to trigger a clienside callback to update the point cloud visualization
+        dcc.Store(id="update-project-file-store", data=0)
+    ], direction="horizontal", gap=2, style={'margin': '10px'}
+)
+
 point_cloud_uploaded_file = dbc.Stack(
     [
         html.I(className="bi bi-file-earmark-binary"),
@@ -60,7 +84,8 @@ point_cloud_uploaded_file = dbc.Stack(
             style={"background": "none", "border": "none", "color": "inherit", "padding": "0"}
         ),
         # a special store used to trigger a clienside callback to update the point cloud visualization
-        dcc.Store(id="update-pcd-store", data=0)
+        dcc.Store(id="update-pcd-store", data=0),
+        dcc.Store(id="pcd-path-store", data="")
     ], direction="horizontal", gap=2, style={'margin': '10px'}
 )
 
@@ -121,16 +146,19 @@ video_uploaded_file = dbc.Stack(
 
 data_tab = [
     dbc.Row(dbc.Placeholder(color="white")),
-    dbc.Row(html.Div("Mračno bodů:")),
+    dbc.Row(html.Div("Projektový soubor (.toml):")),
+    dbc.Row(html.Div(project_file_upload, id="project-file-upload-div")),
+    dbc.Row(html.Div(project_file_uploaded_file, id="project-file-uploaded-file-div")),
+    dbc.Row(html.Div("Mračno bodů (.pcd):")),
     dbc.Row(html.Div(point_cloud_upload, id="point-cloud-upload-div")),
     dbc.Row(html.Div(point_cloud_uploaded_file, id="point-cloud-uploaded-file-div")),
-    dbc.Row(html.Div("Translace:")),
+    dbc.Row(html.Div("Translace (.csv):")),
     dbc.Row(html.Div(translations_upload, id="translations-upload-div")),
     dbc.Row(html.Div(translations_uploaded_file, id="translations-uploaded-file-div")),
-    dbc.Row(html.Div("Rotace:")),
+    dbc.Row(html.Div("Rotace (.csv):")),
     dbc.Row(html.Div(rotations_upload, id="rotations-upload-div")),
     dbc.Row(html.Div(rotations_uploaded_file, id="rotations-uploaded-file-div")),
-    dbc.Row(html.Div("Video:")),
+    dbc.Row(html.Div("Video  (.mp4):")),
     dbc.Row(html.Div(video_upload, id="video-upload-div")),
     dbc.Row(html.Div(video_uploaded_file, id="video-uploaded-file-div"))
 ]
