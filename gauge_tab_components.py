@@ -5,12 +5,10 @@ from params import GAUGE_LINE_WIDTH
 
 gauge_distance_widget = [
     dbc.Col(html.Div("Vzdálenost průj. profilu: "), width=5),
-    dbc.Col(dcc.Dropdown(
+    dbc.Col(dbc.Select(
         options={'25': '25m', '50': '50m', '75': '75m', '100': '100m'},
         value='25',
-        clearable=False,
         id='gauge-distance-dropdown',
-        #style={'width':'80px'}
     ), width=6)
 ]
 

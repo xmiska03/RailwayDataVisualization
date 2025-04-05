@@ -32,10 +32,9 @@ down_panel_lower = [
         className="ms-auto",   # works as a spacer
     ),
     html.Div("Rychlost:"),
-    dcc.Dropdown(
+    dbc.Select(
         options={'2': '2×', '1': '1×', '0.5': '0.5×'},
         value='1',
-        clearable=False,
         id='animation-speed-dropdown',
         style={'width':'80px'}
     )

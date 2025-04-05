@@ -17,10 +17,9 @@ point_size_widget = [
 
 color_scale_widget = [
     dbc.Col(html.Div("Barevná škála: "), width=5),
-    dbc.Col(dcc.Dropdown(
+    dbc.Col(dbc.Select(
         options={'bgr': 'modro-zeleno-rudá', 'yp': 'žluto-fialová'},
         value='bgr',
-        clearable=False,
         id='color-scale-dropdown'
     ), width=6)
 ]

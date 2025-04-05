@@ -203,6 +203,22 @@ app_right_col = dbc.Col(
     ), style={}, width=4
 )
 
+# the right margin of the page, almost empty, contains only a color mode switch
+app_color_mode_col = dbc.Col(
+    html.Div(
+        [
+            html.I(className="bi bi-moon"),
+            dbc.Switch(
+                id="color-mode-switch",
+                value=False,
+                className="d-inline-block ms-1",
+                persistence=True,
+                style={"marginRight": "-3px"}),
+            html.I(className="bi bi-sun")
+        ]
+    ), width=1, style={"textAlign": "right"}
+)
+
 # stores used for storing data on the clients side
 stores = [
     dcc.Store(
@@ -264,10 +280,11 @@ app.layout = html.Div(
         dbc.Row(
             [
                 app_left_col,
-                app_right_col
+                app_right_col,
+                app_color_mode_col
             ],
-            justify="center",
-            style={'marginTop': '20px'}
+            justify="end",
+            style={'margin': '20px 10px'}
         ),
         dbc.Row(stores)
     ],
@@ -294,6 +311,18 @@ app.clientside_callback(
     Output('visualization-data', 'id'),  # dummy output needed so that the initial call occurs
     Input('visualization-data', 'data'),
     Input('camera-timestamps-data', 'data')
+)
+
+# change color mode by switch
+app.clientside_callback(
+    """
+    function (switch_on) {
+       document.documentElement.setAttribute('data-bs-theme', switch_on ? 'light' : 'dark');
+       return dash_clientside.no_update;
+    }
+    """,
+    Output("color-mode-switch", "id"),  # dummy output needed so that the initial call occurs
+    Input("color-mode-switch", "value"),
 )
 
 # add callbacks defined in other files
