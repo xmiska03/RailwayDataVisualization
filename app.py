@@ -161,11 +161,11 @@ visualization = html.Div(
 app_left_col = dbc.Col(
     [
         visualization,
-        dbc.Placeholder(color="white"),
         dbc.Row(
             animation_control_components.down_panel_upper, 
             justify="center",
-            align="start"
+            align="start",
+            style={'marginTop': '20px'}
         ),
         dbc.Stack(
             animation_control_components.down_panel_lower,
@@ -261,13 +261,13 @@ app.server.config["MAX_CONTENT_LENGTH"] = 100 * 1024 * 1024  # 100MB to allow a 
 # Dash app layout
 app.layout = html.Div(
     [
-        dbc.Placeholder(color="white"),
         dbc.Row(
             [
                 app_left_col,
                 app_right_col
             ],
-            justify="center"
+            justify="center",
+            style={'marginTop': '20px'}
         ),
         dbc.Row(stores)
     ],

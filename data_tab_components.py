@@ -145,8 +145,7 @@ video_uploaded_file = dbc.Stack(
 )
 
 data_tab = [
-    dbc.Row(dbc.Placeholder(color="white")),
-    dbc.Row(html.Div("Projektový soubor (.toml):")),
+    dbc.Row(html.Div("Projektový soubor (.toml):"), style={'marginTop': '15px'}),
     dbc.Row(html.Div(project_file_upload, id="project-file-upload-div")),
     dbc.Row(html.Div(project_file_uploaded_file, id="project-file-uploaded-file-div")),
     dbc.Row(html.Div("Mračno bodů (.pcd):")),

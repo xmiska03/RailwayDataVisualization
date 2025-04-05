@@ -176,8 +176,7 @@ back_to_default_button = [
 
 
 visualization_tab = [
-    dbc.Row(dbc.Placeholder(color="white")),
-    dbc.Row(html.Div("Zobrazení vrstev:")),
+    dbc.Row(html.Div("Zobrazení vrstev:"), style={'marginTop': '15px'}),
     dbc.Row(dcc.Checklist(
             options=[{'label': ' záběr z kamery', 'value': 'pic'}],
             value=['pic'],
@@ -196,28 +195,20 @@ visualization_tab = [
             id='vector-data-checkbox'
         )
     ),
-    dbc.Placeholder(color="black", size="xs"),
-    dbc.Row(html.Hr()),
+    dbc.Row(html.Hr(), style={'marginTop': '15px'}),
     
     dbc.Row(html.Div("Mračno bodů", style={"fontWeight": "bold", "textAlign": "center", "paddingBottom": "0.5em",})),
     dbc.Row(point_size_widget),
-    dbc.Placeholder(color="black", size="xs"),
-    dbc.Row(color_scale_widget),
-    dbc.Placeholder(color="black", size="xs"),
-    dbc.Row(color_scale_graph, justify="center"),
-    dbc.Placeholder(color="black", size="xs"),
-    dbc.Row(color_scale_interval_widget, justify="center"),
-    dbc.Placeholder(color="black", size="xs"),
-    dbc.Row(point_opacity_widget),
-    dbc.Placeholder(color="black", size="xs"),
-    dbc.Row(html.Hr()),
+    dbc.Row(color_scale_widget, style={'marginTop': '15px'}),
+    dbc.Row(color_scale_graph, justify="center", style={'marginTop': '15px'}),
+    dbc.Row(color_scale_interval_widget, justify="center", style={'marginTop': '15px'}),
+    dbc.Row(point_opacity_widget, style={'marginTop': '15px'}),
+    dbc.Row(html.Hr(), style={'marginTop': '15px'}),
     
     dbc.Row(html.Div("Vektorová data", style={"fontWeight": "bold", "textAlign": "center", "paddingBottom": "0.5em",})),
     dbc.Row(line_width_widget),
-    dbc.Placeholder(color="black", size="xs"),
-    dbc.Row(line_color_widget),
-    dbc.Placeholder(color="black", size="xs"),
-    dbc.Row(html.Hr()),
+    dbc.Row(line_color_widget, style={'marginTop': '15px'}),
+    dbc.Row(html.Hr(), style={'marginTop': '15px'}),
     
     dbc.Row(html.Div("Dopřesnění polohy virtuální kamery", style={"fontWeight": "bold", "textAlign": "center", "paddingBottom": "0.5em",})),
     dbc.Row(camera_position_x_widget),
@@ -226,8 +217,7 @@ visualization_tab = [
     dbc.Row(camera_position_yaw_widget),
     dbc.Row(camera_position_pitch_widget),
     dbc.Row(back_to_default_button),
-    dbc.Placeholder(color="black", size="xs"),
-    dbc.Row(html.Hr()),
+    dbc.Row(html.Hr(), style={"marginTop": "15px"}),
     
     dbc.Row(dbc.Button("Zkreslení", id="distortion-button"), style={"width":"10em", "marginLeft": "1px"})
 ]

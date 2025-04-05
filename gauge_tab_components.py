@@ -40,13 +40,10 @@ gauge_tab = [
             options=[{'label': ' zobrazovat průjezdný profil', 'value': 'gauge'}],
             value=['gauge'],
             id='loading-gauge-checkbox',
-            style={'marginTop':'20px', 'marginBottom':'20px'}
+            style={'marginTop': '15px'}
         )
     ),
-    dbc.Row(gauge_distance_widget),
-    dbc.Placeholder(color="black", size="xs"),
-    dbc.Row(gauge_line_width_widget),
-    dbc.Placeholder(color="black", size="xs"),
-    dbc.Row(gauge_line_color_widget),
-    dbc.Placeholder(color="black", size="xs"),
+    dbc.Row(gauge_distance_widget, style={'marginTop': '15px'}),
+    dbc.Row(gauge_line_width_widget, style={'marginTop': '15px'}),
+    dbc.Row(gauge_line_color_widget, style={'marginTop': '15px'})
 ]
