@@ -37,9 +37,11 @@ color_scale_graph = [
             'layout': {
                 'height': 100,
                 'margin': {'l': 0, 'r': 0, 't': 0, 'b': 0},
-                'xaxis': {'showticklabels': False},
-                'yaxis': {'showticklabels': False},
-                'bargap': 0.6
+                'xaxis': {'showticklabels': False, 'showgrid': False},
+                'yaxis': {'showticklabels': False, 'showgrid': False},
+                'bargap': 0.6,
+                'plot_bgcolor': '#rgba(0,0,0,0)',
+                'paper_bgcolor': '#rgba(0,0,0,0)'
             }
         },
         config={'displayModeBar': False},
@@ -217,7 +219,7 @@ visualization_tab = [
     dbc.Placeholder(color="black", size="xs"),
     dbc.Row(html.Hr()),
     
-    dbc.Row(html.Div("Poloha virtuální kamery", style={"fontWeight": "bold", "textAlign": "center", "paddingBottom": "0.5em",})),
+    dbc.Row(html.Div("Dopřesnění polohy virtuální kamery", style={"fontWeight": "bold", "textAlign": "center", "paddingBottom": "0.5em",})),
     dbc.Row(camera_position_x_widget),
     dbc.Row(camera_position_y_widget),
     dbc.Row(camera_position_z_widget),
