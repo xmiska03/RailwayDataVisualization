@@ -152,6 +152,17 @@ function createGaugeLayer() {
   });
 }
 
+function createLayers() {
+  // (re)create all the layers
+  window.layers = new Array(window.curr_pcl_layers_cnt + 2);
+
+  for (var i = 0; i < window.curr_pcl_layers_cnt; i++) {
+    window.layers[i] = createPointCloudLayer(i);
+  }
+  window.layers[window.curr_pcl_layers_cnt] = createPathLayer();
+  window.layers[window.curr_pcl_layers_cnt + 1] = createGaugeLayer();
+}
+
 // used for initializing the visualization
 // and also reinitializing when new point cloud data is uploaded 
 function initializeDeck() {
@@ -177,13 +188,7 @@ function initializeDeck() {
     controller: window.data_dict.views[0].controller
   });
 
-  window.layers = new Array(window.curr_pcl_layers_cnt + 2);
-  // create the layers
-  for (var i = 0; i < window.curr_pcl_layers_cnt; i++) {
-    window.layers[i] = createPointCloudLayer(i);
-  }
-  window.layers[window.curr_pcl_layers_cnt] = createPathLayer();
-  window.layers[window.curr_pcl_layers_cnt + 1] = createGaugeLayer();
+  createLayers();
 
   // the context is created manually to specify "preserveDrawingBuffer: true".
   // that is needed to enable reading the pixels of the visualisation for applying distortion.
@@ -201,6 +206,29 @@ function initializeDeck() {
   window.deck_initialized = true;
 }
 
+// in case that we are not displaying united point cloud, point cloud data needs to be changed with position
+function changeLayersData() {
+  if (!window.display_united) {
+    // find current position in point cloud timestamps
+    window.pcl_position = 0;
+    const video = document.getElementById('background-video'); 
+    while(window.pcl_timestamps[window.pcl_position] < video.currentTime) {
+      window.pcl_position++;
+    }
+
+    // display point cloud data corresponding to current position and 10 positions backwards (if they exist)
+    // for example if window.pcl_position == 7, pcl_layers_position will be [0, 0, 0, 1, 2, 3, 4, 5, 6, 7]
+    var pos = window.pcl_position;
+    for (var i = window.curr_pcl_layers_cnt - 1; i >= 0; i--) {
+      pcl_layers_positions[i] = pos;
+      if (pos > 0) {
+        pos--;
+      }
+    }
+    // the first set of data in the buffer will now be the oldest to rewrite in case of animation start
+    pcl_layers_index = 0;
+  }
+}
 
 // to change camera position
 function updateDeck() {
@@ -234,8 +262,8 @@ function updateDeck() {
   };
   window.deck.setProps({initialViewState: INITIAL_VIEW_STATE});
 
-  // the loading gauge needs to move to a new position, so it needs a layer update
-  window.layers[window.curr_pcl_layers_cnt + 1] = createGaugeLayer();
+  createLayers();  // TODO: maybe optimize this so that only the right layers are recreated (only gauge here)
+
   window.deck.setProps({layers: window.layers});
 }
 
@@ -250,14 +278,7 @@ function updatePCLayerProps(visible, point_size, point_color, opacity) {
 }
 
 function updatePCLayer() {
-  window.layers = new Array(window.curr_pcl_layers_cnt + 2);
-  // create the layers
-  for (var i = 0; i < window.curr_pcl_layers_cnt; i++) {
-    window.layers[i] = createPointCloudLayer(i);
-  }
-  window.layers[window.curr_pcl_layers_cnt] = createPathLayer();
-  window.layers[window.curr_pcl_layers_cnt + 1] = createGaugeLayer();
-  // TODO: maybe optimize this so that only the right layers are recreated
+  createLayers(); // TODO: maybe optimize this so that only the right layers are recreated
 
   window.deck.setProps({layers: window.layers});
 }
@@ -269,7 +290,9 @@ function changePCMode(display_united) {
     window.curr_pcl_layers_cnt = 1;
   } else {
     window.curr_pcl_layers_cnt = window.pcl_layers_cnt;
-    // TODO: set pcl_layers_positions and pcl_layers_index to the right values
+    // when not displaying united point cloud data, we need to choose data according to position
+    changeLayersData();
+    updateDeck();
   }
 
   updatePCLayer();
@@ -288,9 +311,9 @@ function updatePathLayerProps(visible, line_width, line_color) {
 }
 
 function updatePathLayer() {
-  window.path_layer = createPathLayer();
-  // TODO: fix this
-  window.deck.setProps({layers: [window.pc_layer, window.path_layer, window.gauge_layer]});
+  createLayers(); // TODO: maybe optimize this so that only the right layers are recreated
+
+  window.deck.setProps({layers: window.layers});
 }
 
 
@@ -304,9 +327,9 @@ function updateGaugeLayerProps(visible, line_width, line_color) {
   window.data_dict.layers[2].width = parseInt(line_width, 10);
   window.data_dict.layers[2].color = new_color;
 
-  window.gauge_layer = createGaugeLayer();
-  // TODO: fix this
-  window.deck.setProps({layers: [window.pc_layer, window.path_layer, window.gauge_layer]});
+  createLayers(); // TODO: maybe optimize this so that only the right layers are recreated
+
+  window.deck.setProps({layers: window.layers});
 }
 
 function animationStep(now, metadata) {
@@ -345,27 +368,19 @@ function animationStep(now, metadata) {
     dash_clientside.set_props("current-time-div", {children: label});
   }
 
-  // change point cloud data if necessary
-  if (metadata) {
+  // change point cloud data if we are not displaying the united point cloud
+  if (metadata && !window.display_united) {
+    // pcl_layers_positions is a circular buffer when the animation is running
     while(window.pcl_timestamps[window.pcl_position] < metadata.mediaTime) {
       // move to new position
       window.pcl_position++;
       // rewrite old data with new data
       pcl_layers_positions[pcl_layers_index] = window.pcl_position;
-
-      console.log(pcl_layers_positions);
-
       // mark the next set of data as old data
       pcl_layers_index = (pcl_layers_index + 1) % window.curr_pcl_layers_cnt;
     }
 
-    // recreate the layers
-    window.layers = new Array(window.curr_pcl_layers_cnt + 2);
-    for (var i = 0; i < window.curr_pcl_layers_cnt; i++) {
-      window.layers[i] = createPointCloudLayer(i);
-    }
-    window.layers[window.curr_pcl_layers_cnt] = createPathLayer();
-    window.layers[window.curr_pcl_layers_cnt + 1] = createGaugeLayer();
+    createLayers();
     window.deck.setProps({layers: window.layers});
   }
  
@@ -410,6 +425,7 @@ function stopDeckAnimation() {
 
 // make the functions global
 window.initializeDeck = initializeDeck;
+window.changeLayersData = changeLayersData;
 window.updateDeck = updateDeck;
 window.updatePCLayerProps = updatePCLayerProps;
 window.updatePCLayer = updatePCLayer;
