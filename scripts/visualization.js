@@ -6,22 +6,22 @@ window.frames_cnt = 500;
 window.position = 0;
 window.pcl_position = 0;
 window.animation_running = false;
-window.frame_duration = 40;    // in milliseconds
-window.gauge_distance = '25';  // 25 meters
-window.scale_from = 0;         // boundaries of the point cloud color scale
+window.frame_duration = 40;     // in milliseconds
+window.gauge_distance = '25';   // 25 meters
+window.scale_from = 0;          // boundaries of the point cloud color scale
 window.scale_to = 18;
 window.scale_middle = 9;
-window.camera_offset_x = 0;    // camera offset set manually by the user
+window.camera_offset_x = 0;     // camera offset set manually by the user
 window.camera_offset_y = 0;
 window.camera_offset_z = 0;
 window.camera_offset_yaw = 0;
 window.camera_offset_pitch = 0;
+window.display_united = false;    // diplay united point cloud data
+window.curr_pcl_layers_cnt = 10;  // how many point cloud layer are displayed currently
+window.pcl_layers_cnt = 10;       // how many point cloud layer are displayed when displaying ununited pc
 
-const pcl_layers_cnt = 10;
-//var pcl_layers_positions = new Array(pcl_layers_cnt).fill(0);
-var pcl_layers_positions = new Array(pcl_layers_cnt).fill(0);
+var pcl_layers_positions = new Array(window.curr_pcl_layers_cnt).fill(0);
 var pcl_layers_index = 0;  // marks the oldest data which are to be replaced
-var layers = new Array(pcl_layers_cnt + 2);
 
 // color scales - mapping point intensity to colors
 // red - green - blue (from greatest to lowest intensity)
@@ -99,7 +99,9 @@ function gaugeGetPath(d) {
 function createPointCloudLayer(n) {
   return new PointCloudLayer({
     id: 'point-cloud-layer',
-    data: window.data_dict.layers[0].data[pcl_layers_positions[n]],
+    data: window.display_united
+      ? window.united_pc_data
+      : window.data_dict.layers[0].data[pcl_layers_positions[n]],
     getColor: window.data_dict.layers[0].pointColor === 'bgr'
       ? getColorBGR
       : getColorYP,
@@ -175,13 +177,13 @@ function initializeDeck() {
     controller: window.data_dict.views[0].controller
   });
 
-  window.layers = new Array(pcl_layers_cnt + 2);
+  window.layers = new Array(window.curr_pcl_layers_cnt + 2);
   // create the layers
-  for (var i = 0; i < pcl_layers_cnt; i++) {
+  for (var i = 0; i < window.curr_pcl_layers_cnt; i++) {
     window.layers[i] = createPointCloudLayer(i);
   }
-  window.layers[pcl_layers_cnt] = createPathLayer();
-  window.layers[pcl_layers_cnt + 1] = createGaugeLayer();
+  window.layers[window.curr_pcl_layers_cnt] = createPathLayer();
+  window.layers[window.curr_pcl_layers_cnt + 1] = createGaugeLayer();
 
   // the context is created manually to specify "preserveDrawingBuffer: true".
   // that is needed to enable reading the pixels of the visualisation for applying distortion.
@@ -233,7 +235,7 @@ function updateDeck() {
   window.deck.setProps({initialViewState: INITIAL_VIEW_STATE});
 
   // the loading gauge needs to move to a new position, so it needs a layer update
-  window.layers[pcl_layers_cnt + 1] = createGaugeLayer();
+  window.layers[window.curr_pcl_layers_cnt + 1] = createGaugeLayer();
   window.deck.setProps({layers: window.layers});
 }
 
@@ -248,9 +250,29 @@ function updatePCLayerProps(visible, point_size, point_color, opacity) {
 }
 
 function updatePCLayer() {
-  window.pc_layer = createPointCloudLayer();
-  // TODO: fix this
+  window.layers = new Array(window.curr_pcl_layers_cnt + 2);
+  // create the layers
+  for (var i = 0; i < window.curr_pcl_layers_cnt; i++) {
+    window.layers[i] = createPointCloudLayer(i);
+  }
+  window.layers[window.curr_pcl_layers_cnt] = createPathLayer();
+  window.layers[window.curr_pcl_layers_cnt + 1] = createGaugeLayer();
+  // TODO: maybe optimize this so that only the right layers are recreated
+
   window.deck.setProps({layers: window.layers});
+}
+
+function changePCMode(display_united) {
+  window.display_united = display_united;
+  
+  if (display_united == true) {
+    window.curr_pcl_layers_cnt = 1;
+  } else {
+    window.curr_pcl_layers_cnt = window.pcl_layers_cnt;
+    // TODO: set pcl_layers_positions and pcl_layers_index to the right values
+  }
+
+  updatePCLayer();
 }
 
 // to change vector data visibility, line width or color
@@ -334,16 +356,16 @@ function animationStep(now, metadata) {
       console.log(pcl_layers_positions);
 
       // mark the next set of data as old data
-      pcl_layers_index = (pcl_layers_index + 1) % pcl_layers_cnt;
+      pcl_layers_index = (pcl_layers_index + 1) % window.curr_pcl_layers_cnt;
     }
 
     // recreate the layers
-    window.layers = new Array(pcl_layers_cnt + 2);
-    for (var i = 0; i < pcl_layers_cnt; i++) {
+    window.layers = new Array(window.curr_pcl_layers_cnt + 2);
+    for (var i = 0; i < window.curr_pcl_layers_cnt; i++) {
       window.layers[i] = createPointCloudLayer(i);
     }
-    window.layers[pcl_layers_cnt] = createPathLayer();
-    window.layers[pcl_layers_cnt + 1] = createGaugeLayer();
+    window.layers[window.curr_pcl_layers_cnt] = createPathLayer();
+    window.layers[window.curr_pcl_layers_cnt + 1] = createGaugeLayer();
     window.deck.setProps({layers: window.layers});
   }
  
@@ -391,6 +413,7 @@ window.initializeDeck = initializeDeck;
 window.updateDeck = updateDeck;
 window.updatePCLayerProps = updatePCLayerProps;
 window.updatePCLayer = updatePCLayer;
+window.changePCMode = changePCMode;
 window.updatePathLayerProps = updatePathLayerProps;
 window.updatePathLayer = updatePathLayer;
 window.updateGaugeLayerProps = updateGaugeLayerProps;

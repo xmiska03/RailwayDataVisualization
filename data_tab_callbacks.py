@@ -57,6 +57,28 @@ def get_callbacks(app):
                                                                                 inv_rot_nparray[j])
                 inv_transf_matrices[i].append(inv_transf_matrix)
         return inv_transf_matrices
+    
+    # switch between displaying united and not united point cloud data
+    @app.callback(
+        Output('display-united-store', 'data'),
+        Input('display-united-checkbox', 'value'),
+        prevent_initial_call = True
+    )
+    def change_pc_mode(checkbox_values):
+        if 'united' in checkbox_values:
+            return True
+        else:
+            return False
+
+    app.clientside_callback(
+        """
+        function(display_united) {
+            window.changePCMode(display_united);
+        }
+        """,
+        Input('display-united-store', 'data')
+    )
+
 
     # upload/delete file with point cloud
     @app.callback(

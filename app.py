@@ -17,13 +17,13 @@ from general_functions import load_csv_into_nparray, load_yaml_into_dict, calcul
                               load_space_separated_into_nparray
 
 
-# load point cloud data
+# load unaggregated point cloud data
 pc_nparray = []
 for i in range(596):
     pc = PointCloud.from_path(f"data/joined/joined_pcd_files/pcd_{i}.pcd")
     pc_nparray.append(pc.numpy(("x", "y", "z", "intensity")))
 
-# load point cloud timestamps
+# load unaggregated point cloud timestamps
 pcl_timestamps = []
 with open("data/joined/joined_pcl_timestamps.txt", "r") as f:
     for line in f:
@@ -31,7 +31,10 @@ with open("data/joined/joined_pcl_timestamps.txt", "r") as f:
         if len(split_line) >= 2:
             pcl_timestamps.append(float(split_line[1]))
 
-#pc_nparray = pc_nparray[::10]   # reduce the size of the point cloud
+# load aggregated point cloud data
+#united_pc = PointCloud.from_path("data/joined/scans.pcd")
+united_pc = PointCloud.from_path("data/joined/joined_pcd_files/pcd_0.pcd")   # for development
+united_pc_nparray = united_pc.numpy(("x", "y", "z", "intensity"))
 
 # load camera parameters
 camera_params_dict = load_yaml_into_dict("data/camera_azd.yaml")
@@ -220,6 +223,10 @@ stores = [
         data=deck_dict
     ),
     dcc.Store(
+        id='united-pc-data',
+        data=united_pc_nparray
+    ),
+    dcc.Store(
         id='translations-data',
         data=trans_nparray
     ),
@@ -255,6 +262,11 @@ stores = [
     dcc.Store(
         id='pcl-timestamps-data',
         data=pcl_timestamps
+    ),
+
+    dcc.Store(
+        id='display-united-store',  # decides whether the app displays united point cloud data or not
+        data=False
     )
 ] 
 
@@ -296,9 +308,10 @@ app.layout = html.Div(
 # (re)initialize the deck visualization
 app.clientside_callback(
     """
-    function(data_dict, camera_timestamps, pcl_timestamps) {
+    function(data_dict, united_pc_data, camera_timestamps, pcl_timestamps) {
         if (window.initializeDeck) {
             window.data_dict = data_dict;  // make the data accessible to visualizations.js
+            window.united_pc_data = united_pc_data;
             window.pcl_timestamps = pcl_timestamps;
             window.camera_timestamps = camera_timestamps;
             window.initializeDeck();       // call function defined in the JavaScript file
@@ -308,6 +321,7 @@ app.clientside_callback(
     """,
     Output('visualization-data', 'id'),  # dummy output needed so that the initial call occurs
     Input('visualization-data', 'data'),
+    Input('united-pc-data', 'data'),
     Input('camera-timestamps-data', 'data'),
     State('pcl-timestamps-data', 'data')
 )

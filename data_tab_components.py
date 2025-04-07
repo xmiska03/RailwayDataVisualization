@@ -120,8 +120,14 @@ video_uploaded_file = dbc.Stack(
 )
 
 data_tab = [
-    dbc.Row(dbc.Placeholder(color="white")),
-    dbc.Row(html.Div("Mračno bodů:")),
+    dbc.Row(dcc.Checklist(
+            options=[{'label': ' zobrazovat spojené mračno bodů', 'value': 'united'}],
+            value=[],
+            id='display-united-checkbox',
+            style={'marginTop':'20px', 'marginBottom':'20px'}
+        )
+    ),
+    dbc.Row(html.Div("Spojené mračno bodů:")),
     dbc.Row(html.Div(point_cloud_upload, id="point-cloud-upload-div")),
     dbc.Row(html.Div(point_cloud_uploaded_file, id="point-cloud-uploaded-file-div")),
     dbc.Row(html.Div("Translace:")),
