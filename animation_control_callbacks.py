@@ -43,14 +43,15 @@ def get_callbacks(app):
                 const new_pos = (triggered_id == 'camera-position-input') ? parseInt(input_val) : slider_val;
                 
                 if (new_pos != window.position) {
-                    // update deck.gl visualization
-                    window.position = new_pos;
-                    window.updateDeck();  // call function defined in the JavaScript file
-                    
                     // update video
                     const video = document.getElementById('background-video');
                     const videoTime = window.camera_timestamps[new_pos];
                     video.currentTime = videoTime;
+
+                    // update deck.gl visualization
+                    window.position = new_pos;
+                    window.changeLayersData();  // in case that we are not displaying united point cloud
+                    window.updateDeck();  // call function defined in the JavaScript file
 
                     // update slider and input field and time label
                     dash_clientside.set_props("camera-position-slider-input", {value: new_pos});

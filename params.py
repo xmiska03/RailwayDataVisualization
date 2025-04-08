@@ -1,7 +1,7 @@
 import math
 
 # visualization parameters
-POINT_SIZE = 16
+POINT_SIZE = 20
 POSITION_OFFSET = [1.52, 0.22, 0.4]     # move the camera left/right, up/down
 BEARING = 90.64                 # turn the camera left/right
 #POSITION_OFFSET = [0, 0, 0]

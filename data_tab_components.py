@@ -148,7 +148,14 @@ data_tab = [
     dbc.Row(html.Div("Projektový soubor (.toml):"), style={'marginTop': '15px'}),
     dbc.Row(html.Div(project_file_upload, id="project-file-upload-div")),
     dbc.Row(html.Div(project_file_uploaded_file, id="project-file-uploaded-file-div")),
-    dbc.Row(html.Div("Mračno bodů (.pcd):")),
+    dbc.Row(dcc.Checklist(
+            options=[{'label': ' zobrazovat spojené mračno bodů', 'value': 'united'}],
+            value=[],
+            id='display-united-checkbox',
+            style={'marginTop':'20px', 'marginBottom':'20px'}
+        )
+    ),
+    dbc.Row(html.Div("Spojené mračno bodů:")),
     dbc.Row(html.Div(point_cloud_upload, id="point-cloud-upload-div")),
     dbc.Row(html.Div(point_cloud_uploaded_file, id="point-cloud-uploaded-file-div")),
     dbc.Row(html.Div("Translace (.csv):")),

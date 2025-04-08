@@ -37,16 +37,29 @@ def get_callbacks(app):
         prevent_initial_call=True
     )
 
-    # count an aggregation of the point cloud data by intensity for the color scale graph
+    # count an aggregation of the ununited point cloud data (by intensity, for the color scale graph)
     @app.callback(
-        Output('visualization-data-aggregation', 'data'),
+        Output('pc-data-aggregation', 'data'),
         Input('visualization-data', 'data')
     )
     def recount_data_aggregation(visualization_data):
         new_aggregation = [0 for _ in range(43)]
-        for point in visualization_data["layers"][0]["data"]:
+        for i in range(len(visualization_data["layers"][0]["data"])):
+            for point in visualization_data["layers"][0]["data"][i]:
+                if int(point[3]) < 43:
+                    new_aggregation[int(point[3])] += 1
+        return new_aggregation
+    
+    # count an aggregation of the united point cloud data (by intensity, for the color scale graph)
+    @app.callback(
+        Output('united-pc-data-aggregation', 'data'),
+        Input('united-pc-data', 'data')
+    )
+    def recount_data_aggregation(united_pc_data):
+        new_aggregation = [0 for _ in range(43)]
+        for point in united_pc_data:
             if int(point[3]) < 43:
-                new_aggregation[int(point[3])] += 1
+                new_aggregation[int(point[3])] += 1 
         return new_aggregation
 
     # change the graph of the color scale (when there is new data, new scale boundaries or colors)
@@ -55,17 +68,22 @@ def get_callbacks(app):
         Output('scale-boundaries-store', 'data'),
         Input('scale-from-input', 'value'),
         Input('scale-to-input', 'value'),
-        Input('visualization-data-aggregation', 'data'),
-        Input('scale-colors-store', 'data')
+        Input('scale-colors-store', 'data'),
+        Input('pc-data-aggregation', 'data'),
+        Input('united-pc-data-aggregation', 'data'),
+        Input('display-united-store', 'data')
     )
-    def change_scale_graph(scale_from_raw, scale_to_raw, data, colors):
+    def change_scale_graph(scale_from_raw, scale_to_raw, colors, pc_data, united_pc_data, display_united):
         scale_from = int(scale_from_raw)
         scale_to = int(scale_to_raw)
         patched_figure = Patch()
         
         # write data into the graph
         for i in range(43):
-            patched_figure["data"][0]["y"][i] = data[i]
+            if display_united:
+                patched_figure["data"][0]["y"][i] = united_pc_data[i]
+            else:
+                patched_figure["data"][0]["y"][i] = pc_data[i]
         
         # color the graph according to the boundaries and the set colors
         for i in range(43):

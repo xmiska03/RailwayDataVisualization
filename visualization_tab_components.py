@@ -47,13 +47,16 @@ color_scale_graph = [
         style={'height': '100px'}
     ), width=7),
     dcc.Store(
-        id='visualization-data-aggregation'  # needed for the graph
+        id='pc-data-aggregation'         # needed for the graph
+    ),
+    dcc.Store(
+        id='united-pc-data-aggregation'  # needed for the graph
     ),
     dcc.Store(
         id='scale-boundaries-store'
     ),
     dcc.Store(
-        id='scale-colors-store',  # needed for the graph
+        id='scale-colors-store',         # needed for the graph
         data='bgr'
     )
 ]
