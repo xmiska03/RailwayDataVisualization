@@ -144,7 +144,7 @@ deck_dict = {
 visualization = html.Div(
     [
         html.Video(
-            src="/assets/video_prolonged_compatible.mp4",
+            src="/assets/video_long_compatible.mp4",
             id="background-video",
             style={'width': '100%', 'height': 'auto', "display": "block"}
         ),
@@ -298,7 +298,7 @@ app = Dash(
     ]
 )
 
-app.server.config["MAX_CONTENT_LENGTH"] = 100 * 1024 * 1024  # 100MB to allow a longer video
+app.server.config["MAX_CONTENT_LENGTH"] = 200 * 1024 * 1024  # 200MB to allow a longer video
 
 # Dash app layout
 app.layout = html.Div(
