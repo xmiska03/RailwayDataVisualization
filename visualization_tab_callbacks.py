@@ -193,6 +193,16 @@ def get_callbacks(app):
         prevent_initial_call=True
     )
 
+    # set far plane
+    app.clientside_callback(
+        """
+        function(far_plane) {
+            // todo
+        }
+        """,
+        Input('far-plane-input', 'value')
+    )
+
     # distort the point cloud
     app.clientside_callback(
         """

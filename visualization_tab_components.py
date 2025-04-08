@@ -2,7 +2,7 @@
 
 from dash import html, dcc
 import dash_bootstrap_components as dbc
-from params import POINT_SIZE, OPACITY, LINE_WIDTH  # default values
+from params import POINT_SIZE, OPACITY, LINE_WIDTH, FAR_PLANE  # default values
 
 point_size_widget = [
     dbc.Col(html.Div("Velikost bodů: "), width=5),
@@ -176,6 +176,18 @@ back_to_default_button = [
     dbc.Col(dbc.Button("Vrátit původní", id="back-to-default-button", style={"width": "100%"}), width=4)
 ]
 
+far_plane_widget = [
+    dbc.Col(html.Div("Maximální vzdálenost [m]: "), width=6),
+    dbc.Col(dbc.Input(
+        value=f"{FAR_PLANE}",
+        id="far-plane-input",
+        type="number",
+        min=1,
+        max=500,
+        step=10
+    ), width=5)
+]
+
 
 visualization_tab = [
     dbc.Row(html.Div("Zobrazení vrstev:"), style={'marginTop': '15px'}),
@@ -219,6 +231,9 @@ visualization_tab = [
     dbc.Row(camera_position_yaw_widget),
     dbc.Row(camera_position_pitch_widget),
     dbc.Row(back_to_default_button),
+    dbc.Row(html.Hr(), style={"marginTop": "15px"}),
+
+    dbc.Row(far_plane_widget),
     dbc.Row(html.Hr(), style={"marginTop": "15px"}),
     
     dbc.Row(dbc.Button("Zkreslení", id="distortion-button"), style={"width":"10em", "marginLeft": "1px"})
