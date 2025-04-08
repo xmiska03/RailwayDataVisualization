@@ -1,40 +1,5 @@
 import numpy as np
-import csv
-import yaml
 from params import NEAR_PLANE, FAR_PLANE
-
-
-# loads a csv file into a numpy array
-def load_csv_into_nparray(file_address):
-    with open(file_address, 'r') as f:
-        reader = csv.reader(f)
-        data = list(reader)
-        return np.array(data, dtype=float)
-    
-# loads a space separated file into a numpy array
-def load_space_separated_into_nparray(file_address):
-    data = []
-    with open(file_address, 'r') as f:
-        for line in f:
-            data.append(line.split())
-        return np.array(data, dtype=float)
-
-# loads timestamps from file (like csv, but skips first line and saves only the first column)
-def load_timestamps_into_nparray(file_address):
-    with open(file_address, 'r') as f:
-        reader = csv.reader(f)
-        data = list(reader)
-        
-        result = []
-        for row in data[1:]:
-            result.append(row[0])
-        return np.array(result, dtype=float)
-
-# loads a yaml file into a python dictionary
-def load_yaml_into_dict(file_address):
-    with open(file_address, 'r') as f:
-        data = yaml.safe_load(f)
-        return data
 
 # creates a deck.gl-style projection matrix according to camera parameters
 def calculate_projection_matrix(camera_params_dict, K=np.array([])):

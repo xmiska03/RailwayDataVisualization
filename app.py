@@ -12,8 +12,8 @@ import gauge_tab_callbacks
 import animation_control_components
 import animation_control_callbacks
 import params
-from general_functions import load_csv_into_nparray, load_yaml_into_dict, calculate_projection_matrix, \
-                              calculate_translation_from_extr_mat, load_timestamps_into_nparray, \
+from general_functions import calculate_projection_matrix, calculate_translation_from_extr_mat
+from loading_functions import load_csv_into_nparray, load_yaml_into_dict, load_timestamps_into_nparray, \
                               load_space_separated_into_nparray
 
 
@@ -32,8 +32,8 @@ with open("data/joined/joined_pcl_timestamps.txt", "r") as f:
             pcl_timestamps.append(float(split_line[1]))
 
 # load aggregated point cloud data
-united_pc = PointCloud.from_path("data/joined/scans.pcd")
-#united_pc = PointCloud.from_path("data/joined/joined_pcd_files/pcd_0.pcd")   # for development
+#united_pc = PointCloud.from_path("data/joined/scans.pcd")
+united_pc = PointCloud.from_path("data/joined/joined_pcd_files/pcd_0.pcd")   # for development
 united_pc_nparray = united_pc.numpy(("x", "y", "z", "intensity"))
 
 # load camera parameters

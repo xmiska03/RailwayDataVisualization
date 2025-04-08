@@ -3,7 +3,6 @@
 from dash import Output, Input, State, Patch, ctx
 import base64
 import numpy as np
-import pandas as pd
 from pypcd4 import PointCloud
 import time
 import os
@@ -81,7 +80,7 @@ def get_callbacks(app):
     )
 
 
-    # upload/delete file with point cloud
+    # upload/delete project file
     @app.callback(
         Output('project-file-upload-div', 'style'),
         Output('project-file-uploaded-file-div', 'style'),
@@ -107,16 +106,18 @@ def get_callbacks(app):
             # file deleted (or it is the initial call)
             return {"display": "block"}, {"display": "none"}, "", Patch(), update_number+1
 
-    # upload/delete file with point cloud
+
+    # upload/delete file with united point cloud
     @app.callback(
-        Output('point-cloud-upload-div', 'style'),
-        Output('point-cloud-uploaded-file-div', 'style'),
-        Output('point-cloud-filename-div', 'children'),
-        Output('visualization-data', 'data'),
+        Output('united-pc-upload-div', 'style'),
+        Output('united-pc-uploaded-file-div', 'style'),
+        Output('united-pc-filename-div', 'children'),
+        Output('united-pc-data', 'data'),
+        #Output('visualization-data', 'data'),
         Output('update-pcd-store', 'data'),
-        Input('point-cloud-upload', 'contents'),
+        Input('united-pc-upload', 'contents'),
         Input('pcd-path-store', 'data'),
-        State('point-cloud-upload', 'filename'),
+        State('united-pc-upload', 'filename'),
         State('update-pcd-store', 'data'),
         prevent_initial_call = True
     )
@@ -128,10 +129,8 @@ def get_callbacks(app):
             # read the file
             pc = PointCloud.from_path(pcd_path)
             pc_nparray = pc.numpy(("x", "y", "z", "intensity"))
-            # create a patch for the visualization data store
-            patched_data = Patch()
-            patched_data["layers"][0]["data"] = pc_nparray
-            return {"display": "none"}, {"display": "block"}, filename, patched_data, update_number+1
+            # save the data to the store
+            return {"display": "none"}, {"display": "block"}, filename, pc_nparray, update_number+1
         elif file_content is not None:
             # new file uploaded
             content_type, content_string = file_content.split(',')
@@ -143,15 +142,17 @@ def get_callbacks(app):
             # read the temporary file
             pc = PointCloud.from_path(server_filename)
             pc_nparray = pc.numpy(("x", "y", "z", "intensity"))
-            # create a patch for the visualization data store
-            patched_data = Patch()
-            patched_data["layers"][0]["data"] = pc_nparray
             # delete the temporary file
             os.remove(server_filename)
-            return {"display": "none"}, {"display": "block"}, filename, patched_data, update_number+1
+            # save the data to the store
+            return {"display": "none"}, {"display": "block"}, filename, pc_nparray, update_number+1
         else:
             # file deleted (or it is the initial call)
             return {"display": "block"}, {"display": "none"}, "", Patch(), update_number+1
+
+    
+    # TODO: upload/delete files with divided point cloud
+
 
     # upload/delete file with translations
     @app.callback(
@@ -276,8 +277,8 @@ def get_callbacks(app):
     
     # delete file with point cloud
     @app.callback(
-        Output('point-cloud-upload', 'contents'),
-        Input('point-cloud-delete-button', 'n_clicks')
+        Output('united-pc-upload', 'contents'),
+        Input('united-pc-delete-button', 'n_clicks')
     )
     def delete_point_cloud(btn):
         return None
