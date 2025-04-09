@@ -195,7 +195,11 @@ app_right_col = dbc.Col(
                 style={"height": "70vh", "overflowY": "auto", "overflowX":"hidden"}
             ),
             dbc.Tab(
-                data_tab_components.data_tab, 
+                dcc.Loading(        # display a circle over the data tab when the app is loading something
+                    type="circle",
+                    overlay_style={"visibility":"visible"},
+                    children=data_tab_components.data_tab
+                ),
                 tab_id="data", 
                 label="Data", 
                 label_style={"padding": "10px"}
