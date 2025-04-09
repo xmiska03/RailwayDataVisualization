@@ -5,7 +5,7 @@ import dash_bootstrap_components as dbc
 
 
 upload_box_style = {
-    'width': '100%',
+    'width': '95%',
     'height': '40px',
     'lineHeight': '40px',
     'borderWidth': '1px',
@@ -131,13 +131,13 @@ data_tab = [
     ),
     
     # point cloud data
-    dbc.Row(html.Div("Spojené mračno bodů:")),
+    dbc.Row(html.Div("Spojené mračno bodů (.pcd):")),
     dbc.Row(html.Div(united_pc_upload, id="united-pc-upload-div")),
     dbc.Row(html.Div(united_pc_uploaded_file, id="united-pc-uploaded-file-div")),
     # divided point cloud (+ timestamps) is "read-only" in the GUI, can only be changed in the project file
-    dbc.Row(html.Div("Rozdělené mračno bodů:")),
+    dbc.Row(html.Div("Rozdělené mračno bodů (adresář s .pcd soubory):")),
     dbc.Row(html.Div(divided_pc_uploaded_files, id="divided-pc-uploaded-file-div")),
-    dbc.Row(html.Div("Časová razítka rozděleného mračna bodů:")),
+    dbc.Row(html.Div("Časová razítka rozděleného mračna bodů (.txt):")),
     dbc.Row(html.Div(pc_timestamps_uploaded_files, id="pc-timestamps-uploaded-file-div")),
     
     dbc.Row(html.Div("Translace (.csv):")),

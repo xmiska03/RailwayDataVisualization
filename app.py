@@ -202,7 +202,8 @@ app_right_col = dbc.Col(
                 ),
                 tab_id="data", 
                 label="Data", 
-                label_style={"padding": "10px"}
+                label_style={"padding": "10px"},
+                style={"height": "70vh", "overflowY": "auto", "overflowX":"hidden"}
             ),
             dbc.Tab(
                 gauge_tab_components.gauge_tab, 
