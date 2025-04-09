@@ -6,7 +6,9 @@
 
 \chapter{Vizualizácia dát z~mobilných mapovacích systémov}
 
-[stručný popis, aké dáta je potrebné zobrazovať]
+Výstupom mobilného mapovacieho systému je množstvo dát z rôznych senzorov. Dáta, ktoré boli poskytnuté k tvorbe tejto práce, obsahovali v prvom rade mračná bodov získané z lidaru. Aby bolo možné s týmito mračnami bodov pracovať a vhodne ich zobrazovať, je potrebné, aby mobilný mapovací systém zaznamenával údaje o svojej polohe. V tomto prípade boli k dispozícii údaje o transláciách a rotáciách kamery s časovými razítkami. Ďalej býva súčasťou mobilného mapovacieho systému klasická kamera. Pre zobrazenie mračna bodov takým spôsobom, aby sa zobrazenie čo najviac zhodovalo s kamerovým záznamom, je nutné poznať parametre kamery -- kalibračnú maticu a prípadne aj parametre skreslenia.
+
+Pri vývoji aplikácie, ktorá má umožniť vizualizáciu týchto dát a navyše aj ďalších vektorových dát, je nutné poznať základné princípy zobrazovania 3D dát v počítačovej grafike. Ďalej je potrebné vybrať si a naštudovať technológie, pomocou ktorých bude aplikácia vytvorená, a to konkrétne niektorý z frameworkov pre tvorbu aplikácií v jazyku Python a vhodný framework pre zobrazenie grafických dát. Práve to je predmetom tejto kapitoly.
 
 \section{Dierkový model kamery -- teoretický základ perspektívneho zobrazenia}
 
@@ -137,7 +139,7 @@ kde $\widetilde{\mathbf{C}}$ sú súradnice stredu kamery vo všeobecnom súradn
 
 Parametre $\mathrm{R}$ a $\widetilde{\mathbf{C}}$ označujeme ako \textbf{vonkajšie parametre kamery}.
 
-Zdrojom všetkých informácií v~tejto sekcii je kniha \emph{Multiple View Geometry in Computer Vision} od autorov R. Hartley a A. Zisserman \cite{multiple_view_geometry}.
+Zdrojom všetkých informácií, ktoré boli uvedené v~tejto sekcii, je kniha \emph{Multiple View Geometry in Computer Vision} od autorov R. Hartley a A. Zisserman \cite{multiple_view_geometry}.
 
 \section{Existujúce možnosti zobrazenia dát z~mobilných mapovacích systémov v~jazyku Python}
 
@@ -185,7 +187,7 @@ Cieľom tejto práce je vytvoriť používateľskú aplikáciu. Výsledná aplik
 \begin{itemize}
     \item Zobrazenie dát z~mobilného mapovacieho systému. Tieto dáta sú tvorené mračnom bodov, kamerovým záznamom, vektorovými dátami a údajmi o~pohybe vlaku a mali by byť zobrazené z~pohľadu strojvedúceho vlaku.
     \item Umožniť používateľovi vybrať si konkrétnu pozíciu vlaku aj prehrať si animáciu pohybu vlaku.
-    \item Umožniť používateľovi nahrať súbory s~dátami na zobrazenie: súbor s~mračnom bodov, video z~kamery na čele vlaku, súbor s~vektorovými dátami, textové súbory s~údajmi o~pohybe vlaku - pole translácií a pole rotácií.
+    \item Umožniť používateľovi nahrať súbory s~dátami na zobrazenie: súbor s~mračnom bodov, video z~kamery na čele vlaku, súbor s~vektorovými dátami, textové súbory s~údajmi o~pohybe vlaku -- pole translácií a pole rotácií.
     \item Poskytnúť používateľovi možnosti prispôsobenia zobrazenia, ako napríklad zmeny viditeľnosti jednotlivých vrstiev (mračno bodov, vektorové dáta, kamerový záznam) a základné nastavenia zobrazenia mračna bodov (rôzne farebné škály podľa intenzity, veľkosť a priehľadnosť bodov, zobrazenie bodov len do určitej vzdialenosti) aj vektorových dát (farba a hrúbka čiar). Užitočná by bola aj možnosť doladiť parametre zobrazovania mračna bodov a vektorových dát (posun aj otočenie kamery doprava/doľava, nahor/nadol, ohnisková vzdialenosť), aby bolo možné toto zobrazenie prispôsobiť záznamu z~kamery. Kamera totiž môže byť na vlaku rôzne umiestnená a údaje z~nej môžu byť oproti údajom z~mračna bodov posunuté.
     \item Zobrazovať prejazdný profil vlaku v~istej vzdialenosti pred vlakom a umožnovať prehrať animáciu jeho pohybu (podľa vektorových údajov o~koľajniciach).
     \item Detekovať prekážky na trati.
