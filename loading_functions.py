@@ -34,3 +34,13 @@ def load_yaml_into_dict(file_address):
     with open(file_address, 'r') as f:
         data = yaml.safe_load(f)
         return data
+    
+# load a pcl timestamps file (2 columns, space separated, in the second column a timestamp in seconds)
+def load_pcl_timestamps(file_address):
+    pcl_timestamps = []
+    with open(file_address, "r") as f:
+        for line in f:
+            split_line = line.split()
+            if len(split_line) >= 2:
+                pcl_timestamps.append(float(split_line[1]))
+    return pcl_timestamps

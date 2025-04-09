@@ -1,6 +1,6 @@
 # This file contains definitions of dash callbacks used in the "data" tab of the app.
 
-from dash import Output, Input, State, Patch, ctx
+from dash import Output, Input, State, Patch, ctx, no_update
 import base64
 import numpy as np
 from pypcd4 import PointCloud
@@ -10,6 +10,7 @@ from scipy.spatial.transform import Rotation
 import tomllib
 
 from general_functions import calculate_loading_gauge_transformation_matrix
+from loading_functions import load_pcl_timestamps
 
 
 def get_callbacks(app):
@@ -85,26 +86,39 @@ def get_callbacks(app):
         Output('project-file-upload-div', 'style'),
         Output('project-file-uploaded-file-div', 'style'),
         Output('project-file-filename-div', 'children'),
-        Output('pcd-path-store', 'data'),
-        Output('update-project-file-store', 'data'),
+        
+        Output('display-united-checkbox', 'value'),
+        Output('united-pcd-path-store', 'data'),
+        Output('divided-pcd-paths-store', 'data'),
+        Output('pc-timestamps-path-store', 'data'),
+        
         Input('project-file-upload', 'contents'),
         State('project-file-upload', 'filename'),
-        State('update-project-file-store', 'data'),
         prevent_initial_call = True
     )
-    def upload_point_cloud(file_content, filename, update_number):
+    def upload_project_file(file_content, filename):
         if file_content is not None:
             # new file uploaded
             content_type, content_string = file_content.split(',')
             decoded = base64.b64decode(content_string)
-
             data = tomllib.loads(decoded.decode("utf-8"))
-            pcd_path = os.path.join(data['project_path'], data['pcd_path'])
 
-            return {"display": "none"}, {"display": "block"}, filename, pcd_path, update_number+1
+            # load data from toml file and use them as needed
+            display_united_checkbox_val = ['united'] if data['show_united_pcd'] else []
+            united_pcd_path = os.path.join(data['project_path'], data['united_pcd_path'])
+            divided_pcd_paths = {
+                "dir_path": os.path.join(data['project_path'], data['divided_pcd_path']),
+                "filename_prefix": data['divided_pcd_filename_prefix'],
+                "files_cnt": data['divided_pcd_files_cnt']
+            }
+            pc_timestamps_path = os.path.join(data['project_path'], data['divided_pcd_timestamps_path'])
+
+            return {"display": "none"}, {"display": "block"}, filename, \
+                display_united_checkbox_val, united_pcd_path, divided_pcd_paths, pc_timestamps_path
         else:
             # file deleted (or it is the initial call)
-            return {"display": "block"}, {"display": "none"}, "", Patch(), update_number+1
+            return {"display": "block"}, {"display": "none"}, "", \
+                no_update, no_update, "", ""
 
 
     # upload/delete file with united point cloud
@@ -113,24 +127,23 @@ def get_callbacks(app):
         Output('united-pc-uploaded-file-div', 'style'),
         Output('united-pc-filename-div', 'children'),
         Output('united-pc-data', 'data'),
-        #Output('visualization-data', 'data'),
         Output('update-pcd-store', 'data'),
         Input('united-pc-upload', 'contents'),
-        Input('pcd-path-store', 'data'),
+        Input('united-pcd-path-store', 'data'),
         State('united-pc-upload', 'filename'),
         State('update-pcd-store', 'data'),
         prevent_initial_call = True
     )
-    def upload_point_cloud(file_content, pcd_path, filename, update_number):
-        if ctx.triggered_id == 'pcd-path-store':
+    def upload_united_pc(file_content, pcd_path, filename, update_number):
+        if ctx.triggered_id == 'united-pcd-path-store' and pcd_path != "":
             # the file path was set by the project file
             # get filename
-            filename = os.path.basename(pcd_path)
+            new_filename = os.path.basename(pcd_path)
             # read the file
             pc = PointCloud.from_path(pcd_path)
             pc_nparray = pc.numpy(("x", "y", "z", "intensity"))
             # save the data to the store
-            return {"display": "none"}, {"display": "block"}, filename, pc_nparray, update_number+1
+            return {"display": "none"}, {"display": "block"}, new_filename, pc_nparray, update_number+1
         elif file_content is not None:
             # new file uploaded
             content_type, content_string = file_content.split(',')
@@ -148,10 +161,56 @@ def get_callbacks(app):
             return {"display": "none"}, {"display": "block"}, filename, pc_nparray, update_number+1
         else:
             # file deleted (or it is the initial call)
-            return {"display": "block"}, {"display": "none"}, "", Patch(), update_number+1
+            return {"display": "block"}, {"display": "none"}, "", no_update, update_number+1
 
     
-    # TODO: upload/delete files with divided point cloud
+    # upload/delete files with divided point cloud
+    @app.callback(
+        Output('divided-pc-uploaded-file-div', 'style'),
+        Output('divided-pc-filename-div', 'children'),
+        Output('visualization-data', 'data'),
+        Input('divided-pcd-paths-store', 'data'),
+        prevent_initial_call = True
+    )
+    def upload_divided_pc(pcd_paths):
+        if ctx.triggered_id == 'divided-pcd-paths-store' and pcd_paths != "":
+            # the file path was set by the project file
+            # get directory name (in this case displayed instead of filename)
+            dirname = os.path.basename(pcd_paths['dir_path'])
+            # read the files one by one
+            data = []
+            for i in range(pcd_paths['files_cnt']):
+                file_path = os.path.join(pcd_paths['dir_path'], f"{pcd_paths['filename_prefix']}_{i}.pcd")
+                pc = PointCloud.from_path(file_path)
+                data.append(pc.numpy(("x", "y", "z", "intensity")))
+            # create a patch for the visualization data store
+            patched_data = Patch()
+            patched_data["layers"][0]["data"] = data
+            return {"display": "block"}, dirname, patched_data
+        else:
+            # it is the initial call
+            return {"display": "none"}, "", no_update
+
+
+    # upload/delete file with divided point cloud timestamps
+    @app.callback(
+        Output('pc-timestamps-uploaded-file-div', 'style'),
+        Output('pc-timestamps-filename-div', 'children'),
+        Output('pcl-timestamps-data', 'data'),
+        Input('pc-timestamps-path-store', 'data'),
+        prevent_initial_call = True
+    )
+    def upload_pc_timestamps(pc_timestamps_path):
+        if ctx.triggered_id == 'pc-timestamps-path-store' and pc_timestamps_path != "":
+            # the file path was set by the project file
+            # get filename
+            new_filename = os.path.basename(pc_timestamps_path)
+            # read the file
+            data = load_pcl_timestamps(pc_timestamps_path)
+            return {"display": "block"}, new_filename, data
+        else:
+            # it is the initial call
+            return {"display": "none"}, "", no_update
 
 
     # upload/delete file with translations
@@ -178,9 +237,10 @@ def get_callbacks(app):
             return {"display": "none"}, {"display": "block"}, filename, data
         else:
             # file deleted (or it is the initial call)
-            return {"display": "block"}, {"display": "none"}, "", Patch()
+            return {"display": "block"}, {"display": "none"}, "", no_update
 
-    # react to uploaded/deleted file with rotations
+
+    # upload/delete file with rotations
     @app.callback(
         Output('rotations-upload-div', 'style'),
         Output('rotations-uploaded-file-div', 'style'),
@@ -213,7 +273,8 @@ def get_callbacks(app):
             return {"display": "none"}, {"display": "block"}, filename, bearing_pitch_array, rotations, inv_rotations
         else:
             # file deleted (or it is the initial call)
-            return {"display": "block"}, {"display": "none"}, "", Patch(), Patch(), Patch()
+            return {"display": "block"}, {"display": "none"}, "", no_update, no_update, no_update
+
 
     # upload/delete file with video
     @app.callback(
@@ -239,8 +300,9 @@ def get_callbacks(app):
             return {"display": "none"}, {"display": "block"}, filename, server_filename, update_number+1
         else:
             # file deleted (or it is the initial call)
-            return {"display": "block"}, {"display": "none"}, "", Patch(), update_number+1
+            return {"display": "block"}, {"display": "none"}, "", no_update, update_number+1
     
+
     # set a new video to the same time as the old video
     app.clientside_callback(
         """
@@ -306,6 +368,9 @@ def get_callbacks(app):
     )
     def delete_video(btn):
         return None
+
+    # hide empty boxes at the start of the app
+
 
     # update window.frames_cnt, the total time label as well as the range of the slider & input 
     # which control train position when new timestamps data is uploaded

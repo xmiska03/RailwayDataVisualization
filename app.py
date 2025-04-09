@@ -14,7 +14,7 @@ import animation_control_callbacks
 import params
 from general_functions import calculate_projection_matrix, calculate_translation_from_extr_mat
 from loading_functions import load_csv_into_nparray, load_yaml_into_dict, load_timestamps_into_nparray, \
-                              load_space_separated_into_nparray
+                              load_space_separated_into_nparray, load_pcl_timestamps
 
 
 # load unaggregated point cloud data
@@ -24,12 +24,7 @@ for i in range(596):
     pc_nparray.append(pc.numpy(("x", "y", "z", "intensity")))
 
 # load unaggregated point cloud timestamps
-pcl_timestamps = []
-with open("data/joined/joined_pcl_timestamps.txt", "r") as f:
-    for line in f:
-        split_line = line.split()
-        if len(split_line) >= 2:
-            pcl_timestamps.append(float(split_line[1]))
+pcl_timestamps = load_pcl_timestamps("data/joined/joined_pcl_timestamps.txt")
 
 # load aggregated point cloud data
 #united_pc = PointCloud.from_path("data/joined/scans.pcd")
@@ -131,7 +126,7 @@ view_state = {
 
 view = {
     "projectionMatrix": proj_matrix,
-    "controller": True
+    "controller": False
 }
 
 deck_dict = {

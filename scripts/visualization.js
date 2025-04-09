@@ -287,7 +287,7 @@ function changePCMode(display_united) {
   window.display_united = display_united;
   
   if (display_united == true) {
-    window.curr_pcl_layers_cnt = 1;
+    window.curr_pc_layers_cnt = 1;
   } else {
     window.curr_pcl_layers_cnt = window.pcl_layers_cnt;
     // when not displaying united point cloud data, we need to choose data according to position

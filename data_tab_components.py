@@ -47,8 +47,6 @@ project_file_uploaded_file = dbc.Stack(
         html.Div("", id="project-file-filename-div"),
         spacer,
         dbc.Button(icon_x, id='project-file-delete-button', style=uploaded_file_box_style),
-        # a special store used to trigger a clienside callback to update the point cloud visualization
-        dcc.Store(id="update-project-file-store", data=0)
     ], direction="horizontal", gap=2, style={'margin': '10px'}
 )
 
@@ -60,7 +58,25 @@ united_pc_uploaded_file = dbc.Stack(
         dbc.Button(icon_x, id='united-pc-delete-button', style=uploaded_file_box_style),
         # a special store used to trigger a clienside callback to update the point cloud visualization
         dcc.Store(id="update-pcd-store", data=0),
-        dcc.Store(id="pcd-path-store", data="")
+        dcc.Store(id="united-pcd-path-store", data="")  # for a file path set by the project file
+    ], direction="horizontal", gap=2, style={'margin': '10px'}
+)
+
+divided_pc_uploaded_files = dbc.Stack(
+    [
+        html.I(className="bi bi-folder"),
+        html.Div("", id="divided-pc-filename-div"),
+        # this store will be set by the project file and it will be a dictionary with these keys:
+        # "dir_path", "filename_prefix", "files_cnt"
+        dcc.Store(id="divided-pcd-paths-store", data="")
+    ], direction="horizontal", gap=2, style={'margin': '10px'}
+)
+
+pc_timestamps_uploaded_files = dbc.Stack(
+    [
+        html.I(className="bi bi-file-earmark-text"),
+        html.Div("", id="pc-timestamps-filename-div"),
+        dcc.Store(id="pc-timestamps-path-store", data="")
     ], direction="horizontal", gap=2, style={'margin': '10px'}
 )
 
@@ -99,21 +115,31 @@ video_uploaded_file = dbc.Stack(
 )
 
 data_tab = [
-    dbc.Row(html.Div("Projektový soubor (.toml):"), style={'marginTop': '15px'}),
+    # project file
+    dbc.Row(html.Div("Projektový soubor (.toml):"), style={'marginTop': '15px', "fontWeight": "bold"}),
     dbc.Row(html.Div(project_file_upload, id="project-file-upload-div")),
     dbc.Row(html.Div(project_file_uploaded_file, id="project-file-uploaded-file-div")),
+    dbc.Row(html.Hr(style={'marginTop':'10px'})),
+    
+    # checkbox to choose between divided and united point cloud data
     dbc.Row(dcc.Checklist(
             options=[{'label': ' zobrazovat spojené mračno bodů', 'value': 'united'}],
             value=[],
             id='display-united-checkbox',
-            style={'marginTop':'20px', 'marginBottom':'20px'}
+            style={'marginBottom':'20px'}
         )
     ),
+    
+    # point cloud data
     dbc.Row(html.Div("Spojené mračno bodů:")),
     dbc.Row(html.Div(united_pc_upload, id="united-pc-upload-div")),
     dbc.Row(html.Div(united_pc_uploaded_file, id="united-pc-uploaded-file-div")),
+    # divided point cloud (+ timestamps) is "read-only" in the GUI, can only be changed in the project file
     dbc.Row(html.Div("Rozdělené mračno bodů:")),
-    #dbc.Row(html.Div(pc_uploaded_files, id="point-cloud-uploaded-file-div")),
+    dbc.Row(html.Div(divided_pc_uploaded_files, id="divided-pc-uploaded-file-div")),
+    dbc.Row(html.Div("Časová razítka rozděleného mračna bodů:")),
+    dbc.Row(html.Div(pc_timestamps_uploaded_files, id="pc-timestamps-uploaded-file-div")),
+    
     dbc.Row(html.Div("Translace (.csv):")),
     dbc.Row(html.Div(translations_upload, id="translations-upload-div")),
     dbc.Row(html.Div(translations_uploaded_file, id="translations-uploaded-file-div")),
