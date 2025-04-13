@@ -20,15 +20,15 @@ Princíp zobrazenia je nasledovný: obrazom bodu $\mathbf{X} = (X, Y, Z)^T$ je b
 
 \begin{figure}[h!]
     \centering
-    \includegraphics[width=0.7\linewidth]{text_prace/obrazky-figures/model_kamery1.jpg}
-    \caption{[TODO: prekresliť] Zakladný princíp dierkového modelu kamery.}
+    \includegraphics[width=0.7\linewidth]{text_prace/obrazky-figures/model_kamery1.pdf}
+    \caption{Zakladný princíp dierkového modelu kamery.}
     \label{fig:model_kamery1}
 \end{figure}
 
 \begin{figure}[h!]
     \centering
-    \includegraphics[width=0.7\linewidth]{text_prace/obrazky-figures/model_kamery2.jpg}
-    \caption{[TODO: prekresliť] Náčrt odvodenia súradníc bodu $\mathbf{x}$.}
+    \includegraphics[width=0.7\linewidth]{text_prace/obrazky-figures/model_kamery2.pdf}
+    \caption{Náčrt odvodenia súradníc bodu $\mathbf{x}$.}
     \label{fig:model_kamery2}
 \end{figure}
 
@@ -123,8 +123,8 @@ $\mathrm{P} = \begin{bmatrix} \mathrm{K} | 0 \end{bmatrix}$, kde $0$ predstavuje
 
 \begin{figure}[h!]
     \centering
-    \includegraphics[width=0.7\linewidth]{text_prace/obrazky-figures/model_kamery3.jpg}
-    \caption{[TODO: prekresliť] Súradnicový systém so stredom v~bode $(-p_x, -p_y, f)^T$ obrazovej roviny.}
+    \includegraphics[width=0.7\linewidth]{text_prace/obrazky-figures/model_kamery3.pdf}
+    \caption{Súradnicový systém so stredom v~bode $(-p_x, -p_y, f)^T$ obrazovej roviny.}
     \label{fig:model_kamery3}
 \end{figure}
 
@@ -150,9 +150,7 @@ Zdrojom všetkých informácií, ktoré boli uvedené v~tejto sekcii, je kniha \
 
 [parametre skreslenia, výpočet]
 
-\section{Existujúce možnosti zobrazenia dát z~mobilných mapovacích systémov v~jazyku Python}
-
-\subsubsection{Framework deck.gl a jeho nadstavba Pydeck}
+\section{Framework deck.gl a jeho nadstavba Pydeck}
 \label{sec:deck_gl}
 
 Pri vývoji webovej aplikácie pre vizualizáciu väčšieho množstva dát, u~ktorej má vykresľovanie prebiehať na strane klienta, teda vo webovom prehliadači, sa hodí priamo či nepriamo použiť niektorý z~frameworkov pre zobrazovanie dát v~jazyku JavaScript.
@@ -181,6 +179,57 @@ Knižnica Pydeck je dobrým prostriedkom na vytvorenie jednoduchých vizualizác
     \label{fig:pydeck_dashdeck_schema}
 \end{figure}
 
+\section{Porovnanie rôznych spôsobov nastavenia polohy kamery vo frameworku deck.gl}
+\label{sec:nastavenie_polohy_kamery}
+
+Súčasťou dodaných dát z~mobilného mapovacieho systému boli rotácie a translácie kamery. Pre nastavenie polohy vo frameworku deck.gl existujú dve možnosti:
+
+\begin{enumerate}
+    \item Aplikovať transformáciu na dáta a nechať kameru v~počiatku súradnicového systému, prípadne v~nejakom inom pevnom bode.
+    \item Nechať dáta v~pôvodnom stave a aplikovať všetky transformácie iba na kameru.
+\end{enumerate}
+
+Je zrejmé, že pre dosiahnutie rovnakého výsledku musí byť transformácia použitá v~druhom prípade inverzná k~tej, ktorá je použitá v~tom prvom.
+
+Bližším popisom a zhodnotením výhod a nevýhod týchto dvoch metód sa zaoberajú nasledujúce dve podsekcie.
+
+\subsubsection{Aplikovanie transformácií na dáta}
+
+Ako bolo zmienené v~sekcii \ref{sec:deck_gl}, dáta sa vo frameworku deck.gl členia do vrstiev. Každej vrstve je potom potrebné priradiť pole s~dátami a definovať pre ňu takzvané prístupové funkcie (\emph{data accessors}), ktoré určujú, akým spôsobom sa z~poľa s~dátami získa poloha a farba prvku. Napríklad u~vrstvy \texttt{PointCloudLayer} je potrebné definovať funkciu \texttt{getPosition} pre získanie polohy bodu a \texttt{getColor} pre výpočet farby bodu.
+
+Práve vo funkcii \texttt{getPosition} je možné aplikovať na polohu bodu ľubovoľnú transformáciu.
+
+Napríklad v~prípade, že je potrebné posunúť kameru v~mračne bodov o~10 jednotiek v~kladnom smere po osi x, by bolo možné vykonať túto transformáciu pomocou funkcie \texttt{getPosition} tak, že by sa posunul každý bod po osi x o~10 jednotiek v~zápornom smere. V~prípade, že by bol v~poli dát každý bod vo formáte \texttt{[x, y, z, intenzita]}, by potom funkcia \texttt{getPosition} vyzerala takto:
+
+\begin{lstlisting}
+function getPosition(d) {
+  return [d[0] - 10, d[1], d[2]];
+}
+\end{lstlisting}
+
+Výhodou tohto prístupu je, že je možné vykonať ľubovoľnú transformáciu, pretože do funkcie možno napísať akýkoľvek kód.
+
+Veľkou nevýhodou je časová náročnosť, pri zmene polohy kamery sa totiž musí prepočítať poloha každého bodu. Tieto výpočty sa vykonávajú na procesore a výsledky sa následne nahrávajú na grafickú kartu. To konštatuje aj samotná dokumentácia frameworku deck.gl, kde sa píše, že kľúčom k~tvorbe výkonných aplikácií je minimalizácia aktualizácií vrstiev, pri ktorých dochádza k~prepočítavaniu dát a ich opätovnému nahrávaniu na grafickú kartu. Taktiež je tam uvedené, že prístupové funkcie by mali byť čo najtriviálnejšie, pretože sa počítajú pre každú položku v~dátach, t. j. pre každý bod v~mračne bodov, a teda sa každé pridanie operácií naviac výrazne prejaví na výkonnosti. 99\% procesorového času venovaného aktualizácii dát vrstvy sa strávi práve volaním prístupových funkcií \cite{deck.gl_performance_optimization}.
+
+\subsubsection{Aplikovanie transformácií na kameru}
+
+Meniť polohu a orientáciu kamery je v~deck.gl možné pomocou troch parametrov: \texttt{position}, \texttt{bearing} a \texttt{pitch}. To sú rotácie iba podľa dvoch osí, a teda nie je možné dosiahnuť všeobecnú rotáciu -- chýba možnosť nastaviť rotáciu okolo tretej osi, takzvaný \emph{roll} uhol.
+
+V~dokumentácii deck.gl je popísaná aj trieda \texttt{Viewport}, u~ktorej je možné namiesto parametrov \texttt{position}, \texttt{bearing} a \texttt{pitch} nastaviť maticu pohľadu \texttt{viewMatrix}, čo znamená možnosť použiť akúkoľvek rotáciu. Problém je však v~tom, že sa v~dokumentácii už nikde nepíše, ako túto triedu použiť. Ide teda o~nezrovnalosť, pravdepodobne pozostatok z~predchádzajúcich verzií deck.gl, kde táto možnosť bola, ale medzičasom bola zrušená. V~aktuálnej verzii je možné túto maticu už iba prečítať, ale nie nahradiť vlastnou.
+
+Nevýhodou tohto spôsobu nastavenia polohy kamery teda je, že sa nedá nastaviť \emph{roll} uhol. Tento problém je však možné vyriešiť trikom, a to otočením HTML elementu \texttt{canvas}, do ktorého deck.gl vykresľuje výsledné zobrazenie, pomocou CSS vlastnosti \texttt{transform}. 
+
+Ďalšou miernou nevýhodou je, že ak potrebujeme na kameru aplikovať nejakú zložitejšiu transformáciu, ako je napríklad na obrázku \ref{fig:transformacie_kamery}, tak je potrebné odvodiť vzorce, ktorými sa táto zložitejšia transformácia prevedie na parametre \texttt{position}, \texttt{bearing} a \texttt{pitch}. S~použitím metódy popísanej v~predchádzajúcej podsekcii má totiž tento konkrétny problém jednoduchšie riešenie: z~translácie $T_1$ a rotácie $R$ sa zloží transformačná matica, ktorá sa použije v~prístupovej funkcii, a translácia $T_2$ sa priamo použije ako poloha kamery.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.8\linewidth]{text_prace/obrazky-figures/tri_transformacie.pdf}
+    \caption{Zjednodušený príklad situácie, kedy je potrebné kombinovať viacero transformácií kamery. Je k~dispozícii translácia $T_1$ a rotácia $R$, ale kameru je ešte potrebné posunúť doprava transláciou $T_2$, aby bola v~strede koľajníc.}
+    \label{fig:transformacie_kamery}
+\end{figure}
+
+Veľkou výhodou naopak je, že na rozdiel od predchádzajúceho spôsobu nedochádza k~žianym aktualizáciám vrstiev, teda nie je potrebné prepočítavať polohy bodov na procesore ani ich znova nahrávať na grafickú kartu. Tým sa výrazne zvýši výkonnosť.
+
 \section{Frameworky pre tvorbu interaktívnej webovej aplikácie v~jazyku Python}
 
 \subsubsection{Porovnanie frameworkov Streamlit a Dash}
@@ -205,7 +254,7 @@ Cieľom tejto práce bolo vytvoriť používateľskú aplikáciu. Výsledná apl
     \item Umožniť používateľovi nahrať súbory s~dátami na zobrazenie: súbor s~mračnom bodov, video z~kamery na čele vlaku, súbor s~vektorovými dátami, textové súbory s~údajmi o~pohybe vlaku -- pole translácií, pole rotácií a pole zodpovedajúcich časových razítok.
     \item Zobrazovať dva typy dát z~lidaru -- buď malé, postupne nasnímané mračná bodov s~časovými razítkami, alebo iba jedno celistvé mračno bodov, ktoré vzniklo ich spojením (u~oboch typov ale ide o~agregované dáta -- všetky body sú v~jednej spoločnej súradnicovej sústave). Umožniť používateľovi prepínať medzi týmito dvoma typmi.
     \item Poskytnúť používateľovi možnosti prispôsobenia zobrazenia, ako napríklad zmeny viditeľnosti jednotlivých vrstiev (mračno bodov, vektorové dáta, kamerový záznam) a základné nastavenia zobrazenia mračna bodov (rôzne farebné škály podľa intenzity, veľkosť a priehľadnosť bodov, zobrazenie bodov len do určitej vzdialenosti) aj vektorových dát (farba a hrúbka čiar). Užitočná by bola aj možnosť doladiť parametre zobrazovania mračna bodov a vektorových dát (posun aj otočenie kamery doprava/doľava, nahor/nadol, posun dopredu/dozadu), aby bolo možné toto zobrazenie prispôsobiť záznamu z~kamery. Kamera totiž môže byť na vlaku rôzne umiestnená a údaje z~nej môžu byť oproti údajom z~mračna bodov posunuté.
-    \item Zobrazovať prejazdný profil vlaku v~predikovanej polohe v~rôznych vzdialenostiach pred vlakom - 25, 50, 75 a 100m. Zobrazovať aj čiaru spájajúcu predikované polohy. Umožniť používateľovi nahrať súbory s~týmito predikovanými polohami.
+    \item Zobrazovať prejazdný profil vlaku v~predikovanej polohe v~rôznych vzdialenostiach pred vlakom -- 25, 50, 75 a 100m. Zobrazovať aj čiaru spájajúcu predikované polohy. Umožniť používateľovi nahrať súbory s~týmito predikovanými polohami.
     \item Intuitívnosť a používateľská prívetivosť.
 
 \end{itemize}
@@ -228,7 +277,11 @@ Preto by mala výsledná aplikácia kombinovať oba prístupy, projektový súbo
 
 \chapter{Implementácia navrhnutej aplikácie}
 
-Prvou fázou implementácie bolo napísanie skriptu v~jazyku Python, ktorý vykresľoval mračno bodov bez použitia špeciálnych knižníc či frameworkov. K~dispozícii pritom bola jedna sada ukážkových dát, ktorá sa skladala z~mračna bodov, kalibračnej matice a postupnosti translácií a rotácií, ktoré predstavovali pohyb vlaku po trati. Mračno bodov obsahovalo 201~880 bodov s~intenzitou od 0 do 42 a bolo definovaných 500 polôh vlaku. K~tomu boli dodané obrázky, ktoré ukazovali, ako by mal vyzerať výsledok zobrazenia (obrázok \ref{fig:referencny-obrazok}).
+[krátke zhrnutie finálnej implementácie]
+
+\section{Prvá etapa implementácie -- hľadanie vhodných technológií}
+
+Prvým krokom implementácie bolo napísanie skriptu v~jazyku Python, ktorý vykresľoval mračno bodov bez použitia špeciálnych knižníc či frameworkov. K~dispozícii pritom bola jedna sada ukážkových dát, ktorá sa skladala z~mračna bodov, kalibračnej matice a postupnosti translácií a rotácií, ktoré predstavovali pohyb vlaku po trati. Mračno bodov obsahovalo 201~880 bodov s~intenzitou od 0 do 42 a bolo definovaných 500 polôh vlaku. K~tomu boli dodané obrázky, ktoré ukazovali, ako by mal vyzerať výsledok zobrazenia (obrázok \ref{fig:referencny-obrazok}).
 
 \begin{figure}[h]
     \centering
@@ -237,7 +290,7 @@ Prvou fázou implementácie bolo napísanie skriptu v~jazyku Python, ktorý vykr
     \label{fig:referencny-obrazok}
 \end{figure}
 
-Cieľom tejto prvotnej fázy bolo najmä oboznámenie sa s~dátami a základnými princípmi vykresľovania bodov. Výsledky, ktoré sa nakoniec podarilo dosiahnuť, boli podobné referenčným obrázkom, aj keď nie úplne identické. Ukázalo sa, že údaje o~pohybe kamery majú iný súradnicový systém ako mračno bodov (líšilo sa poradie ôs) a že je potrebné pridať isté posunutie a otočenie, aby sa výsledky podobali referenčným obrázkom (posunutie kamery do stredu vlaku, podľa dodaných dát bola naľavo od stredu).
+Cieľom tejto prvotnej fázy bolo najmä oboznámenie sa s~dátami a základnými princípmi vykresľovania bodov. Výsledky, ktoré sa nakoniec podarilo dosiahnuť, boli podobné referenčným obrázkom, aj keď nie úplne identické. Ukázalo sa, že údaje o~pohybe kamery majú iný súradnicový systém ako mračno bodov (líšilo sa poradie ôs) a že je potrebné pridať isté posunutie a rotáciu, aby sa výsledky podobali referenčným obrázkom (posunutie kamery do stredu vlaku, podľa dodaných dát bola naľavo od stredu).
 
 Ďalej už nasledovala práca s~existujúcimi knižnicami a frameworkami v~jazyku Python. Prvotným plánom bolo použiť knižnicu Pydeck (pre vizualizáciu dát) s~frameworkom Streamlit (pre tvorbu GUI). Pydeck bol zvolený preto, že je nadstavbou nad javascriptovým frameworkom deck.gl, ktorý pri vykresľovaní dát využíva hardwarovú akceleráciu (GPU) a má dobrú výkonnosť. Ukázalo sa však, že Streamlit nepodporuje Pydeck v~plnej miere, a teda sa nedá využiť. Preto bol namiesto Streamlitu použitý framework Dash, ktorý už mal podporu pre Pydeck dostatočnú.
 
@@ -291,11 +344,43 @@ Meranie výkonnosti vykresľovania mračna bodov pred a po optimalizácii je pop
     \label{tab:js_optimalizacia_po}
 \end{table}
 
-Riadenie animácie pomocou komponentu \texttt{Interval} frameworku Dash je pomerne ťažkopádne, pretože funguje na základe komunikácie medzi klientom a serverom a tým animáciu spomaľuje. Preto by bolo vhodné ho niečím nahradiť, napríklad riadením animácie v~Javascripte iba na klientskej strane.
+Riadenie animácie pomocou komponentu \texttt{Interval} frameworku Dash je pomerne ťažkopádne, pretože funguje na základe komunikácie medzi klientom a serverom a tým animáciu spomaľuje. Preto bolo vhodné ho niečím nahradiť, napríklad riadením animácie v~Javascripte iba na klientskej strane.
 
+[odmerať a popísať, ako sa to vylepšilo]
 
+\section{Výber spôsobu nastavenia polohy kamery}
 
-\section{Experimenty a vyhodnotenie výsledkov}
+V~sekcii \ref{sec:nastavenie_polohy_kamery} boli popísané dva rôzne spôsoby nastavenia polohy kamery vo frameworku deck.gl. V~implementácii aplikácie bol použitý najprv prvý spôsob, teda aplikovanie transformácií na dáta, pretože bol jednoduchší a priamo vyplynul z~prvej fázy implementácie (vykreslenie mračna bodov v~jazyku Python bez použitia frameworku). Ten bol následne zmenený na druhý spôsob, teda aplikovanie transformácií na kameru, pretože sa ukázalo, že tak dôjde k~významnej optimalizácii.
+
+Nasledujúce merania prebiehali na notebooku s~operačným systémom Ubuntu 24.04.1, procesorom Intel Core i5-9300H~×~8, grafickou kartou Intel UHD Graphics 630 (CFL GT2) a veľkosťou operačnej pamäte 16~GiB, v~prehliadači Google Chrome 133.0.6943.126 s~rozlíšením obrazovky 1480~×~832. Bol použitý profiler vstavaný v~tomto prehliadači.
+
+V~aplikácii sa prehrávala animácia pohybu kamery spojená s~videom. Vizualizované dáta tvorila jedna vrstva \texttt{PointCloudLayer}, ktorá obsahovala 201~880 bodov.
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=1\linewidth]{text_prace/obrazky-figures/profiling1.pdf}
+    \caption{Profiling animácie pohybu kamery pred optimalizáciou. Transformácie sa aplikujú na dáta a počítajú sa na CPU.}
+    \label{fig:profiling1}
+\end{figure}
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=1\linewidth]{text_prace/obrazky-figures/profiling2.pdf}
+    \caption{Profiling animácie pohybu kamery po optimalizácii. Transformácie sa aplikujú iba na kameru.}
+    \label{fig:profiling2}
+\end{figure}
+
+Z~nameraných údajov vyplýva, že táto optimalizácia veľmi výrazne znížila zaťaženie procesora. Zatiaľ čo pred optimalizáciou (obr. \ref{fig:profiling1}) sa počas trojsekudového intervalu vykonával javascriptový kód 2,745 sekúnd, po optimalizácii (obr. \ref{fig:profiling2}) to bolo iba 239 milisekúnd, čo predstavuje viac než desaťnásobné zníženie.
+
+Dôležitou metrikou pri posudzovaní výkonnosti animácií je snímková frekvencia meraná v~FPS (\emph{frames per second}, počet vykreslených snímkov za sekundu). V~ideálnom prípade by sa snímková frekvencia mala blížiť 60~FPS, pretože vtedy sa animácia ľudskému oku zdá hladká \cite{chrome_profiling}.
+
+Podľa vstavaného ukazovateľa snímkovej frekvencie v~prehliadači Google Chrome dosahovala skúmaná animácia pred optimalizáciu zhruba 28 až 34~FPS, zatiaľ čo po nej 51 až 55~FPS. Aj v~tomto ohľade teda nastalo významné zlepšenie.
+
+\section{Zobrazenie prejazdného profilu vlaku}
+
+\section{Implementácia animácie pohybu vlaku}
+
+\section{Vyhodnotenie používateľskej prívetivosti aplikácie}
 
 \chapter{Záver}
 
