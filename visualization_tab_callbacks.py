@@ -156,14 +156,15 @@ def get_callbacks(app):
     # change virtual camera position
     app.clientside_callback(
         """
-        function(x, y, z, yaw, pitch) {
+        function(x, y, z, yaw, pitch, roll) {
             if (window.updateDeck) {
                 window.camera_offset_x = parseFloat(x);
                 window.camera_offset_y = parseFloat(y);
                 window.camera_offset_z = parseFloat(z);
                 window.camera_offset_yaw = parseFloat(yaw);
                 window.camera_offset_pitch = parseFloat(pitch);
-                console.log("new virtual camera settings: ", x, y, z, yaw, pitch)
+                window.camera_offset_roll = parseFloat(roll);
+                console.log("new virtual camera settings: ", x, y, z, yaw, pitch, roll)
 
                 // call function defined in the JavaScript file
                 window.updateDeck();
@@ -175,6 +176,7 @@ def get_callbacks(app):
         Input('camera-z-slider-input', 'value'),
         Input('camera-yaw-slider-input', 'value'),
         Input('camera-pitch-slider-input', 'value'),
+        Input('camera-roll-slider-input', 'value'),
         prevent_initial_call=True
     )
 
@@ -187,6 +189,7 @@ def get_callbacks(app):
             dash_clientside.set_props("camera-z-slider-input", {value: 0});
             dash_clientside.set_props("camera-yaw-slider-input", {value: 0});
             dash_clientside.set_props("camera-pitch-slider-input", {value: 0});
+            dash_clientside.set_props("camera-roll-slider-input", {value: 0});
         }
         """,
         Input('back-to-default-button', 'n_clicks'),

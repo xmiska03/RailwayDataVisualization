@@ -16,6 +16,7 @@ window.camera_offset_y = 0;
 window.camera_offset_z = 0;
 window.camera_offset_yaw = 0;
 window.camera_offset_pitch = 0;
+window.camera_offset_roll = 0;
 window.display_united = false;    // diplay united point cloud data
 window.curr_pcl_layers_cnt = 10;  // how many point cloud layer are displayed currently
 window.pcl_layers_cnt = 10;       // how many point cloud layer are displayed when displaying ununited pc
@@ -174,8 +175,8 @@ function initializeDeck() {
   }
 
   const INITIAL_VIEW_STATE = {
-    bearing: window.data_dict.initialViewState.bearing + window.bearing_pitch[window.position][0],
-    pitch: window.data_dict.initialViewState.pitch + window.bearing_pitch[window.position][1],
+    bearing: window.data_dict.initialViewState.bearing + window.window.rotations_euler[window.position][0],
+    pitch: window.data_dict.initialViewState.pitch + window.window.rotations_euler[window.position][1],
     position: [
       window.data_dict.initialViewState.position[0] + window.translations[window.position][0],
       window.data_dict.initialViewState.position[1] + window.translations[window.position][1],
@@ -238,7 +239,7 @@ function updateDeck() {
       (window.data_dict.initialViewState)
     - custom camera offset set by the user (window.camera_offset_*)
     - current position of the train (determined by the window.position variable, data is in arrays 
-      window.translations, window.rotations_inv, window.bearing_pitch)
+      window.translations, window.rotations_inv, window.rotations_euler)
   */
   const pos = window.position;
 
@@ -256,11 +257,15 @@ function updateDeck() {
 
   // make a new viewstate from the new position
   const INITIAL_VIEW_STATE = {
-    bearing: window.data_dict.initialViewState.bearing + window.bearing_pitch[pos][0] + window.camera_offset_yaw,
-    pitch: window.data_dict.initialViewState.pitch + window.bearing_pitch[pos][1] + window.camera_offset_pitch,
+    bearing: window.data_dict.initialViewState.bearing + window.window.rotations_euler[pos][0] + window.camera_offset_yaw,
+    pitch: window.data_dict.initialViewState.pitch + window.window.rotations_euler[pos][1] + window.camera_offset_pitch,
     position: [final_x, final_y, final_z]
   };
   window.deck.setProps({initialViewState: INITIAL_VIEW_STATE});
+
+  // add roll angle by rotating the canvas
+  const canvas = document.getElementById('visualization-canvas');
+  canvas.style.transform = `rotate(${ window.window.rotations_euler[pos][2] + window.camera_offset_roll }deg)`;
 
   createLayers();  // TODO: maybe optimize this so that only the right layers are recreated (only gauge here)
 

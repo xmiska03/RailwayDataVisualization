@@ -45,12 +45,12 @@ trans_nparray = load_csv_into_nparray("data/joined/trans_joined.csv")[:, [2, 0, 
 rot_nparray_raw = load_csv_into_nparray("data/joined/rot_joined.csv")
 rot_nparray = []
 rot_inv_nparray = []
-bearing_pitch_array = []
+rot_euler_array = []
 for rotation_xzy in rot_nparray_raw:
     # if translations are in order yzx instead of xyz, then rotations are in order xzy instead of zyx
     rotation = Rotation.from_euler("xzy", rotation_xzy, degrees=True)
     rotation_zyx = rotation.inv().as_euler("zyx", degrees=True)
-    bearing_pitch_array.append([-rotation_zyx[0], rotation_zyx[1]])  # only bearing (z) and pitch (y)
+    rot_euler_array.append([-rotation_zyx[0], rotation_zyx[1], -rotation_zyx[2]])
     rot_nparray.append(rotation.as_matrix())
     rot_inv_nparray.append(rotation.inv().as_matrix())
 # load timestamps
@@ -161,7 +161,8 @@ visualization = html.Div(
         )
     ],
     style = {
-        "position": "relative" 
+        'position': 'relative',
+        'overflow': 'hidden'
     }
 )
 
@@ -254,6 +255,10 @@ stores = [
         id='rotations-inv-data',
         data=rot_inv_nparray
     ),
+    dcc.Store(
+        id='rotations-euler-data',
+        data=rot_euler_array
+    ),
     
     dcc.Store(
         id='gauge-trans-data',         # for the loading gauge (train profile)
@@ -267,10 +272,6 @@ stores = [
         id='gauge-transf-data'
     ),
     
-    dcc.Store(
-        id='bearing-pitch-data',   # special rotations for deck.gl 
-        data=bearing_pitch_array
-    ),
     dcc.Store(
         id='camera-timestamps-data',
         data=timestamps_nparray

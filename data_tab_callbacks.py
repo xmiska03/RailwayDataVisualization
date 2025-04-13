@@ -18,13 +18,13 @@ def get_callbacks(app):
     # copy the transformations data from a store to the window object
     app.clientside_callback(
         """
-        function(gauge_transf_data, translations_data, rotations_data, rotations_inv_data, bearing_pitch_data) {
+        function(gauge_transf_data, translations_data, rotations_data, rotations_inv_data, rot_euler_data) {
             // make the data accessible for the visualization.js script
             window.gauge_transf = gauge_transf_data;
             window.translations = translations_data;
             window.rotations = rotations_data;
             window.rotations_inv = rotations_inv_data;
-            window.bearing_pitch = bearing_pitch_data;
+            window.rotations_euler = rot_euler_data;
             // update the visualization if it is already created
             if (window.deck_initialized) {
                 window.updateDeck();  // call function defined in the JavaScript file
@@ -37,7 +37,7 @@ def get_callbacks(app):
         State('translations-data', 'data'),
         State('rotations-data', 'data'),
         State('rotations-inv-data', 'data'),
-        State('bearing-pitch-data', 'data')
+        State('rotations-euler-data', 'data')
     )
     
     # calculate new loading gauge transformations when new guage translations or rotations are uploaded
@@ -245,7 +245,7 @@ def get_callbacks(app):
         Output('rotations-upload-div', 'style'),
         Output('rotations-uploaded-file-div', 'style'),
         Output('rotations-filename-div', 'children'),
-        Output('bearing-pitch-data', 'data'),
+        Output('rotations-euler-data', 'data'),
         Output('rotations-data', 'data'),
         Output('rotations-inv-data', 'data'),
         Input('rotations-upload', 'contents'),
@@ -259,18 +259,18 @@ def get_callbacks(app):
             decoded_lines = base64.b64decode(content_string).decode("utf-8").split('\n')
             rotations = []
             inv_rotations = []
-            bearing_pitch_array = []
+            rotations_euler = []
             for line in decoded_lines:         # parse the csv
                 split_line = line.split(',')
                 if len(split_line) >= 3:
                     rot_array = [float(split_line[0]), float(split_line[1]), float(split_line[2])]
                     rotation = Rotation.from_euler("xzy", rot_array, degrees=True)
                     rotation_zyx = rotation.inv().as_euler("zyx", degrees=True)
-                    bearing_pitch_array.append([-rotation_zyx[0], rotation_zyx[1]])  # only bearing (z) and pitch (y)
+                    rotations_euler.append([-rotation_zyx[0], rotation_zyx[1], rotation_zyx[2]])
                     rotations.append(rotation.as_matrix())
                     inv_rotations.append(rotation.inv().as_matrix())
             
-            return {"display": "none"}, {"display": "block"}, filename, bearing_pitch_array, rotations, inv_rotations
+            return {"display": "none"}, {"display": "block"}, filename, rotations_euler, rotations, inv_rotations
         else:
             # file deleted (or it is the initial call)
             return {"display": "block"}, {"display": "none"}, "", no_update, no_update, no_update

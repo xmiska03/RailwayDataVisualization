@@ -121,8 +121,8 @@ camera_position_x_widget = [
         value=0,
         id="camera-x-slider-input",
         type="range",
-        min=-2,
-        max=2,
+        min=-3,
+        max=3,
         style={"margin": "10px", "width": "95%"}
     ), width=7)
 ]
@@ -170,6 +170,18 @@ camera_position_pitch_widget = [
         style={"margin": "10px", "width": "95%"}
     ), width=7)
 ]
+camera_position_roll_widget = [
+    dbc.Col(html.Div("Naklonění doleva/doprava: "), width=4),
+    dbc.Col(dcc.Input(
+        value=0,
+        id="camera-roll-slider-input",
+        type="range",
+        min=-4,
+        max=4,
+        style={"margin": "10px", "width": "95%"}
+    ), width=7)
+]
+
 
 back_to_default_button = [
     dbc.Col(html.Div(""), width=7),
@@ -218,6 +230,7 @@ visualization_tab = [
     dbc.Row(camera_position_z_widget),
     dbc.Row(camera_position_yaw_widget),
     dbc.Row(camera_position_pitch_widget),
+    dbc.Row(camera_position_roll_widget),
     dbc.Row(back_to_default_button),
     dbc.Row(html.Hr(), style={"marginTop": "15px"}),
     
