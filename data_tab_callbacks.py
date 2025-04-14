@@ -10,7 +10,7 @@ from scipy.spatial.transform import Rotation
 import tomllib
 
 from general_functions import calculate_loading_gauge_transformation_matrix
-from loading_functions import load_pcl_timestamps
+from loading_functions import load_pcl_timestamps, load_csv_into_nparray
 
 
 def get_callbacks(app):
@@ -34,8 +34,8 @@ def get_callbacks(app):
         """,
         Output('translations-data', 'id'),  # dummy output needed so that the initial call occurs
         Input('gauge-transf-data', 'data'),
-        State('translations-data', 'data'),
-        State('rotations-data', 'data'),
+        Input('translations-data', 'data'),
+        Input('rotations-data', 'data'),
         State('rotations-inv-data', 'data'),
         State('rotations-euler-data', 'data')
     )
@@ -91,6 +91,10 @@ def get_callbacks(app):
         Output('united-pcd-path-store', 'data'),
         Output('divided-pcd-paths-store', 'data'),
         Output('pc-timestamps-path-store', 'data'),
+
+        Output('translations-path-store', 'data'),
+        Output('rotations-path-store', 'data'),
+        Output('video-path-store', 'data'),
         
         Input('project-file-upload', 'contents'),
         State('project-file-upload', 'filename'),
@@ -112,13 +116,18 @@ def get_callbacks(app):
                 "files_cnt": data['divided_pcd_files_cnt']
             }
             pc_timestamps_path = os.path.join(data['project_path'], data['divided_pcd_timestamps_path'])
+            translations_path = os.path.join(data['project_path'], data['translations_path'])
+            rotations_path = os.path.join(data['project_path'], data['rotations_path'])
+            timestamps_path = os.path.join(data['project_path'], data['timestamps_path'])
+            video_path = os.path.join(data['project_path'], data['video_path'])
 
             return {"display": "none"}, {"display": "block"}, filename, \
-                display_united_checkbox_val, united_pcd_path, divided_pcd_paths, pc_timestamps_path
+                display_united_checkbox_val, united_pcd_path, divided_pcd_paths, pc_timestamps_path, \
+                translations_path, rotations_path, video_path
         else:
             # file deleted (or it is the initial call)
             return {"display": "block"}, {"display": "none"}, "", \
-                no_update, no_update, "", ""
+                no_update, no_update, "", "", no_update, no_update, no_update
 
 
     # upload/delete file with united point cloud
@@ -220,11 +229,20 @@ def get_callbacks(app):
         Output('translations-filename-div', 'children'),
         Output('translations-data', 'data'),
         Input('translations-upload', 'contents'),
+        Input('translations-path-store', 'data'),
         State('translations-upload', 'filename'),
         prevent_initial_call = True
     )
-    def upload_translations(file_content, filename):
-        if file_content is not None:
+    def upload_translations(file_content, translations_path, filename):
+        if ctx.triggered_id == 'translations-path-store' and translations_path != "":
+            # the file path was set by the project file
+            # get filename
+            new_filename = os.path.basename(translations_path)
+            # read the file
+            trans_nparray = load_csv_into_nparray(translations_path)[:, [2, 0, 1]]
+            # save the data to the store
+            return {"display": "none"}, {"display": "block"}, new_filename, trans_nparray
+        elif file_content is not None:
             # new file uploaded
             content_type, content_string = file_content.split(',')
             decoded_lines = base64.b64decode(content_string).decode("utf-8").split('\n')
@@ -249,11 +267,26 @@ def get_callbacks(app):
         Output('rotations-data', 'data'),
         Output('rotations-inv-data', 'data'),
         Input('rotations-upload', 'contents'),
+        Input('rotations-path-store', 'data'),
         State('rotations-upload', 'filename'),
         prevent_initial_call = True
     )
-    def upload_rotations(file_content, filename):
-        if file_content is not None:
+    def upload_rotations(file_content, rotations_path, filename):
+        if ctx.triggered_id == 'rotations-path-store' and rotations_path != "":
+            # the file path was set by the project file
+            # get filename
+            new_filename = os.path.basename(rotations_path)
+            # read the file
+            rot_nparray = load_csv_into_nparray(rotations_path)[:, [2, 0, 1]]
+            
+            # TODO
+            
+            rotations_euler = []
+            rotations = []
+            inv_rotations = []
+            # save the data to the store
+            return {"display": "none"}, {"display": "block"}, new_filename, no_update, no_update, no_update
+        elif file_content is not None:
             # new file uploaded
             content_type, content_string = file_content.split(',')
             decoded_lines = base64.b64decode(content_string).decode("utf-8").split('\n')
@@ -284,12 +317,23 @@ def get_callbacks(app):
         Output('background-video', 'src'),
         Output('update-video-store', 'data'),  # to set the same position in the new video
         Input('video-upload', 'contents'),
+        Input('video-path-store', 'data'),
         State('video-upload', 'filename'),
         State('update-video-store', 'data'),
         prevent_initial_call = True
     )
-    def upload_video(file_content, filename, update_number):
-        if file_content is not None:
+    def upload_video(file_content, video_path, filename, update_number):
+        if ctx.triggered_id == 'video-path-store' and video_path != "":
+            # the file path was set by the project file
+            # get filename
+            new_filename = os.path.basename(video_path)
+            # read the file
+
+            # TODO
+            
+            # save the data to the store
+            return {"display": "none"}, {"display": "block"}, new_filename, no_update, update_number+1 
+        elif file_content is not None:
             # new file uploaded
             content_type, content_string = file_content.split(',')
             decoded = base64.b64decode(content_string)

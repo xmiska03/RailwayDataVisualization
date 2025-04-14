@@ -86,6 +86,7 @@ translations_uploaded_file = dbc.Stack(
         html.Div("", id="translations-filename-div"),
         spacer,
         dbc.Button(icon_x, id='translations-delete-button', style=uploaded_file_box_style),
+        dcc.Store(id="translations-path-store", data="")
     ], direction="horizontal", gap=2, style={'margin': '10px'}
 )
 
@@ -95,6 +96,7 @@ rotations_uploaded_file = dbc.Stack(
         html.Div("", id="rotations-filename-div"),
         spacer,
         dbc.Button(icon_x, id='rotations-delete-button', style=uploaded_file_box_style),
+        dcc.Store(id="rotations-path-store", data="")
     ], direction="horizontal", gap=2, style={'margin': '10px'}
 )
 
@@ -106,6 +108,7 @@ video_uploaded_file = dbc.Stack(
         dbc.Button(icon_x, id='video-delete-button', style=uploaded_file_box_style),
         # a special store used to trigger a clienside callback to update the video time
         dcc.Store(id="update-video-store", data=0),
+        dcc.Store(id="video-path-store", data=""),
         # an interval to delete temporary video files created when users upload new videos
         dcc.Interval(
             id="delete-temp-video-interval",
