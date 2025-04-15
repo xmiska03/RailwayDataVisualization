@@ -21,8 +21,8 @@ window.display_united = false;    // diplay united point cloud data
 window.curr_pcl_layers_cnt = 10;  // how many point cloud layer are displayed currently
 window.pcl_layers_cnt = 10;       // how many point cloud layer are displayed when displaying ununited pc
 
-var pcl_layers_positions = new Array(window.curr_pcl_layers_cnt).fill(0);
-var pcl_layers_index = 0;  // marks the oldest data which are to be replaced
+let pcl_layers_positions = new Array(window.curr_pcl_layers_cnt).fill(0);
+let pcl_layers_index = 0;  // marks the oldest data which are to be replaced
 
 // color scales - mapping point intensity to colors
 // red - green - blue (from greatest to lowest intensity)
@@ -62,7 +62,7 @@ function getColorYP(d) {
 
 // converts loading gauge distance (in meters) to index in paths data and transformations data
 function gauge_distance_to_index(gauge_dist) {
-  var i = 0;  // default is '25'
+  let i = 0;  // default is '25'
   switch (window.gauge_distance) {
     case '50':
       i = 1;
@@ -157,7 +157,7 @@ function createLayers() {
   // (re)create all the layers
   window.layers = new Array(window.curr_pcl_layers_cnt + 2);
 
-  for (var i = 0; i < window.curr_pcl_layers_cnt; i++) {
+  for (let i = 0; i < window.curr_pcl_layers_cnt; i++) {
     window.layers[i] = createPointCloudLayer(i);
   }
   window.layers[window.curr_pcl_layers_cnt] = createPathLayer();
@@ -205,6 +205,19 @@ function initializeDeck() {
   });
 
   window.deck_initialized = true;
+
+  // wait three seconds for the deck object to initialize and then check whether WegGL is HW accelerated
+  setTimeout(() => {
+    let renderer = window.deck.device.info.renderer;
+    // according to this page, the software-based renderers are llvmpipe and SwiftShader
+    // https://deviceandbrowserinfo.com/learning_zone/articles/webgl_renderer_values
+    if (renderer.includes('llvmpipe') || renderer.includes('SwiftShader')) {
+      window.alert(
+        'V tomto prohlížeči není aktivována hardwarová akcelerace grafiky. '
+        + 'Vykreslování většího množství dat bude probíhat pomalu.'
+      )
+    }
+  }, 3000);
 }
 
 // in case that we are not displaying united point cloud, point cloud data needs to be changed with position
@@ -219,8 +232,8 @@ function changeLayersData() {
 
     // display point cloud data corresponding to current position and 10 positions backwards (if they exist)
     // for example if window.pcl_position == 7, pcl_layers_position will be [0, 0, 0, 1, 2, 3, 4, 5, 6, 7]
-    var pos = window.pcl_position;
-    for (var i = window.curr_pcl_layers_cnt - 1; i >= 0; i--) {
+    let pos = window.pcl_position;
+    for (let i = window.curr_pcl_layers_cnt - 1; i >= 0; i--) {
       pcl_layers_positions[i] = pos;
       if (pos > 0) {
         pos--;
