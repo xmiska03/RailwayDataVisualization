@@ -62,11 +62,11 @@ def get_callbacks(app):
     # switch between displaying united and not united point cloud data
     @app.callback(
         Output('display-united-store', 'data'),
-        Input('display-united-checkbox', 'value'),
+        Input('display-united-dropdown', 'value'),
         prevent_initial_call = True
     )
-    def change_pc_mode(checkbox_values):
-        if 'united' in checkbox_values:
+    def change_pc_mode(dropdown_value):
+        if dropdown_value == 'united':
             return True
         else:
             return False
@@ -87,7 +87,7 @@ def get_callbacks(app):
         Output('project-file-uploaded-file-div', 'style'),
         Output('project-file-filename-div', 'children'),
         
-        Output('display-united-checkbox', 'value'),
+        Output('display-united-dropdown', 'value'),
         Output('united-pcd-path-store', 'data'),
         Output('divided-pcd-paths-store', 'data'),
         Output('pc-timestamps-path-store', 'data'),
@@ -108,7 +108,7 @@ def get_callbacks(app):
             data = tomllib.loads(decoded.decode("utf-8"))
 
             # load data from toml file and use them as needed
-            display_united_checkbox_val = ['united'] if data['show_united_pcd'] else []
+            display_united_dropdown_val = 'united' if data['show_united_pcd'] else 'divided'
             united_pcd_path = os.path.join(data['project_path'], data['united_pcd_path'])
             divided_pcd_paths = {
                 "dir_path": os.path.join(data['project_path'], data['divided_pcd_path']),
@@ -122,7 +122,7 @@ def get_callbacks(app):
             video_path = os.path.join(data['project_path'], data['video_path'])
 
             return {"display": "none"}, {"display": "block"}, filename, \
-                display_united_checkbox_val, united_pcd_path, divided_pcd_paths, pc_timestamps_path, \
+                display_united_dropdown_val, united_pcd_path, divided_pcd_paths, pc_timestamps_path, \
                 translations_path, rotations_path, video_path
         else:
             # file deleted (or it is the initial call)

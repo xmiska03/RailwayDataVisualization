@@ -124,17 +124,18 @@ data_tab = [
     dbc.Row(html.Div(project_file_uploaded_file, id="project-file-uploaded-file-div")),
     dbc.Row(html.Hr(style={'marginTop':'10px'})),
     
-    # checkbox to choose between divided and united point cloud data
-    dbc.Row(dcc.Checklist(
-            options=[{'label': ' zobrazovat spojené mračno bodů', 'value': 'united'}],
-            value=[],
-            id='display-united-checkbox',
-            style={'marginBottom':'20px'}
-        )
-    ),
+    # dropdown to choose between divided and united point cloud data
+    dbc.Row(html.Div("Mračno bodů: ")),
+    dbc.Row(dbc.Select(
+        options={'united': 'sjednocené', 'divided': 'rozdělené'},
+        value='divided',
+        id='display-united-dropdown',
+    ), style={'width': '95%', 'margin': '8px'}),
+
+    dbc.Row(html.Hr(style={'marginTop':'15px'})),
     
     # point cloud data
-    dbc.Row(html.Div("Spojené mračno bodů (.pcd):")),
+    dbc.Row(html.Div("Sjednocené mračno bodů (.pcd):")),
     dbc.Row(html.Div(united_pc_upload, id="united-pc-upload-div")),
     dbc.Row(html.Div(united_pc_uploaded_file, id="united-pc-uploaded-file-div")),
     # divided point cloud (+ timestamps) is "read-only" in the GUI, can only be changed in the project file
