@@ -74,7 +74,7 @@ divided_pc_uploaded_files = dbc.Stack(
 
 pc_timestamps_uploaded_files = dbc.Stack(
     [
-        html.I(className="bi bi-file-earmark-text"),
+        html.I(className="bi bi-filetype-txt"),
         html.Div("", id="pc-timestamps-filename-div"),
         dcc.Store(id="pc-timestamps-path-store", data="")
     ], direction="horizontal", gap=2, style={'margin': '10px'}
@@ -82,7 +82,7 @@ pc_timestamps_uploaded_files = dbc.Stack(
 
 translations_uploaded_file = dbc.Stack(
     [
-        html.I(className="bi bi-file-earmark-text"),
+        html.I(className="bi bi-filetype-csv"),
         html.Div("", id="translations-filename-div"),
         spacer,
         dbc.Button(icon_x, id='translations-delete-button', style=uploaded_file_box_style),
@@ -92,7 +92,7 @@ translations_uploaded_file = dbc.Stack(
 
 rotations_uploaded_file = dbc.Stack(
     [
-        html.I(className="bi bi-file-earmark-text"),
+        html.I(className="bi bi-filetype-csv"),
         html.Div("", id="rotations-filename-div"),
         spacer,
         dbc.Button(icon_x, id='rotations-delete-button', style=uploaded_file_box_style),
@@ -102,7 +102,7 @@ rotations_uploaded_file = dbc.Stack(
 
 video_uploaded_file = dbc.Stack(
     [
-        html.I(className="bi bi-file-earmark-play"),
+        html.I(className="bi bi-filetype-mp4"),
         html.Div("", id="video-filename-div"),
         spacer,
         dbc.Button(icon_x, id='video-delete-button', style=uploaded_file_box_style),

@@ -16,14 +16,16 @@ def get_callbacks(app):
             if (!window.animation_running) {
                 window.runDeckAnimation();         // run both deck animation and the video
                 video.play();
+                icon.classList.remove("bi-play-fill");
+                icon.classList.add("bi-pause-fill");
             } else {
                 // the video will not pause immediately, so the pause event needs to be used
                 video.onpause=function(){ window.stopDeckAnimation() };
                 video.pause();
+                icon.classList.add("bi-play-fill");
+                icon.classList.remove("bi-pause-fill");
             }
 
-            icon.classList.toggle("bi-play-fill");    // change icon
-            icon.classList.toggle("bi-pause-fill");
 
         }
         """,

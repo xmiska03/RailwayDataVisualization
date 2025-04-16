@@ -141,7 +141,10 @@ visualization = html.Div(
         html.Video(
             src="/assets/video_long_compatible.mp4",
             id="background-video",
-            style={'width': '100%', 'height': 'auto', "display": "block"}
+            style={
+                'height': '100%',
+                'display': 'block'
+            }
         ),
         html.Canvas(
             id='visualization-canvas',
@@ -161,77 +164,70 @@ visualization = html.Div(
         )
     ],
     style = {
+        'height': '100%',
+        'aspectRatio': '2048/1536',
+        'margin': 'auto',
         'position': 'relative',
         'overflow': 'hidden'
     }
 )
-
-# the left side of the screen with the visualization and animation controls 
-app_left_col = dbc.Col(
-    [
-        visualization,
-        dbc.Row(
-            animation_control_components.down_panel_upper, 
-            justify="center",
-            align="start",
-            style={'marginTop': '20px'}
-        ),
-        dbc.Stack(
-            animation_control_components.down_panel_lower,
-            direction="horizontal",
-            gap=3
-        ),
-    ], width=6
-)
     
 # the right side of the screen with tabs
-app_right_col = dbc.Col(  
-    dbc.Tabs(
-        [
-            dbc.Tab(
-                visualization_tab_components.visualization_tab,
-                tab_id="vis",
-                label="Zobrazení",
-                label_style={"padding": "10px"},
-                style={"height": "70vh", "overflowY": "auto", "overflowX":"hidden"}
+tabs = dbc.Tabs(
+    [
+        dbc.Tab(
+            visualization_tab_components.visualization_tab,
+            tab_id="vis",
+            label="Zobrazení",
+            label_style={"padding": "10px"},
+            style={"height": "calc(100vh - 100px)", "overflowY": "auto", "overflowX":"hidden"}
+        ),
+        dbc.Tab(
+            dcc.Loading(        # display a circle over the data tab when the app is loading something
+                type="circle",
+                overlay_style={"visibility":"visible"},
+                children=data_tab_components.data_tab
             ),
-            dbc.Tab(
-                dcc.Loading(        # display a circle over the data tab when the app is loading something
-                    type="circle",
-                    overlay_style={"visibility":"visible"},
-                    children=data_tab_components.data_tab
-                ),
-                tab_id="data", 
-                label="Data", 
-                label_style={"padding": "10px"},
-                style={"height": "70vh", "overflowY": "auto", "overflowX":"hidden"}
-            ),
-            dbc.Tab(
-                gauge_tab_components.gauge_tab, 
-                tab_id="gauge", 
-                label="Průjezdný profil", 
-                label_style={"padding": "10px"}
-            )
-        ],
-        active_tab="vis"
-    ), style={}, width=4
+            tab_id="data", 
+            label="Data", 
+            label_style={"padding": "10px"},
+            style={"height": "calc(100vh - 100px)", "overflowY": "auto", "overflowX":"hidden"}
+        ),
+        dbc.Tab(
+            gauge_tab_components.gauge_tab, 
+            tab_id="gauge", 
+            label="Průjezdný profil", 
+            label_style={"padding": "10px"}
+        )
+    ],
+    active_tab="vis"
 )
 
 # the right margin of the page, almost empty, contains only a color mode switch
-app_color_mode_col = dbc.Col(
-    html.Div(
-        [
-            html.I(className="bi bi-moon"),
-            dbc.Switch(
-                id="color-mode-switch",
-                value=False,
-                className="d-inline-block ms-1",
-                persistence=True,
-                style={"marginRight": "-3px"}),
-            html.I(className="bi bi-sun")
-        ]
-    ), width=1, style={"textAlign": "right"}
+color_mode_switch = html.Div(
+    [
+        html.I(className="bi bi-moon"),
+        dbc.Switch(
+            id="color-mode-switch",
+            value=False,
+            className="d-inline-block ms-1",
+            persistence=True,
+            style={"marginRight": "-3px"}),
+        html.I(className="bi bi-sun")
+    ],
+    id = 'color-mode-div',
+    style={
+        'position': 'fixed', 
+        'top': 0, 
+        'right': 0,
+        'backgroundColor': '#212529',
+        'opacity': 0.95,
+        'borderRadius': 30,
+        'padding': '10px 15px',
+        'fontSize': '1.1rem'
+    }
 )
+
 
 # stores used for storing data on the clients side
 stores = [
@@ -287,6 +283,54 @@ stores = [
     )
 ] 
 
+main_part = [    # visualization + animation controls, takes full screen
+    visualization,
+    color_mode_switch,
+    animation_control_components.bottom_panel,
+]
+
+side_panel = [ 
+    html.Div(
+        tabs,
+        style={
+            'overflow': 'hidden',
+            'padding': '10px 0 20px 12px',
+            'height': '100vh',
+        }
+    ),
+    dbc.Button(
+        html.I(className="bi bi-list"),
+        id="roll-out-button",
+        style={
+            'position': 'absolute', 
+            'top': 0, 
+            'left': '100%',
+            'backgroundColor': '#212529',
+            'opacity': 0.95,
+            'borderRadius': 30,
+            'border': '1px solid white',
+            'fontSize': '1.8rem',
+            'padding': '2px 15px'
+        }
+    )
+]
+
+app_layout = [
+    html.Div(
+        side_panel,
+        id='side-panel-div', 
+        style={
+            'width': 0,    # hidden at the beginning
+            'boxSizing': 'border-box',
+            'transition': 'width 0.5s',
+            'height': '100vh',
+            'position': 'relative',
+            'zIndex': 1,
+            'flexShrink': 0
+        }
+    ),
+    html.Div(main_part, style={'height': '100vh', 'flexGrow': 1, 'position': 'relative'}),
+]
 
 # create a Dash app
 app = Dash(
@@ -304,20 +348,16 @@ app.server.config["MAX_CONTENT_LENGTH"] = 200 * 1024 * 1024  # 200MB to allow a 
 # Dash app layout
 app.layout = html.Div(
     [
-        dbc.Row(
-            [
-                app_left_col,
-                app_right_col,
-                app_color_mode_col
-            ],
-            justify="end",
-            style={'margin': '20px 10px'}
-        ),
-        dbc.Row(stores)
-    ],
-    style={
-        "fontSize": "16px"
-    },
+        html.Div(stores),
+        html.Div(
+            app_layout,
+            style={
+                'width': '98vw',
+                'fontSize': '16px',
+                'display': 'flex'
+            }
+        )
+    ]
 )
 
 
@@ -344,12 +384,61 @@ app.clientside_callback(
     State('pcl-timestamps-data', 'data')
 )
 
+# roll out the side panel on button click
+app.clientside_callback(
+    """
+    function(n_clicks) {
+        const side_panel = document.getElementById('side-panel-div');
+        const bottom_panel = document.getElementById('bottom-panel-div');
+        const icon = document.getElementById("roll-out-button").querySelector("i");
+        
+        if (n_clicks % 2 == 1) {
+            // roll out side panel
+            bottom_panel.style.width = 'calc(100% - 500px)';
+            side_panel.style.width = '500px';
+            // change the icon
+            icon.classList.remove("bi-list");
+            icon.classList.add("bi-caret-left");
+        } else {
+            // pack side panel
+            bottom_panel.style.width = '100%'
+            side_panel.style.width = 0;
+            // change the icon
+            icon.classList.add("bi-list");
+            icon.classList.remove("bi-caret-left");
+        }
+    }
+    """,
+    Input("roll-out-button", "n_clicks")
+)
+
 # change color mode by switch
 app.clientside_callback(
     """
-    function (switch_on) {
-       document.documentElement.setAttribute('data-bs-theme', switch_on ? 'light' : 'dark');
-       return dash_clientside.no_update;
+    function(switch_on) {
+        let color = '';
+        let opposite_color = '';
+
+        if (switch_on) {
+            // light mode
+            color = 'white';
+            opposite_color = '#212529';
+            document.documentElement.setAttribute('data-bs-theme', 'light');
+        } else {
+            // dark mode
+            color = '#212529';
+            opposite_color = 'white'
+            document.documentElement.setAttribute('data-bs-theme', 'dark');
+        }
+
+        document.getElementById("roll-out-button").style.backgroundColor = color;
+        document.getElementById("roll-out-button").style.borderColor = opposite_color;
+        document.getElementById("roll-out-button").querySelector("i").style.color = opposite_color;      
+        document.getElementById("color-mode-div").style.backgroundColor = color;
+        document.getElementById("camera-position-div").style.backgroundColor = color;
+        document.getElementById("play-controls-div").style.backgroundColor = color;
+        document.getElementById("play-button").querySelector("i").style.color = opposite_color;  
+        return dash_clientside.no_update;
     }
     """,
     Output("color-mode-switch", "id"),  # dummy output needed so that the initial call occurs

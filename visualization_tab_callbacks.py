@@ -126,10 +126,12 @@ def get_callbacks(app):
     app.clientside_callback(
         """
         function(scale_boundaries) { 
-            window.scale_from = scale_boundaries[0];
-            window.scale_to = scale_boundaries[1];
-            window.scale_middle = (scale_boundaries[0] + scale_boundaries[1]) / 2;
-            window.updatePCLayer();
+            if (window.updatePCLayer) {
+                window.scale_from = scale_boundaries[0];
+                window.scale_to = scale_boundaries[1];
+                window.scale_middle = (scale_boundaries[0] + scale_boundaries[1]) / 2;
+                window.updatePCLayer();
+            }
             return dash_clientside.no_update;
         }
         """,
