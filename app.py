@@ -176,13 +176,6 @@ visualization = html.Div(
 tabs = dbc.Tabs(
     [
         dbc.Tab(
-            visualization_tab_components.visualization_tab,
-            tab_id="vis",
-            label="Zobrazení",
-            label_style={"padding": "10px"},
-            style={"height": "calc(100vh - 100px)", "overflowY": "auto", "overflowX":"hidden"}
-        ),
-        dbc.Tab(
             dcc.Loading(        # display a circle over the data tab when the app is loading something
                 type="circle",
                 overlay_style={"visibility":"visible"},
@@ -194,13 +187,20 @@ tabs = dbc.Tabs(
             style={"height": "calc(100vh - 100px)", "overflowY": "auto", "overflowX":"hidden"}
         ),
         dbc.Tab(
+            visualization_tab_components.visualization_tab,
+            tab_id="vis",
+            label="Zobrazení",
+            label_style={"padding": "10px"},
+            style={"height": "calc(100vh - 100px)", "overflowY": "auto", "overflowX":"hidden"}
+        ),
+        dbc.Tab(
             gauge_tab_components.gauge_tab, 
             tab_id="gauge", 
             label="Průjezdný profil", 
             label_style={"padding": "10px"}
         )
     ],
-    active_tab="vis"
+    active_tab="data"
 )
 
 # the right margin of the page, almost empty, contains only a color mode switch

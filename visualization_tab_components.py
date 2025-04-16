@@ -43,7 +43,7 @@ color_scale_graph = [
                 'paper_bgcolor': '#rgba(0,0,0,0)'
             }
         },
-        config={'displayModeBar': False},
+        config={'displayModeBar': False, 'staticPlot': True},
         style={'height': '100px'}
     ), width=7),
     dcc.Store(
