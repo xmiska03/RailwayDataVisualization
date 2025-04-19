@@ -356,7 +356,7 @@ function animationStep(now, metadata) {
   
   // determine new position from video time and camera timestamps
   if (metadata) {
-    while (window.camera_timestamps[Math.max(window.position - 1, 0)] < metadata.mediaTime) {
+    while (window.camera_timestamps[window.position] < metadata.mediaTime) {
       console.log("mediaTime is:", metadata.mediaTime, "on position", window.position, "timestamp", window.camera_timestamps[window.position]);
       window.position += 1;
     }
@@ -429,10 +429,12 @@ function stopDeckAnimation() {
   window.animation_running = false;
 
   setTimeout(() => {
+    const video = document.getElementById('background-video');
+    // fix video offset
+    video.currentTime = video.currentTime;
     // this has to be done with the GUI elements so that Dash knows about the changes
     dash_clientside.set_props("camera-position-input", {value: window.position});
     dash_clientside.set_props("camera-position-slider-input", {value: window.position});
-    const video = document.getElementById('background-video');
     const time_sec = Math.floor(video.currentTime - 0.001); // get time in seconds, round to whole number
     const minutes = Math.floor(time_sec / 60);
     const seconds = time_sec % 60;

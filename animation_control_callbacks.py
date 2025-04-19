@@ -25,8 +25,6 @@ def get_callbacks(app):
                 icon.classList.add("bi-play-fill");
                 icon.classList.remove("bi-pause-fill");
             }
-
-
         }
         """,
         Input("play-button", "n_clicks"),
