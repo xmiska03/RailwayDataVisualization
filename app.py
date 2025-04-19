@@ -12,9 +12,11 @@ import gauge_tab_callbacks
 import animation_control_components
 import animation_control_callbacks
 import params
-from general_functions import calculate_projection_matrix, calculate_translation_from_extr_mat
-from loading_functions import load_csv_into_nparray, load_yaml_into_dict, load_timestamps_into_nparray, \
-                              load_space_separated_into_nparray, load_pcl_timestamps
+from general_functions import calculate_projection_matrix, calculate_translation_from_extr_mat, \
+                              load_rotation, rotation_to_euler, rotation_to_matrix, rotation_to_inv_matrix
+from loading_functions import load_csv_file_into_nparray, load_yaml_into_dict, \
+                              load_timestamps_into_nparray, load_space_separated_into_nparray, \
+                                load_pcl_timestamps
 
 
 # load unaggregated point cloud data
@@ -34,25 +36,23 @@ united_pc_nparray = united_pc.numpy(("x", "y", "z", "intensity"))
 # load camera parameters
 camera_params_dict = load_yaml_into_dict("data/camera_azd.yaml")
 distortion_coeffs = camera_params_dict['DistCoeffs']['data']
-#calibration_matrix = load_csv_into_nparray("data/joined/K.csv")
+#calibration_matrix = load_csv_file_into_nparray("data/joined/K.csv")
 proj_matrix = calculate_projection_matrix(camera_params_dict)
 camera_translation = calculate_translation_from_extr_mat(camera_params_dict)
 
 # load data about camera positions
 # load translations and fix the order of columns in the translations array: yzx -> xyz
-trans_nparray = load_csv_into_nparray("data/joined/trans_joined.csv")[:, [2, 0, 1]]
+trans_nparray = load_csv_file_into_nparray("data/joined/trans_joined.csv")[:, [2, 0, 1]]
 # load rotations
-rot_nparray_raw = load_csv_into_nparray("data/joined/rot_joined.csv")
+rot_nparray_raw = load_csv_file_into_nparray("data/joined/rot_joined.csv")
 rot_nparray = []
 rot_inv_nparray = []
 rot_euler_array = []
-for rotation_xzy in rot_nparray_raw:
-    # if translations are in order yzx instead of xyz, then rotations are in order xzy instead of zyx
-    rotation = Rotation.from_euler("xzy", rotation_xzy, degrees=True)
-    rotation_zyx = rotation.inv().as_euler("zyx", degrees=True)
-    rot_euler_array.append([-rotation_zyx[0], rotation_zyx[1], -rotation_zyx[2]])
-    rot_nparray.append(rotation.as_matrix())
-    rot_inv_nparray.append(rotation.inv().as_matrix())
+for rot_raw in rot_nparray_raw:
+    rotation = load_rotation(rot_raw)
+    rot_euler_array.append(rotation_to_euler(rotation))
+    rot_nparray.append(rotation_to_matrix(rotation))
+    rot_inv_nparray.append(rotation_to_inv_matrix(rotation))
 # load timestamps
 timestamps_nparray = load_timestamps_into_nparray("data/joined/imu_joined_timestamps.csv")
 # convert timestamps so that they start from 0 and are in seconds
@@ -63,7 +63,7 @@ timestamps_nparray = (timestamps_nparray - timestamp0) / 1000000000  # nanosecon
 frames_cnt = trans_nparray.shape[0]
 
 # load loading gauge data
-gauge_data = [load_csv_into_nparray("data/loading_gauge.csv")]
+gauge_data = [load_csv_file_into_nparray("data/loading_gauge.csv")]
 # load predicted translations in distances 25m, 50m, 75m, 100m
 gauge_translations = [
     load_space_separated_into_nparray("data/joined/profile/profile_trans_25.csv")[:, [2, 0, 1]],
@@ -87,9 +87,9 @@ paths_data = [
     [gauge_translations[1]],
     [gauge_translations[2]],
     [gauge_translations[3]]
-    #load_csv_into_nparray("data/polyline1.csv"),
-    #load_csv_into_nparray("data/polyline2.csv"),
-    #load_csv_into_nparray("data/polyline3.csv")
+    #load_csv_file_into_nparray("data/polyline1.csv"),
+    #load_csv_file_into_nparray("data/polyline2.csv"),
+    #load_csv_file_into_nparray("data/polyline3.csv")
 ]
 
 # prepare the visualization of the point cloud using Deck.GL

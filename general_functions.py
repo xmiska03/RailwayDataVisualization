@@ -1,4 +1,6 @@
 import numpy as np
+from scipy.spatial.transform import Rotation
+
 from params import NEAR_PLANE, FAR_PLANE
 
 # creates a deck.gl-style projection matrix according to camera parameters
@@ -57,3 +59,21 @@ def calculate_loading_gauge_transformation_matrix(trans_point, rot_mat_3x3):
         [0, 0, 0, 1]
     ])
     return trans_matrix @ rot_matrix
+
+# loads rotation from the format in the files (xzy, in degrees) into a Rotation object
+# if translations are in order yzx instead of xyz, then rotations are in order xzy instead of zyx
+def load_rotation(rot_raw):
+    return Rotation.from_euler("xzy", rot_raw, degrees=True)
+
+# converts Rotation object to inverse euler angles (for the camera)
+def rotation_to_euler(rotation):
+    rotation_zyx = rotation.inv().as_euler("zyx", degrees=True)
+    return [-rotation_zyx[0], rotation_zyx[1], -rotation_zyx[2]]
+
+# converts Rotation object to rotation matrix
+def rotation_to_matrix(rotation):
+    return rotation.as_matrix()
+
+# converts Rotation object to inverted rotation matrix
+def rotation_to_inv_matrix(rotation):
+    return rotation.inv().as_matrix()

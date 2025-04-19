@@ -9,8 +9,9 @@ import os
 from scipy.spatial.transform import Rotation
 import tomllib
 
-from general_functions import calculate_loading_gauge_transformation_matrix
-from loading_functions import load_pcl_timestamps, load_csv_into_nparray
+from general_functions import calculate_loading_gauge_transformation_matrix, load_rotation, \
+                               rotation_to_euler, rotation_to_matrix, rotation_to_inv_matrix
+from loading_functions import load_pcl_timestamps, load_csv_file_into_nparray, load_csv_into_nparray
 
 
 def get_callbacks(app):
@@ -239,19 +240,14 @@ def get_callbacks(app):
             # get filename
             new_filename = os.path.basename(translations_path)
             # read the file
-            trans_nparray = load_csv_into_nparray(translations_path)[:, [2, 0, 1]]
+            trans_nparray = load_csv_file_into_nparray(translations_path)[:, [2, 0, 1]]
             # save the data to the store
             return {"display": "none"}, {"display": "block"}, new_filename, trans_nparray
         elif file_content is not None:
             # new file uploaded
             content_type, content_string = file_content.split(',')
-            decoded_lines = base64.b64decode(content_string).decode("utf-8").split('\n')
-            data = []
-            for line in decoded_lines:         # parse the csv
-                split_line = line.split(',')
-                if len(split_line) >= 3:
-                    # fix the order of columns
-                    data.append([float(split_line[2]), float(split_line[0]), float(split_line[1])])
+            decoded = base64.b64decode(content_string).decode("utf-8").split('\n')
+            data = load_csv_into_nparray(decoded)[:, [2, 0, 1]]
             return {"display": "none"}, {"display": "block"}, filename, data
         else:
             # file deleted (or it is the initial call)
@@ -277,33 +273,33 @@ def get_callbacks(app):
             # get filename
             new_filename = os.path.basename(rotations_path)
             # read the file
-            rot_nparray = load_csv_into_nparray(rotations_path)[:, [2, 0, 1]]
+            rot_nparray_raw = load_csv_file_into_nparray(rotations_path)
+            rot_nparray = []
+            rot_inv_nparray = []
+            rot_euler_array = []
+            for rot_raw in rot_nparray_raw:
+                rotation = load_rotation(rot_raw)
+                rot_nparray.append(rotation_to_matrix(rotation))
+                rot_inv_nparray.append(rotation_to_inv_matrix(rotation))
+                rot_euler_array.append(rotation_to_euler(rotation))
             
-            # TODO
-            
-            rotations_euler = []
-            rotations = []
-            inv_rotations = []
             # save the data to the store
-            return {"display": "none"}, {"display": "block"}, new_filename, no_update, no_update, no_update
+            return {"display": "none"}, {"display": "block"}, new_filename, rot_euler_array, rot_nparray, rot_inv_nparray
         elif file_content is not None:
             # new file uploaded
             content_type, content_string = file_content.split(',')
-            decoded_lines = base64.b64decode(content_string).decode("utf-8").split('\n')
-            rotations = []
-            inv_rotations = []
-            rotations_euler = []
-            for line in decoded_lines:         # parse the csv
-                split_line = line.split(',')
-                if len(split_line) >= 3:
-                    rot_array = [float(split_line[0]), float(split_line[1]), float(split_line[2])]
-                    rotation = Rotation.from_euler("xzy", rot_array, degrees=True)
-                    rotation_zyx = rotation.inv().as_euler("zyx", degrees=True)
-                    rotations_euler.append([-rotation_zyx[0], rotation_zyx[1], rotation_zyx[2]])
-                    rotations.append(rotation.as_matrix())
-                    inv_rotations.append(rotation.inv().as_matrix())
+            decoded = base64.b64decode(content_string).decode("utf-8").split('\n')
+            data = load_csv_into_nparray(decoded)
+            rot_nparray = []
+            rot_inv_nparray = []
+            rot_euler_array = []
+            for rot_raw in data:
+                rotation = load_rotation(rot_raw)
+                rot_nparray.append(rotation_to_matrix(rotation))
+                rot_inv_nparray.append(rotation_to_inv_matrix(rotation))
+                rot_euler_array.append(rotation_to_euler(rotation))
             
-            return {"display": "none"}, {"display": "block"}, filename, rotations_euler, rotations, inv_rotations
+            return {"display": "none"}, {"display": "block"}, filename, rot_euler_array, rot_nparray, rot_inv_nparray
         else:
             # file deleted (or it is the initial call)
             return {"display": "block"}, {"display": "none"}, "", no_update, no_update, no_update
@@ -323,16 +319,19 @@ def get_callbacks(app):
         prevent_initial_call = True
     )
     def upload_video(file_content, video_path, filename, update_number):
+        # TODO test if the video is in the right format
+
         if ctx.triggered_id == 'video-path-store' and video_path != "":
             # the file path was set by the project file
             # get filename
             new_filename = os.path.basename(video_path)
-            # read the file
-
-            # TODO
-            
-            # save the data to the store
-            return {"display": "none"}, {"display": "block"}, new_filename, no_update, update_number+1 
+            # the file has to be in the "assets" directory to be loaded into the Dash app
+            # so we have to copy it into a temporary file there
+            server_filename = f"assets/temp/uploaded_video_{int(time.time())}.mp4" # filename with a timestamp
+            with open(video_path, 'rb') as src:
+                with open(server_filename, 'wb') as dst:
+                    dst.write(src.read())
+            return {"display": "none"}, {"display": "block"}, new_filename, server_filename, update_number+1 
         elif file_content is not None:
             # new file uploaded
             content_type, content_string = file_content.split(',')

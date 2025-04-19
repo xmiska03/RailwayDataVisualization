@@ -4,11 +4,18 @@ import yaml
 
 
 # loads a csv file into a numpy array
-def load_csv_into_nparray(file_address):
+def load_csv_file_into_nparray(file_address):
     with open(file_address, 'r') as f:
-        reader = csv.reader(f)
-        data = list(reader)
-        return np.array(data, dtype=float)
+        return load_csv_into_nparray(f)
+    
+# loads an iterable of strings in csv format into a numpy array
+def load_csv_into_nparray(iterable):
+    reader = csv.reader(iterable)
+    data = list(reader)
+    if data[-1] == []:
+        # get rid of empty last line if reading an uploaded file
+        data = data[:-1]    
+    return np.array(data, dtype=float)
     
 # loads a space separated file into a numpy array
 def load_space_separated_into_nparray(file_address):

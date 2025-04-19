@@ -10,7 +10,7 @@ divided_pcd_files_cnt = 596
 divided_pcd_timestamps_path = "joined/joined_pcl_timestamps.txt"
 
 # translations
-translations_path = "joined/trans_joined.csv"
+translations_path = "joined/trans_joined2.csv"
 
 # rotations
 rotations_path = "joined/rot_joined.csv"
@@ -19,5 +19,4 @@ rotations_path = "joined/rot_joined.csv"
 timestamps_path = "joined/imu_joined_timestamps.csv"
 
 # video
-# TODO: video elsewhere than in assets
-video_path = "assets/video_long_compatible.mp4"
+video_path = "../assets/video_long_compatible.mp4"
