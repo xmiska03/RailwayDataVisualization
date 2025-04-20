@@ -130,21 +130,20 @@ video_uploaded_file = dbc.Stack(
 
 data_tab = [
     # project file
-    dbc.Row(html.Div("Projektový soubor (.toml):"), style={'marginTop': '15px', "fontWeight": "bold"}),
+    dbc.Row(html.Div("Projektový soubor (.toml)"), style={"fontWeight": "bold", "textAlign": "center", "marginTop": "15px"}),
     dbc.Row(html.Div(project_file_upload, id="project-file-upload-div")),
     dbc.Row(html.Div(project_file_uploaded_file, id="project-file-uploaded-file-div")),
     dbc.Row(html.Hr(style={'marginTop':'10px'})),
-    
+
+    # point cloud
+    dbc.Row(html.Div("Mračno bodů"), style={"fontWeight": "bold", "textAlign": "center"}), 
     # dropdown to choose between divided and united point cloud data
-    dbc.Row(html.Div("Mračno bodů: ")),
+    dbc.Row(html.Div("Typ: ")),
     dbc.Row(dbc.Select(
         options={'united': 'sjednocené', 'divided': 'rozdělené'},
         value='divided',
         id='display-united-dropdown',
-    ), style={'width': '95%', 'margin': '8px'}),
-
-    dbc.Row(html.Hr(style={'marginTop':'15px'})),
-    
+    ), style={'width': '95%', 'margin': '8px'}),  
     # point cloud data
     dbc.Row(html.Div("Sjednocené mračno bodů (.pcd):")),
     dbc.Row(html.Div(united_pc_upload, id="united-pc-upload-div")),
@@ -154,19 +153,23 @@ data_tab = [
     dbc.Row(html.Div(divided_pc_uploaded_files, id="divided-pc-uploaded-file-div")),
     dbc.Row(html.Div("Časová razítka rozděleného mračna bodů (.txt):")),
     dbc.Row(html.Div(pc_timestamps_uploaded_files, id="pc-timestamps-uploaded-file-div")),
+    dbc.Row(html.Hr(style={'marginTop':'15px'})),
     
     # the virtual camera
+    dbc.Row(html.Div("Virtuální kamera"), style={"fontWeight": "bold", "textAlign": "center"}), 
     dbc.Row(html.Div("Translace (.csv):")),
     dbc.Row(html.Div(translations_upload, id="translations-upload-div")),
     dbc.Row(html.Div(translations_uploaded_file, id="translations-uploaded-file-div")),
     dbc.Row(html.Div("Rotace (.csv):")),
     dbc.Row(html.Div(rotations_upload, id="rotations-upload-div")),
     dbc.Row(html.Div(rotations_uploaded_file, id="rotations-uploaded-file-div")),
-    dbc.Row(html.Div("Časová razítka pozic virtuální kamery (.csv):")),
+    dbc.Row(html.Div("Časová razítka pozic (.csv):")),
     dbc.Row(html.Div(timestamps_upload, id="timestamps-upload-div")),
     dbc.Row(html.Div(timestamps_uploaded_file, id="timestamps-uploaded-file-div")),
+    dbc.Row(html.Hr(style={'marginTop':'15px'})),
     
-    dbc.Row(html.Div("Video  (.mp4):")),
+    # video
+    dbc.Row(html.Div("Video (.mp4)"), style={"fontWeight": "bold", "textAlign": "center"}), 
     dbc.Row(html.Div(video_upload, id="video-upload-div")),
     dbc.Row(html.Div(video_uploaded_file, id="video-uploaded-file-div"))
 ]

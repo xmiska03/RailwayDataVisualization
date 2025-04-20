@@ -34,7 +34,7 @@ gauge_color_widget = [
 ]
 
 gauge_line_width_widget = [
-    dbc.Col(html.Div("Tloušťka čar: "), width=5),
+    dbc.Col(html.Div("Tloušťka čáry: "), width=5),
     dbc.Col(dbc.Input(
         value=f"{LINE_WIDTH}",
         id="gauge-line-width-input",
@@ -46,7 +46,7 @@ gauge_line_width_widget = [
 ]
 
 gauge_line_color_widget = [
-    dbc.Col(html.Div("Barva čar: "), width=5),
+    dbc.Col(html.Div("Barva čáry: "), width=5),
     dbc.Col(dbc.Input(
         type="color",
         id="gauge-line-color-picker",
