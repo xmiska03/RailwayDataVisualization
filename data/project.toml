@@ -10,7 +10,7 @@ divided_pcd_files_cnt = 596
 divided_pcd_timestamps_path = "joined/joined_pcl_timestamps.txt"
 
 # translations
-translations_path = "joined/trans_joined2.csv"
+translations_path = "joined/trans_joined.csv"
 
 # rotations
 rotations_path = "joined/rot_joined.csv"

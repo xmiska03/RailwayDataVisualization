@@ -201,23 +201,22 @@ function initializeDeck() {
     views: [VIEW],
     layers: window.layers,
     canvas: 'visualization-canvas',
-    context: context
+    context: context,
+    onDeviceInitialized: () => {
+      // check whether WegGL is HW accelerated
+      let renderer = window.deck.device.info.renderer;
+      // according to this page, the software-based renderers are llvmpipe and SwiftShader
+      // https://deviceandbrowserinfo.com/learning_zone/articles/webgl_renderer_values
+      if (renderer.includes('llvmpipe') || renderer.includes('SwiftShader')) {
+        window.alert(
+          'V tomto prohlížeči není aktivována hardwarová akcelerace grafiky. '
+          + 'Vykreslování většího množství dat bude probíhat pomalu.'
+        )
+      }
+    }
   });
 
   window.deck_initialized = true;
-
-  // wait three seconds for the deck object to initialize and then check whether WegGL is HW accelerated
-  setTimeout(() => {
-    let renderer = window.deck.device.info.renderer;
-    // according to this page, the software-based renderers are llvmpipe and SwiftShader
-    // https://deviceandbrowserinfo.com/learning_zone/articles/webgl_renderer_values
-    if (renderer.includes('llvmpipe') || renderer.includes('SwiftShader')) {
-      window.alert(
-        'V tomto prohlížeči není aktivována hardwarová akcelerace grafiky. '
-        + 'Vykreslování většího množství dat bude probíhat pomalu.'
-      )
-    }
-  }, 3000);
 }
 
 // in case that we are not displaying united point cloud, point cloud data needs to be changed with position
@@ -278,8 +277,10 @@ function updateDeck() {
 
   // add roll angle by rotating the canvas
   const canvas = document.getElementById('visualization-canvas');
-  canvas.style.transform = `rotate(${ window.window.rotations_euler[pos][2] + window.camera_offset_roll }deg)`;
-
+  const dist_canvas = document.getElementById("distorted-visualization-canvas");
+  const transform = `rotate(${ window.window.rotations_euler[pos][2] + window.camera_offset_roll }deg)`;
+  canvas.style.transform = transform;
+  dist_canvas.style.transform = transform;
   createLayers();  // TODO: maybe optimize this so that only the right layers are recreated (only gauge here)
 
   window.deck.setProps({layers: window.layers});
