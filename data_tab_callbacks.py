@@ -10,8 +10,9 @@ from scipy.spatial.transform import Rotation
 import tomllib
 
 from general_functions import calculate_loading_gauge_transformation_matrix, load_rotation, \
-                               rotation_to_euler, rotation_to_matrix, rotation_to_inv_matrix
-from loading_functions import load_pcl_timestamps, load_csv_file_into_nparray, load_csv_into_nparray
+                              rotation_to_euler, rotation_to_matrix, rotation_to_inv_matrix
+from loading_functions import load_pcl_timestamps, load_csv_file_into_nparray, load_csv_into_nparray, \
+                              load_timestamps_file_into_nparray, load_timestamps_into_nparray
 
 
 def get_callbacks(app):
@@ -95,6 +96,7 @@ def get_callbacks(app):
 
         Output('translations-path-store', 'data'),
         Output('rotations-path-store', 'data'),
+        Output('timestamps-path-store', 'data'),
         Output('video-path-store', 'data'),
         
         Input('project-file-upload', 'contents'),
@@ -124,11 +126,11 @@ def get_callbacks(app):
 
             return {"display": "none"}, {"display": "block"}, filename, \
                 display_united_dropdown_val, united_pcd_path, divided_pcd_paths, pc_timestamps_path, \
-                translations_path, rotations_path, video_path
+                translations_path, rotations_path, timestamps_path, video_path
         else:
             # file deleted (or it is the initial call)
             return {"display": "block"}, {"display": "none"}, "", \
-                no_update, no_update, "", "", no_update, no_update, no_update
+                no_update, no_update, "", "", no_update, no_update, no_update, no_update
 
 
     # upload/delete file with united point cloud
@@ -304,6 +306,35 @@ def get_callbacks(app):
             # file deleted (or it is the initial call)
             return {"display": "block"}, {"display": "none"}, "", no_update, no_update, no_update
 
+    # upload/delete file with timestamps
+    @app.callback(
+        Output('timestamps-upload-div', 'style'),
+        Output('timestamps-uploaded-file-div', 'style'),
+        Output('timestamps-filename-div', 'children'),
+        Output('camera-timestamps-data', 'data'),
+        Input('timestamps-upload', 'contents'),
+        Input('timestamps-path-store', 'data'),
+        State('timestamps-upload', 'filename'),
+        prevent_initial_call = True
+    )
+    def upload_timestamps(file_content, timestamps_path, filename):
+        if ctx.triggered_id == 'timestamps-path-store' and timestamps_path != "":
+            # the file path was set by the project file
+            # get filename
+            new_filename = os.path.basename(timestamps_path)
+            # read the file
+            timestamps_nparray = load_timestamps_file_into_nparray(timestamps_path)
+            # save the data to the store
+            return {"display": "none"}, {"display": "block"}, new_filename, timestamps_nparray
+        elif file_content is not None:
+            # new file uploaded
+            content_type, content_string = file_content.split(',')
+            decoded = base64.b64decode(content_string).decode("utf-8").split('\n')
+            timestamps_nparray = load_timestamps_into_nparray(decoded)
+            return {"display": "none"}, {"display": "block"}, filename, timestamps_nparray
+        else:
+            # file deleted (or it is the initial call)
+            return {"display": "block"}, {"display": "none"}, "", no_update
 
     # upload/delete file with video
     @app.callback(
@@ -402,6 +433,14 @@ def get_callbacks(app):
         Input('rotations-delete-button', 'n_clicks')
     )
     def delete_rotations(btn):
+        return None
+    
+    # delete file with timestamps
+    @app.callback(
+        Output('timestamps-upload', 'contents'),
+        Input('timestamps-delete-button', 'n_clicks')
+    )
+    def delete_timestamps(btn):
         return None
 
     # delete file with video

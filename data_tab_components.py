@@ -37,6 +37,7 @@ project_file_upload = dcc.Upload(id='project-file-upload', children=upload_desig
 united_pc_upload = dcc.Upload(id='united-pc-upload', children=upload_design, style=upload_box_style)
 translations_upload = dcc.Upload(id='translations-upload', children=upload_design, style=upload_box_style)
 rotations_upload = dcc.Upload(id='rotations-upload', children=upload_design, style=upload_box_style)
+timestamps_upload = dcc.Upload(id='timestamps-upload', children=upload_design, style=upload_box_style)
 video_upload = dcc.Upload(id='video-upload', children=upload_design, style=upload_box_style)
 
 # widgets which display uploaded files
@@ -100,6 +101,16 @@ rotations_uploaded_file = dbc.Stack(
     ], direction="horizontal", gap=2, style={'margin': '10px'}
 )
 
+timestamps_uploaded_file = dbc.Stack(
+    [
+        html.I(className="bi bi-filetype-csv"),
+        html.Div("", id="timestamps-filename-div"),
+        spacer,
+        dbc.Button(icon_x, id='timestamps-delete-button', style=uploaded_file_box_style),
+        dcc.Store(id="timestamps-path-store", data="")
+    ], direction="horizontal", gap=2, style={'margin': '10px'}
+)
+
 video_uploaded_file = dbc.Stack(
     [
         html.I(className="bi bi-filetype-mp4"),
@@ -144,12 +155,17 @@ data_tab = [
     dbc.Row(html.Div("Časová razítka rozděleného mračna bodů (.txt):")),
     dbc.Row(html.Div(pc_timestamps_uploaded_files, id="pc-timestamps-uploaded-file-div")),
     
+    # the virtual camera
     dbc.Row(html.Div("Translace (.csv):")),
     dbc.Row(html.Div(translations_upload, id="translations-upload-div")),
     dbc.Row(html.Div(translations_uploaded_file, id="translations-uploaded-file-div")),
     dbc.Row(html.Div("Rotace (.csv):")),
     dbc.Row(html.Div(rotations_upload, id="rotations-upload-div")),
     dbc.Row(html.Div(rotations_uploaded_file, id="rotations-uploaded-file-div")),
+    dbc.Row(html.Div("Časová razítka pozic virtuální kamery (.csv):")),
+    dbc.Row(html.Div(timestamps_upload, id="timestamps-upload-div")),
+    dbc.Row(html.Div(timestamps_uploaded_file, id="timestamps-uploaded-file-div")),
+    
     dbc.Row(html.Div("Video  (.mp4):")),
     dbc.Row(html.Div(video_upload, id="video-upload-div")),
     dbc.Row(html.Div(video_uploaded_file, id="video-uploaded-file-div"))

@@ -15,7 +15,7 @@ import params
 from general_functions import calculate_projection_matrix, calculate_translation_from_extr_mat, \
                               load_rotation, rotation_to_euler, rotation_to_matrix, rotation_to_inv_matrix
 from loading_functions import load_csv_file_into_nparray, load_yaml_into_dict, \
-                              load_timestamps_into_nparray, load_space_separated_into_nparray, \
+                              load_timestamps_file_into_nparray, load_space_separated_into_nparray, \
                                 load_pcl_timestamps
 
 
@@ -54,10 +54,7 @@ for rot_raw in rot_nparray_raw:
     rot_nparray.append(rotation_to_matrix(rotation))
     rot_inv_nparray.append(rotation_to_inv_matrix(rotation))
 # load timestamps
-timestamps_nparray = load_timestamps_into_nparray("data/joined/imu_joined_timestamps.csv")
-# convert timestamps so that they start from 0 and are in seconds
-timestamp0 = int(timestamps_nparray[0])
-timestamps_nparray = (timestamps_nparray - timestamp0) / 1000000000  # nanoseconds to seconds
+timestamps_nparray = load_timestamps_file_into_nparray("data/joined/imu_joined_timestamps.csv")
 
 # number of frames to generate
 frames_cnt = trans_nparray.shape[0]
@@ -119,9 +116,6 @@ view_state = {
     "bearing": params.BEARING,
     "pitch": params.PITCH,
     "position": [params.POSITION_OFFSET[0], params.POSITION_OFFSET[1], params.POSITION_OFFSET[2]]
-    #[camera_translation[0] + params.POSITION_OFFSET[0],
-    #camera_translation[1] + params.POSITION_OFFSET[1],
-    #camera_translation[2] + params.POSITION_OFFSET[2]]
 }
 
 view = {
