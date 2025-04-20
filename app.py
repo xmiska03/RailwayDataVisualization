@@ -100,7 +100,7 @@ point_cloud_layer = {
 
 path_layer = {
     "data": paths_data,
-    "color": [250, 100, 15],    # #fa650f
+    "color": [232, 175, 16],    # #e8af10
     "width": params.LINE_WIDTH,
     "visible": True
 }

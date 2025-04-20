@@ -316,6 +316,26 @@ function changePCMode(display_united) {
   updatePCLayer();
 }
 
+// to change gauge line visibility, line width or color
+function updateGaugeLineLayerProps(visible, line_width, line_color) {
+  // convert to RGB
+  // the following line is taken from a piece of example code in deck.gl documentation (PathLayer section)
+  const new_color = line_color.match(/[0-9a-f]{2}/g).map(x => parseInt(x, 16));
+
+  window.data_dict.layers[1].visible = visible;
+  window.data_dict.layers[1].width = parseInt(line_width, 10);
+  window.data_dict.layers[1].color = new_color;
+  updateGaugeLineLayer();
+}
+
+function updateGaugeLineLayer() {
+  createLayers(); // TODO: maybe optimize this so that only the right layers are recreated
+
+  window.deck.setProps({layers: window.layers});
+}
+
+// TODO: a new path layer
+
 // to change vector data visibility, line width or color
 function updatePathLayerProps(visible, line_width, line_color) {
   // convert to RGB
@@ -452,6 +472,8 @@ window.updatePCLayer = updatePCLayer;
 window.changePCMode = changePCMode;
 window.updatePathLayerProps = updatePathLayerProps;
 window.updatePathLayer = updatePathLayer;
+window.updateGaugeLineLayerProps = updateGaugeLineLayerProps;
+window.updateGaugeLineLayer = updateGaugeLineLayer;
 window.updateGaugeLayerProps = updateGaugeLayerProps;
 window.runDeckAnimation = runDeckAnimation;
 window.stopDeckAnimation = stopDeckAnimation;

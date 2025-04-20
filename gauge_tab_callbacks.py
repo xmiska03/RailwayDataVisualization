@@ -25,6 +25,22 @@ def get_callbacks(app):
         }
         """,
         Input('loading-gauge-checkbox', 'value'),
+        Input('gauge-width-input', 'value'),
+        Input('gauge-color-picker', 'value'),
+        prevent_initial_call=True
+    )
+
+    # change gauge line visibility, line width or color
+    app.clientside_callback(
+        """
+        function(layers, line_width, line_color) {
+            if (window.updateGaugeLineLayerProps) {
+                // call function defined in the JavaScript file
+                window.updateGaugeLineLayerProps(layers.includes('line'), line_width, line_color);
+            }
+        }
+        """,
+        Input('gauge-line-checkbox', 'value'),
         Input('gauge-line-width-input', 'value'),
         Input('gauge-line-color-picker', 'value'),
         prevent_initial_call=True
