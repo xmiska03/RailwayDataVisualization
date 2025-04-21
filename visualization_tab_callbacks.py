@@ -1,22 +1,9 @@
 # This file contains definitions of dash callbacks used in the "visualization" tab 
 # of the app.
 
-from dash import Output, Input, Patch
+from dash import Output, Input, Patch, no_update
 
 def get_callbacks(app):
-    
-    # turn the background video on/off
-    @app.callback(
-        Output('background-video', 'style'),
-        Input('camera-picture-checkbox', 'value'),
-    )
-    def change_background(options_list):
-        patched_style = Patch()
-        if 'pic' in options_list:
-            patched_style["visibility"] = "visible"
-        else:
-            patched_style["visibility"] = "hidden"
-        return patched_style
 
     # change point cloud visibility, point size, color scale or opacity
     app.clientside_callback(
@@ -35,6 +22,20 @@ def get_callbacks(app):
         Input('color-scale-dropdown', 'value'),
         Input('point-opacity-input', 'value'),
         prevent_initial_call=True
+    )
+
+    # switch between displaying united and divided united point cloud data
+    app.clientside_callback(
+        """
+        function(dropdown_value) {
+            if (dropdown_value == 'united') {
+                window.changePCMode(true);
+            } else {
+                window.changePCMode(false);
+            }
+        }
+        """,
+        Input('display-united-dropdown', 'value')
     )
 
     # count an aggregation of the ununited point cloud data (by intensity, for the color scale graph)
@@ -74,6 +75,9 @@ def get_callbacks(app):
         Input('display-united-store', 'data')
     )
     def change_scale_graph(scale_from_raw, scale_to_raw, colors, pc_data, united_pc_data, display_united):
+        if (scale_from_raw == None or scale_to_raw == None):
+            return no_update, no_update
+        
         scale_from = int(scale_from_raw)
         scale_to = int(scale_to_raw)
         patched_figure = Patch()
@@ -138,6 +142,19 @@ def get_callbacks(app):
         Output('scale-from-input', 'id'),  # dummy output so that the initial call occurs
         Input('scale-boundaries-store', 'data')
     )
+
+    # turn the background video on/off
+    @app.callback(
+        Output('background-video', 'style'),
+        Input('camera-picture-checkbox', 'value'),
+    )
+    def change_background(options_list):
+        patched_style = Patch()
+        if 'pic' in options_list:
+            patched_style["visibility"] = "visible"
+        else:
+            patched_style["visibility"] = "hidden"
+        return patched_style
 
     # change vector data visibility, line width or color
     app.clientside_callback(

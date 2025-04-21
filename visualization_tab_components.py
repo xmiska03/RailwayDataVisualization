@@ -4,14 +4,25 @@ from dash import html, dcc
 import dash_bootstrap_components as dbc
 from params import POINT_SIZE, OPACITY, LINE_WIDTH  # default values
 
+# dropdown to choose between divided and united point cloud data
+point_cloud_type_widget = [
+    dbc.Col(html.Div("Typ: "), width=5),
+    dbc.Col(dbc.Select(
+        options={'united': 'sjednocené', 'divided': 'rozdělené'},
+        value='divided',
+        id='display-united-dropdown',
+    ), width=6)
+]
+
 point_size_widget = [
     dbc.Col(html.Div("Velikost bodů: "), width=5),
     dbc.Col(dbc.Input(
         value=f"{POINT_SIZE}",
         id="point-size-input",
         type="number",
-        min=1,
-        max=50
+        min=10,
+        max=50,
+        step=5
     ), width=6)
 ]
 
@@ -69,16 +80,16 @@ color_scale_interval_widget = [
         type="number",
         min=0,
         max=43,
-        step=1
+        step=4
     ), width=3),
     dbc.Col(html.Div("Do: "), width=1),
     dbc.Col(dbc.Input(
-        value=18,
+        value=20,
         id="scale-to-input",
         type="number",
         min=0,
         max=43,
-        step=1
+        step=4
     ), width=3)
 ]
 
@@ -90,7 +101,7 @@ point_opacity_widget = [
         type="number",
         min=0,
         max=1,
-        step=0.1
+        step=0.2
     ), width=6)
 ]
 
@@ -190,37 +201,38 @@ back_to_default_button = [
 
 
 visualization_tab = [
-    dbc.Row(html.Div("Zobrazení vrstev:"), style={'marginTop': '15px'}),
+    dbc.Row(html.Div("Mračno bodů", style={"fontWeight": "bold", "textAlign": "center", "paddingBottom": "0.5em", 'marginTop': '15px'})),
     dbc.Row(dcc.Checklist(
-            options=[{'label': ' záběr z kamery', 'value': 'pic'}],
-            value=['pic'],
-            id='camera-picture-checkbox'
-        )
-    ),
-    dbc.Row(dcc.Checklist(
-            options=[{'label': ' mračno bodů', 'value': 'pcl'}],
+            options=[{'label': ' zobrazovat mračno bodů', 'value': 'pcl'}],
             value=['pcl'],
             id='point-cloud-checkbox'
         )
     ),
-    dbc.Row(dcc.Checklist(
-            options=[{'label': ' vektorová data', 'value': 'vec'}],
-            value=['vec'],
-            id='vector-data-checkbox'
-        )
-    ),
-    dbc.Row(html.Hr(), style={'marginTop': '15px'}),
-    
-    dbc.Row(html.Div("Mračno bodů", style={"fontWeight": "bold", "textAlign": "center", "paddingBottom": "0.5em",})),
-    dbc.Row(point_size_widget),
+    dbc.Row(point_cloud_type_widget, style={'marginTop': '15px'}),
+    dbc.Row(point_size_widget, style={'marginTop': '15px'}),
     dbc.Row(color_scale_widget, style={'marginTop': '15px'}),
     dbc.Row(color_scale_graph, justify="center", style={'marginTop': '15px'}),
     dbc.Row(color_scale_interval_widget, justify="center", style={'marginTop': '15px'}),
     dbc.Row(point_opacity_widget, style={'marginTop': '15px'}),
     dbc.Row(html.Hr(), style={'marginTop': '15px'}),
+
+    dbc.Row(html.Div("Video", style={"fontWeight": "bold", "textAlign": "center", "paddingBottom": "0.5em",})),
+    dbc.Row(dcc.Checklist(
+            options=[{'label': ' zobrazovat video', 'value': 'pic'}],
+            value=['pic'],
+            id='camera-picture-checkbox'
+        )
+    ),
+    dbc.Row(html.Hr(), style={'marginTop': '15px'}),
     
     dbc.Row(html.Div("Vektorová data", style={"fontWeight": "bold", "textAlign": "center", "paddingBottom": "0.5em",})),
-    dbc.Row(line_width_widget),
+    dbc.Row(dcc.Checklist(
+            options=[{'label': ' zobrazovat vektorová data', 'value': 'vec'}],
+            value=['vec'],
+            id='vector-data-checkbox'
+        )
+    ),
+    dbc.Row(line_width_widget, style={'marginTop': '15px'}),
     dbc.Row(line_color_widget, style={'marginTop': '15px'}),
     dbc.Row(html.Hr(), style={'marginTop': '15px'}),
     

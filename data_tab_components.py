@@ -137,14 +137,7 @@ data_tab = [
 
     # point cloud
     dbc.Row(html.Div("Mračno bodů"), style={"fontWeight": "bold", "textAlign": "center"}), 
-    # dropdown to choose between divided and united point cloud data
-    dbc.Row(html.Div("Typ: ")),
-    dbc.Row(dbc.Select(
-        options={'united': 'sjednocené', 'divided': 'rozdělené'},
-        value='divided',
-        id='display-united-dropdown',
-    ), style={'width': '95%', 'margin': '8px'}),  
-    # point cloud data
+    # united point cloud
     dbc.Row(html.Div("Sjednocené mračno bodů (.pcd):")),
     dbc.Row(html.Div(united_pc_upload, id="united-pc-upload-div")),
     dbc.Row(html.Div(united_pc_uploaded_file, id="united-pc-uploaded-file-div")),

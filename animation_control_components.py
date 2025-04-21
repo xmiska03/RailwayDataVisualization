@@ -23,11 +23,23 @@ camera_position_slider = dcc.Input(        # TODO try dbc input here
     style={'width': '100%'}
 )
 total_time_div = html.Div("00:19", id="total-time-div")
-animation_speed_select = dbc.Select(
-    options={'2': '2×', '1': '1×', '0.5': '0.5×'},
-    value='1',
-    id='animation-speed-dropdown',
-    style={'width':'80px'}
+animation_speed_select = html.Div(
+    [
+        html.Div("Rychlost:", style={
+            'position': 'absolute',
+            'bottom': '100%',
+            'left': 0,
+            'marginBottom': '6px'
+        }),
+        dbc.Select(
+            options={'2': '2×', '1': '1×', '0.5': '0.5×'},
+            value='1',
+            id='animation-speed-dropdown',
+            style={'width':'80px'}
+        )
+    ],
+    style={'position': 'relative'}
+
 )
 
 play_controls = html.Div(

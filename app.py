@@ -368,6 +368,11 @@ app.clientside_callback(
             window.camera_timestamps = camera_timestamps;
             window.initializeDeck();       // call function defined in the JavaScript file
         }
+
+        // disable picture-in-picture in mozilla
+        const video = document.getElementById('background-video');
+        video.disablePictureInPicture = true;
+
         return dash_clientside.no_update;
     }
     """,

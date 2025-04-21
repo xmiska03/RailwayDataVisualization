@@ -9,6 +9,6 @@ BEARING = 90.64                 # turn the camera left/right
 PITCH = 0                    # turn the camera up/down
 NEAR_PLANE = 0.1
 FAR_PLANE = 300
-OPACITY = 0.7
+OPACITY = 0.6
 LINE_WIDTH = 3
 GAUGE_LINE_WIDTH = 3
