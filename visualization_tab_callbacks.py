@@ -160,9 +160,9 @@ def get_callbacks(app):
     app.clientside_callback(
         """
         function(layers, line_width, line_color) {
-            if (window.updatePathLayerProps) {
+            if (window.updateVectorLayerProps) {
                 // call function defined in the JavaScript file
-                window.updatePathLayerProps(layers.includes('vec'), line_width, line_color);
+                window.updateVectorLayerProps(layers.includes('vec'), line_width, line_color);
             }
         }
         """,

@@ -116,9 +116,9 @@ function createPointCloudLayer(n) {
   });
 }
 
-function createPathLayer() {
+function createGaugeLineLayer() {
   return new PathLayer({
-    id: 'path-layer',
+    id: 'gauge-line-layer',
     data: window.data_dict.layers[1].data[gauge_distance_to_index(window.gauge_distance)],
     getColor: window.data_dict.layers[1].color,
     getPath: (d) => d,
@@ -127,10 +127,7 @@ function createPathLayer() {
     visible: window.data_dict.layers[1].visible,
     updateTriggers: {
       getColor: window.data_dict.layers[1].color
-    },
-    /*parameters: {
-      depthCompare: 'always'    // the layer will be on top of previous layers
-    }*/
+    }
   });
 }
 
@@ -153,6 +150,21 @@ function createGaugeLayer() {
   });
 }
 
+function createVectorLayer() {
+  return new PathLayer({
+    id: 'vector-layer',
+    data: window.data_dict.layers[3].data,
+    getColor: window.data_dict.layers[3].color,
+    getPath: (d) => d,
+    getWidth: window.data_dict.layers[3].width,
+    billboard: true,     // lines turned towards the camera
+    visible: window.data_dict.layers[3].visible,
+    updateTriggers: {
+      getColor: window.data_dict.layers[3].color
+    }
+  });
+}
+
 function createLayers() {
   // (re)create all the layers
   window.layers = new Array(window.curr_pcl_layers_cnt + 2);
@@ -160,8 +172,9 @@ function createLayers() {
   for (let i = 0; i < window.curr_pcl_layers_cnt; i++) {
     window.layers[i] = createPointCloudLayer(i);
   }
-  window.layers[window.curr_pcl_layers_cnt] = createPathLayer();
+  window.layers[window.curr_pcl_layers_cnt] = createGaugeLineLayer();
   window.layers[window.curr_pcl_layers_cnt + 1] = createGaugeLayer();
+  window.layers[window.curr_pcl_layers_cnt + 2] = createVectorLayer();
 }
 
 // used for initializing the visualization
@@ -335,24 +348,23 @@ function updateGaugeLineLayer() {
   window.deck.setProps({layers: window.layers});
 }
 
-// TODO: a new path layer
 
 // to change vector data visibility, line width or color
-function updatePathLayerProps(visible, line_width, line_color) {
+function updateVectorLayerProps(visible, line_width, line_color) {
   // convert to RGB
   // the following line is taken from a piece of example code in deck.gl documentation (PathLayer section)
   const new_color = line_color.match(/[0-9a-f]{2}/g).map(x => parseInt(x, 16));
 
-  /*window.data_dict.layers[1].visible = visible;
-  window.data_dict.layers[1].width = parseInt(line_width, 10);
-  window.data_dict.layers[1].color = new_color;
-  updatePathLayer();*/
+  window.data_dict.layers[3].visible = visible;
+  window.data_dict.layers[3].width = parseInt(line_width, 10);
+  window.data_dict.layers[3].color = new_color;
+  updateVectorLayer();
 }
 
-function updatePathLayer() {
-  /*createLayers(); // TODO: maybe optimize this so that only the right layers are recreated
+function updateVectorLayer() {
+  createLayers(); // TODO: maybe optimize this so that only the right layers are recreated
 
-  window.deck.setProps({layers: window.layers});*/
+  window.deck.setProps({layers: window.layers});
 }
 
 
@@ -471,8 +483,8 @@ window.updateDeck = updateDeck;
 window.updatePCLayerProps = updatePCLayerProps;
 window.updatePCLayer = updatePCLayer;
 window.changePCMode = changePCMode;
-window.updatePathLayerProps = updatePathLayerProps;
-window.updatePathLayer = updatePathLayer;
+window.updateVectorLayerProps = updateVectorLayerProps;
+window.updateVectorLayer = updateVectorLayer;
 window.updateGaugeLineLayerProps = updateGaugeLineLayerProps;
 window.updateGaugeLineLayer = updateGaugeLineLayer;
 window.updateGaugeLayerProps = updateGaugeLayerProps;

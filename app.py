@@ -76,17 +76,18 @@ for i in range(4):
         # if translations are in order yzx instead of xyz, then rotations are in order xzy instead of zyx
         rotation = Rotation.from_euler("xzy", rotation_xzy, degrees=True)
         gauge_rotations_inv[i].append(rotation.inv().as_matrix())
-
-# load vector data (polylines)
-paths_data = [
-    # for now only the loading gauge line is here
+gauge_lines_data = [
     [gauge_translations[0]],
     [gauge_translations[1]],
     [gauge_translations[2]],
     [gauge_translations[3]]
-    #load_csv_file_into_nparray("data/polyline1.csv"),
-    #load_csv_file_into_nparray("data/polyline2.csv"),
-    #load_csv_file_into_nparray("data/polyline3.csv")
+]
+
+# load vector data (polylines)
+vector_data = [
+    load_csv_file_into_nparray("data/vector_data/polyline1.csv"),
+    load_csv_file_into_nparray("data/vector_data/polyline2.csv"),
+    load_csv_file_into_nparray("data/vector_data/polyline3.csv")
 ]
 
 # prepare the visualization of the point cloud using Deck.GL
@@ -98,8 +99,8 @@ point_cloud_layer = {
     "visible": True
 }
 
-path_layer = {
-    "data": paths_data,
+gauge_line_layer = {
+    "data": gauge_lines_data,
     "color": [232, 175, 16],    # #e8af10
     "width": params.LINE_WIDTH,
     "visible": True
@@ -109,6 +110,13 @@ loading_gauge_layer = {
     "data": gauge_data,
     "color": [225, 80, 255],    # #e250ff
     "width": params.GAUGE_LINE_WIDTH,
+    "visible": True
+}
+
+vector_layer = {
+    "data": vector_data,
+    "color": [250, 101, 15],    # #fa650f
+    "width": params.LINE_WIDTH,
     "visible": True
 }
 
@@ -126,7 +134,7 @@ view = {
 deck_dict = {
     "initialViewState": view_state,
     "views": [view],
-    "layers": [point_cloud_layer, path_layer, loading_gauge_layer],
+    "layers": [point_cloud_layer, gauge_line_layer, loading_gauge_layer, vector_layer],
 }
 
 # a part of the Dash app which visualizes the data
