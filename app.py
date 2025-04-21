@@ -85,7 +85,6 @@ gauge_lines_data = [
 
 # load vector data (polylines)
 vector_data = [
-    load_csv_file_into_nparray("data/vector_data/polyline1.csv"),
     load_csv_file_into_nparray("data/vector_data/polyline2.csv"),
     load_csv_file_into_nparray("data/vector_data/polyline3.csv")
 ]
@@ -114,7 +113,7 @@ loading_gauge_layer = {
 }
 
 vector_layer = {
-    "data": vector_data,
+    "data": [],   # data for this layer is in the vector-data store
     "color": [250, 101, 15],    # #fa650f
     "width": params.LINE_WIDTH,
     "visible": True
@@ -242,6 +241,16 @@ stores = [
         data=united_pc_nparray
     ),
     dcc.Store(
+        id='pcl-timestamps-data',
+        data=pcl_timestamps
+    ),
+
+    dcc.Store(
+        id='vector-data',
+        data=vector_data
+    ),
+
+    dcc.Store(
         id='translations-data',
         data=trans_nparray
     ),
@@ -257,6 +266,10 @@ stores = [
         id='rotations-euler-data',
         data=rot_euler_array
     ),
+    dcc.Store(
+        id='camera-timestamps-data',
+        data=timestamps_nparray
+    ),
     
     dcc.Store(
         id='gauge-trans-data',         # for the loading gauge (train profile)
@@ -268,15 +281,6 @@ stores = [
     ),
     dcc.Store(
         id='gauge-transf-data'
-    ),
-    
-    dcc.Store(
-        id='camera-timestamps-data',
-        data=timestamps_nparray
-    ),
-    dcc.Store(
-        id='pcl-timestamps-data',
-        data=pcl_timestamps
     ),
 
     dcc.Store(
@@ -366,12 +370,14 @@ app.layout = html.Div(
 # callbacks - the logic of the app
 
 # (re)initialize the deck visualization
+# TODO optimize
 app.clientside_callback(
     """
-    function(data_dict, united_pc_data, camera_timestamps, pcl_timestamps) {
+    function(data_dict, united_pc_data, vector_data, camera_timestamps, pcl_timestamps) {
         if (window.initializeDeck) {
             window.data_dict = data_dict;  // make the data accessible to visualizations.js
             window.united_pc_data = united_pc_data;
+            window.vector_data = vector_data;
             window.pcl_timestamps = pcl_timestamps;
             window.camera_timestamps = camera_timestamps;
             window.initializeDeck();       // call function defined in the JavaScript file
@@ -387,6 +393,7 @@ app.clientside_callback(
     Output('visualization-data', 'id'),  # dummy output needed so that the initial call occurs
     Input('visualization-data', 'data'),
     Input('united-pc-data', 'data'),
+    Input('vector-data', 'data'),
     Input('camera-timestamps-data', 'data'),
     State('pcl-timestamps-data', 'data')
 )

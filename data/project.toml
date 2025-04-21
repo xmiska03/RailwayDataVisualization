@@ -9,14 +9,14 @@ divided_pcd_filename_prefix = "pcd"
 divided_pcd_files_cnt = 596
 divided_pcd_timestamps_path = "joined/joined_pcl_timestamps.txt"
 
-# translations
-translations_path = "joined/trans_joined.csv"
-
-# rotations
-rotations_path = "joined/rot_joined.csv"
-
-# timestamps
-timestamps_path = "joined/imu_joined_timestamps.csv"
-
 # video
 video_path = "../assets/video_long_compatible.mp4"
+
+# vector data
+vector_data_path = "vector_data"                # all in one directory, filenames do not matter
+
+# the virtual camera
+translations_path = "joined/trans_joined.csv"
+rotations_path = "joined/rot_joined.csv"
+timestamps_path = "joined/imu_joined_timestamps.csv"
+

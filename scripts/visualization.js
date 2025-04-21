@@ -153,7 +153,7 @@ function createGaugeLayer() {
 function createVectorLayer() {
   return new PathLayer({
     id: 'vector-layer',
-    data: window.data_dict.layers[3].data,
+    data: window.vector_data,
     getColor: window.data_dict.layers[3].color,
     getPath: (d) => d,
     getWidth: window.data_dict.layers[3].width,

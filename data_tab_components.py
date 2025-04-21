@@ -81,6 +81,34 @@ pc_timestamps_uploaded_files = dbc.Stack(
     ], direction="horizontal", gap=2, style={'margin': '10px'}
 )
 
+
+video_uploaded_file = dbc.Stack(
+    [
+        html.I(className="bi bi-filetype-mp4"),
+        html.Div("", id="video-filename-div"),
+        spacer,
+        dbc.Button(icon_x, id='video-delete-button', style=uploaded_file_box_style),
+        # a special store used to trigger a clienside callback to update the video time
+        dcc.Store(id="update-video-store", data=0),
+        dcc.Store(id="video-path-store", data=""),
+        # an interval to delete temporary video files created when users upload new videos
+        dcc.Interval(
+            id="delete-temp-video-interval",
+            interval=120000,  # 2 minutes
+        ),
+    ], direction="horizontal", gap=2, style={'margin': '10px'}
+)
+
+
+vector_data_uploaded_files = dbc.Stack(
+    [
+        html.I(className="bi bi-folder"),
+        html.Div("", id="vector-data-filename-div"),
+        dcc.Store(id="vector-data-path-store", data="")
+    ], direction="horizontal", gap=2, style={'margin': '10px'}
+)
+
+
 translations_uploaded_file = dbc.Stack(
     [
         html.I(className="bi bi-filetype-csv"),
@@ -111,22 +139,6 @@ timestamps_uploaded_file = dbc.Stack(
     ], direction="horizontal", gap=2, style={'margin': '10px'}
 )
 
-video_uploaded_file = dbc.Stack(
-    [
-        html.I(className="bi bi-filetype-mp4"),
-        html.Div("", id="video-filename-div"),
-        spacer,
-        dbc.Button(icon_x, id='video-delete-button', style=uploaded_file_box_style),
-        # a special store used to trigger a clienside callback to update the video time
-        dcc.Store(id="update-video-store", data=0),
-        dcc.Store(id="video-path-store", data=""),
-        # an interval to delete temporary video files created when users upload new videos
-        dcc.Interval(
-            id="delete-temp-video-interval",
-            interval=120000,  # 2 minutes
-        ),
-    ], direction="horizontal", gap=2, style={'margin': '10px'}
-)
 
 data_tab = [
     # project file
@@ -148,6 +160,18 @@ data_tab = [
     dbc.Row(html.Div(pc_timestamps_uploaded_files, id="pc-timestamps-uploaded-file-div")),
     dbc.Row(html.Hr(style={'marginTop':'15px'})),
     
+    # video
+    dbc.Row(html.Div("Video (.mp4)"), style={"fontWeight": "bold", "textAlign": "center"}), 
+    dbc.Row(html.Div(video_upload, id="video-upload-div")),
+    dbc.Row(html.Div(video_uploaded_file, id="video-uploaded-file-div")),
+    dbc.Row(html.Hr(style={'marginTop':'15px'})),
+
+    # vector data
+    dbc.Row(html.Div("Vektorová data"), style={"fontWeight": "bold", "textAlign": "center"}),
+    dbc.Row(html.Div("Adresář s vektorovými daty (.csv soubory):")),
+    dbc.Row(html.Div(vector_data_uploaded_files, id="vector-data-uploaded-file-div")),
+    dbc.Row(html.Hr(style={'marginTop':'15px'})),
+
     # the virtual camera
     dbc.Row(html.Div("Virtuální kamera"), style={"fontWeight": "bold", "textAlign": "center"}), 
     dbc.Row(html.Div("Translace (.csv):")),
@@ -160,10 +184,5 @@ data_tab = [
     dbc.Row(html.Div(timestamps_upload, id="timestamps-upload-div")),
     dbc.Row(html.Div(timestamps_uploaded_file, id="timestamps-uploaded-file-div")),
     dbc.Row(html.Hr(style={'marginTop':'15px'})),
-    
-    # video
-    dbc.Row(html.Div("Video (.mp4)"), style={"fontWeight": "bold", "textAlign": "center"}), 
-    dbc.Row(html.Div(video_upload, id="video-upload-div")),
-    dbc.Row(html.Div(video_uploaded_file, id="video-uploaded-file-div"))
 ]
 

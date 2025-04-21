@@ -30,12 +30,16 @@ def get_callbacks(app):
         function(dropdown_value) {
             if (dropdown_value == 'united') {
                 window.changePCMode(true);
+                return true;
             } else {
                 window.changePCMode(false);
+                return
             }
         }
         """,
-        Input('display-united-dropdown', 'value')
+        Output('display-united-store', 'data'),
+        Input('display-united-dropdown', 'value'),
+        prevent_initial_call=True
     )
 
     # count an aggregation of the ununited point cloud data (by intensity, for the color scale graph)

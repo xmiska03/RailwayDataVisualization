@@ -73,10 +73,13 @@ def get_callbacks(app):
         Output('divided-pcd-paths-store', 'data'),
         Output('pc-timestamps-path-store', 'data'),
 
+        Output('video-path-store', 'data'),
+
+        Output('vector-data-path-store', 'data'),
+
         Output('translations-path-store', 'data'),
         Output('rotations-path-store', 'data'),
         Output('timestamps-path-store', 'data'),
-        Output('video-path-store', 'data'),
         
         Input('project-file-upload', 'contents'),
         State('project-file-upload', 'filename'),
@@ -98,18 +101,20 @@ def get_callbacks(app):
                 "files_cnt": data['divided_pcd_files_cnt']
             }
             pc_timestamps_path = os.path.join(data['project_path'], data['divided_pcd_timestamps_path'])
+            video_path = os.path.join(data['project_path'], data['video_path'])
+            vector_data_path = os.path.join(data['project_path'], data['vector_data_path'])
             translations_path = os.path.join(data['project_path'], data['translations_path'])
             rotations_path = os.path.join(data['project_path'], data['rotations_path'])
             timestamps_path = os.path.join(data['project_path'], data['timestamps_path'])
-            video_path = os.path.join(data['project_path'], data['video_path'])
 
             return {"display": "none"}, {"display": "block"}, filename, \
                 display_united_dropdown_val, united_pcd_path, divided_pcd_paths, pc_timestamps_path, \
-                translations_path, rotations_path, timestamps_path, video_path
+                video_path, vector_data_path, \
+                translations_path, rotations_path, timestamps_path
         else:
             # file deleted (or it is the initial call)
             return {"display": "block"}, {"display": "none"}, "", \
-                no_update, no_update, "", "", no_update, no_update, no_update, no_update
+                no_update, no_update, "", "", no_update, "", no_update, no_update, no_update
 
 
     # upload/delete file with united point cloud
@@ -199,6 +204,73 @@ def get_callbacks(app):
             # read the file
             data = load_pcl_timestamps(pc_timestamps_path)
             return {"display": "block"}, new_filename, data
+        else:
+            # it is the initial call
+            return {"display": "none"}, "", no_update
+
+
+    # upload/delete file with video
+    @app.callback(
+        Output('video-upload-div', 'style'),
+        Output('video-uploaded-file-div', 'style'),
+        Output('video-filename-div', 'children'),
+        Output('background-video', 'src'),
+        Output('update-video-store', 'data'),  # to set the same position in the new video
+        Input('video-upload', 'contents'),
+        Input('video-path-store', 'data'),
+        State('video-upload', 'filename'),
+        State('update-video-store', 'data'),
+        prevent_initial_call = True
+    )
+    def upload_video(file_content, video_path, filename, update_number):
+        # TODO test if the video is in the right format
+
+        if ctx.triggered_id == 'video-path-store' and video_path != "":
+            # the file path was set by the project file
+            # get filename
+            new_filename = os.path.basename(video_path)
+            # the file has to be in the "assets" directory to be loaded into the Dash app
+            # so we have to copy it into a temporary file there
+            server_filename = f"assets/temp/uploaded_video_{int(time.time())}.mp4" # filename with a timestamp
+            with open(video_path, 'rb') as src:
+                with open(server_filename, 'wb') as dst:
+                    dst.write(src.read())
+            return {"display": "none"}, {"display": "block"}, new_filename, server_filename, update_number+1 
+        elif file_content is not None:
+            # new file uploaded
+            content_type, content_string = file_content.split(',')
+            decoded = base64.b64decode(content_string)
+            # write the video to a temporary file
+            server_filename = f"assets/temp/uploaded_video_{int(time.time())}.mp4" # filename with a timestamp
+            with open(server_filename, "wb") as f:
+                f.write(decoded)
+            return {"display": "none"}, {"display": "block"}, filename, server_filename, update_number+1
+        else:
+            # file deleted (or it is the initial call)
+            return {"display": "block"}, {"display": "none"}, "", no_update, update_number+1
+    
+
+    # upload/delete file with vector data
+    @app.callback(
+        Output('vector-data-uploaded-file-div', 'style'),
+        Output('vector-data-filename-div', 'children'),
+        Output('vector-data', 'data'),
+        Input('vector-data-path-store', 'data'),
+        prevent_initial_call = True
+    )
+    def upload_vector_data(vector_data_path):
+        if ctx.triggered_id == 'vector-data-path-store' and vector_data_path != "":
+            # the file path was set by the project file
+            # get directory name (in this case displayed instead of filename)
+            dirname = os.path.basename(vector_data_path)
+            # get names of all files in the directory
+            files = os.listdir(vector_data_path)
+            # read the files one by one
+            data = []
+            for filename in files:
+                file_path = os.path.join(vector_data_path, filename)
+                data.append(load_csv_file_into_nparray(file_path))
+            return {"display": "block"}, dirname, data
         else:
             # it is the initial call
             return {"display": "none"}, "", no_update
@@ -314,46 +386,6 @@ def get_callbacks(app):
         else:
             # file deleted (or it is the initial call)
             return {"display": "block"}, {"display": "none"}, "", no_update
-
-    # upload/delete file with video
-    @app.callback(
-        Output('video-upload-div', 'style'),
-        Output('video-uploaded-file-div', 'style'),
-        Output('video-filename-div', 'children'),
-        Output('background-video', 'src'),
-        Output('update-video-store', 'data'),  # to set the same position in the new video
-        Input('video-upload', 'contents'),
-        Input('video-path-store', 'data'),
-        State('video-upload', 'filename'),
-        State('update-video-store', 'data'),
-        prevent_initial_call = True
-    )
-    def upload_video(file_content, video_path, filename, update_number):
-        # TODO test if the video is in the right format
-
-        if ctx.triggered_id == 'video-path-store' and video_path != "":
-            # the file path was set by the project file
-            # get filename
-            new_filename = os.path.basename(video_path)
-            # the file has to be in the "assets" directory to be loaded into the Dash app
-            # so we have to copy it into a temporary file there
-            server_filename = f"assets/temp/uploaded_video_{int(time.time())}.mp4" # filename with a timestamp
-            with open(video_path, 'rb') as src:
-                with open(server_filename, 'wb') as dst:
-                    dst.write(src.read())
-            return {"display": "none"}, {"display": "block"}, new_filename, server_filename, update_number+1 
-        elif file_content is not None:
-            # new file uploaded
-            content_type, content_string = file_content.split(',')
-            decoded = base64.b64decode(content_string)
-            # write the video to a temporary file
-            server_filename = f"assets/temp/uploaded_video_{int(time.time())}.mp4" # filename with a timestamp
-            with open(server_filename, "wb") as f:
-                f.write(decoded)
-            return {"display": "none"}, {"display": "block"}, filename, server_filename, update_number+1
-        else:
-            # file deleted (or it is the initial call)
-            return {"display": "block"}, {"display": "none"}, "", no_update, update_number+1
     
 
     # set a new video to the same time as the old video
@@ -382,6 +414,8 @@ def get_callbacks(app):
                 if now - int(filename[15:-4]) > 120:  # determine if the file is at least 2 minutes old
                     os.remove(file_path)
 
+    # these callback also serve to hide empty boxes at the start of the app:
+    
     # delete project file
     @app.callback(
         Output('project-file-upload', 'contents'),
@@ -396,6 +430,14 @@ def get_callbacks(app):
         Input('united-pc-delete-button', 'n_clicks')
     )
     def delete_point_cloud(btn):
+        return None
+    
+    # delete file with video
+    @app.callback(
+        Output('video-upload', 'contents'),
+        Input('video-delete-button', 'n_clicks')
+    )
+    def delete_video(btn):
         return None
 
     # delete file with translations
@@ -421,17 +463,6 @@ def get_callbacks(app):
     )
     def delete_timestamps(btn):
         return None
-
-    # delete file with video
-    @app.callback(
-        Output('video-upload', 'contents'),
-        Input('video-delete-button', 'n_clicks')
-    )
-    def delete_video(btn):
-        return None
-
-    # hide empty boxes at the start of the app
-
 
     # update window.frames_cnt, the total time label as well as the range of the slider & input 
     # which control train position when new timestamps data is uploaded
