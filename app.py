@@ -16,7 +16,7 @@ from general_functions import calculate_projection_matrix, calculate_translation
                               load_rotation, rotation_to_euler, rotation_to_matrix, rotation_to_inv_matrix
 from loading_functions import load_csv_file_into_nparray, load_yaml_into_dict, \
                               load_timestamps_file_into_nparray, load_space_separated_into_nparray, \
-                                load_pcl_timestamps
+                              load_pcl_timestamps, load_gauge_translations, load_gauge_rotations
 
 
 # load unaggregated point cloud data
@@ -60,28 +60,11 @@ timestamps_nparray = load_timestamps_file_into_nparray("data/joined/imu_joined_t
 frames_cnt = trans_nparray.shape[0]
 
 # load loading gauge data
-gauge_data = [load_csv_file_into_nparray("data/loading_gauge.csv")]
-# load predicted translations in distances 25m, 50m, 75m, 100m
-gauge_translations = [
-    load_space_separated_into_nparray("data/joined/profile/profile_trans_25.csv")[:, [2, 0, 1]],
-    load_space_separated_into_nparray("data/joined/profile/profile_trans_50.csv")[:, [2, 0, 1]],
-    load_space_separated_into_nparray("data/joined/profile/profile_trans_75.csv")[:, [2, 0, 1]],
-    load_space_separated_into_nparray("data/joined/profile/profile_trans_100.csv")[:, [2, 0, 1]]
-]
-# load predicted rotations in distances 25m, 50m, 75m, 100m
-gauge_rotations_inv = [[] for _ in range(4)]
-for i in range(4):
-    gauge_rotations_raw = load_space_separated_into_nparray(f"data/joined/profile/profile_rot_{25 + i*25}.csv")
-    for rotation_xzy in rot_nparray_raw:
-        # if translations are in order yzx instead of xyz, then rotations are in order xzy instead of zyx
-        rotation = Rotation.from_euler("xzy", rotation_xzy, degrees=True)
-        gauge_rotations_inv[i].append(rotation.inv().as_matrix())
-gauge_lines_data = [
-    [gauge_translations[0]],
-    [gauge_translations[1]],
-    [gauge_translations[2]],
-    [gauge_translations[3]]
-]
+gauge_shape = [load_csv_file_into_nparray("data/loading_gauge.csv")]
+gauge_translations = load_gauge_translations("data/joined/profile", "profile_trans")
+gauge_rotations = load_gauge_rotations("data/joined/profile", "profile_rot")
+gauge_lines_data = [[gauge_translations[0]], [gauge_translations[1]], [gauge_translations[2]],
+                    [gauge_translations[3]]]
 
 # load vector data (polylines)
 vector_data = [
@@ -90,6 +73,7 @@ vector_data = [
 ]
 
 # prepare the visualization of the point cloud using Deck.GL
+
 point_cloud_layer = {
     "data": pc_nparray,
     "pointSize": params.POINT_SIZE,
@@ -106,7 +90,7 @@ gauge_line_layer = {
 }
 
 loading_gauge_layer = {
-    "data": gauge_data,
+    "data": gauge_shape,
     "color": [225, 80, 255],    # #e250ff
     "width": params.GAUGE_LINE_WIDTH,
     "visible": True
@@ -277,7 +261,7 @@ stores = [
     ),
     dcc.Store(
         id='gauge-rot-inv-data',
-        data=gauge_rotations_inv
+        data=gauge_rotations
     ),
     dcc.Store(
         id='gauge-transf-data'
