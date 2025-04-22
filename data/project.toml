@@ -20,3 +20,9 @@ translations_path = "joined/trans_joined.csv"
 rotations_path = "joined/rot_joined.csv"
 timestamps_path = "joined/imu_joined_timestamps.csv"
 
+# the train profile
+profile_translations_path = "joined/profile"
+profile_translations_filename_prefix = "profile_trans"
+profile_rotations_path = "joined/profile"
+profile_rotations_filename_prefix = "profile_rot"
+

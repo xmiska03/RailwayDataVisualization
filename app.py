@@ -260,7 +260,7 @@ stores = [
         data=gauge_translations
     ),
     dcc.Store(
-        id='gauge-rot-inv-data',
+        id='gauge-rot-data',
         data=gauge_rotations
     ),
     dcc.Store(

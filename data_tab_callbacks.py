@@ -12,7 +12,8 @@ import tomllib
 from general_functions import calculate_loading_gauge_transformation_matrix, load_rotation, \
                               rotation_to_euler, rotation_to_matrix, rotation_to_inv_matrix
 from loading_functions import load_pcl_timestamps, load_csv_file_into_nparray, load_csv_into_nparray, \
-                              load_timestamps_file_into_nparray, load_timestamps_into_nparray
+                              load_timestamps_file_into_nparray, load_timestamps_into_nparray, \
+                              load_gauge_translations, load_gauge_rotations
 
 
 def get_callbacks(app):
@@ -46,20 +47,20 @@ def get_callbacks(app):
     @app.callback(
         Output('gauge-transf-data', 'data'),
         Input('gauge-trans-data', 'data'),
-        State('gauge-rot-inv-data', 'data')
+        State('gauge-rot-data', 'data')
     )
-    def create_loading_gauge_transformations(trans_data, inv_rot_data):
-        inv_transf_matrices = [[] for _ in range(4)]
+    def create_loading_gauge_transformations(trans_data, rot_data):
+        transf_matrices = [[] for _ in range(4)]
         
         # calculate transformations for distances 25m, 50m, 75m, 100m
         for i in range(4):
             trans_nparray = np.array(trans_data[i])  # convert from lists to numpy arrays
-            inv_rot_nparray = np.array(inv_rot_data[i])
-            for j in range(min(trans_nparray.shape[0], inv_rot_nparray.shape[0])):
-                inv_transf_matrix = calculate_loading_gauge_transformation_matrix(trans_nparray[j],
-                                                                                inv_rot_nparray[j])
-                inv_transf_matrices[i].append(inv_transf_matrix)
-        return inv_transf_matrices
+            rot_nparray = np.array(rot_data[i])
+            for j in range(min(trans_nparray.shape[0], rot_nparray.shape[0])):
+                transf_matrix = calculate_loading_gauge_transformation_matrix(trans_nparray[j],
+                                                                              rot_nparray[j])
+                transf_matrices[i].append(transf_matrix)
+        return transf_matrices
     
 
     # upload/delete project file
@@ -80,6 +81,9 @@ def get_callbacks(app):
         Output('translations-path-store', 'data'),
         Output('rotations-path-store', 'data'),
         Output('timestamps-path-store', 'data'),
+
+        Output('profile-trans-paths-store', 'data'),
+        Output('profile-rot-paths-store', 'data'),
         
         Input('project-file-upload', 'contents'),
         State('project-file-upload', 'filename'),
@@ -106,15 +110,24 @@ def get_callbacks(app):
             translations_path = os.path.join(data['project_path'], data['translations_path'])
             rotations_path = os.path.join(data['project_path'], data['rotations_path'])
             timestamps_path = os.path.join(data['project_path'], data['timestamps_path'])
+            profile_trans_paths = {
+                "dir_path": os.path.join(data['project_path'], data['profile_translations_path']),
+                "filename_prefix": data['profile_translations_filename_prefix']
+            }
+            profile_rot_paths = {
+                "dir_path": os.path.join(data['project_path'], data['profile_rotations_path']),
+                "filename_prefix": data['profile_rotations_filename_prefix']
+            }
 
             return {"display": "none"}, {"display": "block"}, filename, \
                 display_united_dropdown_val, united_pcd_path, divided_pcd_paths, pc_timestamps_path, \
                 video_path, vector_data_path, \
-                translations_path, rotations_path, timestamps_path
+                translations_path, rotations_path, timestamps_path, \
+                profile_trans_paths, profile_rot_paths
         else:
             # file deleted (or it is the initial call)
             return {"display": "block"}, {"display": "none"}, "", \
-                no_update, no_update, "", "", no_update, "", no_update, no_update, no_update
+                no_update, no_update, "", "", no_update, "", no_update, no_update, no_update, "", ""
 
 
     # upload/delete file with united point cloud
@@ -169,10 +182,11 @@ def get_callbacks(app):
         prevent_initial_call = True
     )
     def upload_divided_pc(pcd_paths):
-        if ctx.triggered_id == 'divided-pcd-paths-store' and pcd_paths != "":
+        if pcd_paths != "":
             # the file path was set by the project file
-            # get directory name (in this case displayed instead of filename)
+            # create quasi-filename
             dirname = os.path.basename(pcd_paths['dir_path'])
+            quasi_filename = os.path.join(dirname, pcd_paths['filename_prefix']) + "_*.pcd"
             # read the files one by one
             data = []
             for i in range(pcd_paths['files_cnt']):
@@ -182,7 +196,7 @@ def get_callbacks(app):
             # create a patch for the visualization data store
             patched_data = Patch()
             patched_data["layers"][0]["data"] = data
-            return {"display": "block"}, dirname, patched_data
+            return {"display": "block"}, quasi_filename, patched_data
         else:
             # it is the initial call
             return {"display": "none"}, "", no_update
@@ -259,10 +273,11 @@ def get_callbacks(app):
         prevent_initial_call = True
     )
     def upload_vector_data(vector_data_path):
-        if ctx.triggered_id == 'vector-data-path-store' and vector_data_path != "":
+        if vector_data_path != "":
             # the file path was set by the project file
-            # get directory name (in this case displayed instead of filename)
+            # create quasi-filename
             dirname = os.path.basename(vector_data_path)
+            quasi_filename = os.path.join(dirname, "*.csv")
             # get names of all files in the directory
             files = os.listdir(vector_data_path)
             # read the files one by one
@@ -270,7 +285,7 @@ def get_callbacks(app):
             for filename in files:
                 file_path = os.path.join(vector_data_path, filename)
                 data.append(load_csv_file_into_nparray(file_path))
-            return {"display": "block"}, dirname, data
+            return {"display": "block"}, quasi_filename, data
         else:
             # it is the initial call
             return {"display": "none"}, "", no_update
@@ -386,6 +401,51 @@ def get_callbacks(app):
         else:
             # file deleted (or it is the initial call)
             return {"display": "block"}, {"display": "none"}, "", no_update
+    
+    # upload/delete file with train profile translations
+    @app.callback(
+        Output('profile-trans-uploaded-file-div', 'style'),
+        Output('profile-trans-filename-div', 'children'),
+        Output('gauge-trans-data', 'data'),
+        Input('profile-trans-paths-store', 'data'),
+        prevent_initial_call = True
+    )
+    def upload_vector_data(profile_trans_paths):
+        if ctx.triggered_id == 'profile-trans-paths-store' and profile_trans_paths != "":
+            # the file path was set by the project file
+            # create quasi-filename
+            dirname = os.path.basename(profile_trans_paths['dir_path'])
+            quasi_filename = os.path.join(dirname, profile_trans_paths['filename_prefix']) + "_*.csv"
+            # load data from the files
+            data = load_gauge_translations(profile_trans_paths['dir_path'], profile_trans_paths['filename_prefix'])
+            
+            # TODO update the line also
+            
+            return {"display": "block"}, quasi_filename, data
+        else:
+            # it is the initial call
+            return {"display": "none"}, "", no_update
+        
+    # upload/delete file with train profile rotations
+    @app.callback(
+        Output('profile-rot-uploaded-file-div', 'style'),
+        Output('profile-rot-filename-div', 'children'),
+        Output('gauge-rot-data', 'data'),
+        Input('profile-rot-paths-store', 'data'),
+        prevent_initial_call = True
+    )
+    def upload_vector_data(profile_rot_paths):
+        if ctx.triggered_id == 'profile-rot-paths-store' and profile_rot_paths != "":
+            # the file path was set by the project file
+            # create quasi-filename
+            dirname = os.path.basename(profile_rot_paths['dir_path'])
+            quasi_filename = os.path.join(dirname, profile_rot_paths['filename_prefix']) + "_*.csv"
+            # load data from the files
+            data = load_gauge_rotations(profile_rot_paths['dir_path'], profile_rot_paths['filename_prefix'])
+            return {"display": "block"}, quasi_filename, data
+        else:
+            # it is the initial call
+            return {"display": "none"}, "", no_update
     
 
     # set a new video to the same time as the old video

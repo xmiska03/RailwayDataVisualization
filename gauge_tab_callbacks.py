@@ -7,7 +7,6 @@ def get_callbacks(app):
         function(distance) {
             window.gauge_distance = distance;
             window.updateDeck();
-            window.updatePathLayer();
         }
         """,
         Input('gauge-distance-dropdown', 'value'),

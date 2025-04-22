@@ -65,7 +65,7 @@ united_pc_uploaded_file = dbc.Stack(
 
 divided_pc_uploaded_files = dbc.Stack(
     [
-        html.I(className="bi bi-folder"),
+        html.I(className="bi bi-file-earmark-binary"),
         html.Div("", id="divided-pc-filename-div"),
         # this store will be set by the project file and it will be a dictionary with these keys:
         # "dir_path", "filename_prefix", "files_cnt"
@@ -102,7 +102,7 @@ video_uploaded_file = dbc.Stack(
 
 vector_data_uploaded_files = dbc.Stack(
     [
-        html.I(className="bi bi-folder"),
+        html.I(className="bi bi-filetype-csv"),
         html.Div("", id="vector-data-filename-div"),
         dcc.Store(id="vector-data-path-store", data="")
     ], direction="horizontal", gap=2, style={'margin': '10px'}
@@ -139,6 +139,27 @@ timestamps_uploaded_file = dbc.Stack(
     ], direction="horizontal", gap=2, style={'margin': '10px'}
 )
 
+profile_trans_uploaded_files = dbc.Stack(
+    [
+        html.I(className="bi bi-filetype-csv"),
+        html.Div("", id="profile-trans-filename-div"),
+        # this store will be set by the project file and it will be a dictionary with these keys:
+        # "dir_path", "filename_prefix"
+        dcc.Store(id="profile-trans-paths-store", data="")
+    ], direction="horizontal", gap=2, style={'margin': '10px'}
+)
+
+profile_rot_uploaded_files = dbc.Stack(
+    [
+        html.I(className="bi bi-filetype-csv"),
+        html.Div("", id="profile-rot-filename-div"),
+        # this store will be set by the project file and it will be a dictionary with these keys:
+        # "dir_path", "filename_prefix"
+        dcc.Store(id="profile-rot-paths-store", data="")
+    ], direction="horizontal", gap=2, style={'margin': '10px'}
+)
+
+
 
 data_tab = [
     # project file
@@ -154,7 +175,7 @@ data_tab = [
     dbc.Row(html.Div(united_pc_upload, id="united-pc-upload-div")),
     dbc.Row(html.Div(united_pc_uploaded_file, id="united-pc-uploaded-file-div")),
     # divided point cloud (+ timestamps) is "read-only" in the GUI, can only be changed in the project file
-    dbc.Row(html.Div("Rozdělené mračno bodů (adresář s .pcd soubory):")),
+    dbc.Row(html.Div("Rozdělené mračno bodů (.pcd soubory):")),
     dbc.Row(html.Div(divided_pc_uploaded_files, id="divided-pc-uploaded-file-div")),
     dbc.Row(html.Div("Časová razítka rozděleného mračna bodů (.txt):")),
     dbc.Row(html.Div(pc_timestamps_uploaded_files, id="pc-timestamps-uploaded-file-div")),
@@ -167,8 +188,7 @@ data_tab = [
     dbc.Row(html.Hr(style={'marginTop':'15px'})),
 
     # vector data
-    dbc.Row(html.Div("Vektorová data"), style={"fontWeight": "bold", "textAlign": "center"}),
-    dbc.Row(html.Div("Adresář s vektorovými daty (.csv soubory):")),
+    dbc.Row(html.Div("Vektorová data (.csv soubory)"), style={"fontWeight": "bold", "textAlign": "center"}),
     dbc.Row(html.Div(vector_data_uploaded_files, id="vector-data-uploaded-file-div")),
     dbc.Row(html.Hr(style={'marginTop':'15px'})),
 
@@ -184,5 +204,13 @@ data_tab = [
     dbc.Row(html.Div(timestamps_upload, id="timestamps-upload-div")),
     dbc.Row(html.Div(timestamps_uploaded_file, id="timestamps-uploaded-file-div")),
     dbc.Row(html.Hr(style={'marginTop':'15px'})),
+
+    # the profile
+    dbc.Row(html.Div("Průjezdný profil"), style={"fontWeight": "bold", "textAlign": "center"}), 
+    dbc.Row(html.Div("Translace (.csv soubory):")),
+    dbc.Row(html.Div(profile_trans_uploaded_files, id="profile-trans-uploaded-file-div")),
+    dbc.Row(html.Div("Rotace (.csv soubory):")),
+    dbc.Row(html.Div(profile_rot_uploaded_files, id="profile-rot-uploaded-file-div")),
+
 ]
 
