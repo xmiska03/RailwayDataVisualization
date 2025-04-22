@@ -119,7 +119,7 @@ function createPointCloudLayer(n) {
 function createGaugeLineLayer() {
   return new PathLayer({
     id: 'gauge-line-layer',
-    data: window.data_dict.layers[1].data[gauge_distance_to_index(window.gauge_distance)],
+    data: window.gauge_line_data[gauge_distance_to_index(window.gauge_distance)],
     getColor: window.data_dict.layers[1].color,
     getPath: (d) => d,
     getWidth: window.data_dict.layers[1].width,

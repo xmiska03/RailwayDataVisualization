@@ -407,6 +407,7 @@ def get_callbacks(app):
         Output('profile-trans-uploaded-file-div', 'style'),
         Output('profile-trans-filename-div', 'children'),
         Output('gauge-trans-data', 'data'),
+        Output('gauge-line-data', 'data'),
         Input('profile-trans-paths-store', 'data'),
         prevent_initial_call = True
     )
@@ -417,14 +418,15 @@ def get_callbacks(app):
             dirname = os.path.basename(profile_trans_paths['dir_path'])
             quasi_filename = os.path.join(dirname, profile_trans_paths['filename_prefix']) + "_*.csv"
             # load data from the files
-            data = load_gauge_translations(profile_trans_paths['dir_path'], profile_trans_paths['filename_prefix'])
+            profile_translations = load_gauge_translations(profile_trans_paths['dir_path'], 
+                                                           profile_trans_paths['filename_prefix'])
+            gauge_line_data = [[profile_translations[0]], [profile_translations[1]], [profile_translations[2]],
+                                [profile_translations[3]]]
             
-            # TODO update the line also
-            
-            return {"display": "block"}, quasi_filename, data
+            return {"display": "block"}, quasi_filename, profile_translations, gauge_line_data
         else:
             # it is the initial call
-            return {"display": "none"}, "", no_update
+            return {"display": "none"}, "", no_update, no_update
         
     # upload/delete file with train profile rotations
     @app.callback(

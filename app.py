@@ -63,7 +63,7 @@ frames_cnt = trans_nparray.shape[0]
 gauge_shape = [load_csv_file_into_nparray("data/loading_gauge.csv")]
 gauge_translations = load_gauge_translations("data/joined/profile", "profile_trans")
 gauge_rotations = load_gauge_rotations("data/joined/profile", "profile_rot")
-gauge_lines_data = [[gauge_translations[0]], [gauge_translations[1]], [gauge_translations[2]],
+gauge_line_data = [[gauge_translations[0]], [gauge_translations[1]], [gauge_translations[2]],
                     [gauge_translations[3]]]
 
 # load vector data (polylines)
@@ -83,7 +83,7 @@ point_cloud_layer = {
 }
 
 gauge_line_layer = {
-    "data": gauge_lines_data,
+    "data": [],   # data for this layer is in the gauge-line-data store
     "color": [232, 175, 16],    # #e8af10
     "width": params.LINE_WIDTH,
     "visible": True
@@ -230,6 +230,10 @@ stores = [
     ),
 
     dcc.Store(
+        id='gauge-line-data',
+        data=gauge_line_data
+    ),
+    dcc.Store(
         id='vector-data',
         data=vector_data
     ),
@@ -357,10 +361,11 @@ app.layout = html.Div(
 # TODO optimize
 app.clientside_callback(
     """
-    function(data_dict, united_pc_data, vector_data, camera_timestamps, pcl_timestamps) {
+    function(data_dict, united_pc_data, gauge_line_data, vector_data, camera_timestamps, pcl_timestamps) {
         if (window.initializeDeck) {
             window.data_dict = data_dict;  // make the data accessible to visualizations.js
             window.united_pc_data = united_pc_data;
+            window.gauge_line_data = gauge_line_data;
             window.vector_data = vector_data;
             window.pcl_timestamps = pcl_timestamps;
             window.camera_timestamps = camera_timestamps;
@@ -377,9 +382,10 @@ app.clientside_callback(
     Output('visualization-data', 'id'),  # dummy output needed so that the initial call occurs
     Input('visualization-data', 'data'),
     Input('united-pc-data', 'data'),
+    Input('gauge-line-data', 'data'),
     Input('vector-data', 'data'),
     Input('camera-timestamps-data', 'data'),
-    State('pcl-timestamps-data', 'data')
+    Input('pcl-timestamps-data', 'data')
 )
 
 # roll out the side panel on button click
