@@ -42,10 +42,10 @@ def calculate_translation_from_extr_mat(camera_params_dict):
     T = np.matmul(np.linalg.inv(R), extr_fourth_col) * -1
     return [T[2], T[0], T[1]]
 
-# function used for loading gauge positioning
+# function used for train profile positioning
 # it is needed to translate the frame to "trans_point" and then rotate around that point
 # that is equivalent to rotating around [0, 0, 0] and then translating to "trans_point"
-def calculate_loading_gauge_transformation_matrix(trans_point, rot_mat_3x3):
+def calculate_train_profile_transformation_matrix(trans_point, rot_mat_3x3):
     trans_matrix = np.array([
         [1, 0, 0, trans_point[0]],
         [0, 1, 0, trans_point[1]],

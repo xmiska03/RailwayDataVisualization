@@ -9,11 +9,11 @@ import os
 from scipy.spatial.transform import Rotation
 import tomllib
 
-from general_functions import calculate_loading_gauge_transformation_matrix, load_rotation, \
+from general_functions import calculate_train_profile_transformation_matrix, load_rotation, \
                               rotation_to_euler, rotation_to_matrix, rotation_to_inv_matrix
 from loading_functions import load_pcl_timestamps, load_csv_file_into_nparray, load_csv_into_nparray, \
                               load_timestamps_file_into_nparray, load_timestamps_into_nparray, \
-                              load_gauge_translations, load_gauge_rotations
+                              load_profile_translations, load_profile_rotations
 
 
 def get_callbacks(app):
@@ -21,9 +21,9 @@ def get_callbacks(app):
     # copy the transformations data from a store to the window object
     app.clientside_callback(
         """
-        function(gauge_transf_data, translations_data, rotations_data, rotations_inv_data, rot_euler_data) {
+        function(profile_transf_data, translations_data, rotations_data, rotations_inv_data, rot_euler_data) {
             // make the data accessible for the visualization.js script
-            window.gauge_transf = gauge_transf_data;
+            window.profile_transf = profile_transf_data;
             window.translations = translations_data;
             window.rotations = rotations_data;
             window.rotations_inv = rotations_inv_data;
@@ -36,20 +36,20 @@ def get_callbacks(app):
         }
         """,
         Output('translations-data', 'id'),  # dummy output needed so that the initial call occurs
-        Input('gauge-transf-data', 'data'),
+        Input('profile-transf-data', 'data'),
         Input('translations-data', 'data'),
         Input('rotations-data', 'data'),
         State('rotations-inv-data', 'data'),
         State('rotations-euler-data', 'data')
     )
     
-    # calculate new loading gauge transformations when new guage translations or rotations are uploaded
+    # calculate new train profile transformations when new guage translations or rotations are uploaded
     @app.callback(
-        Output('gauge-transf-data', 'data'),
-        Input('gauge-trans-data', 'data'),
-        State('gauge-rot-data', 'data')
+        Output('profile-transf-data', 'data'),
+        Input('profile-trans-data', 'data'),
+        State('profile-rot-data', 'data')
     )
-    def create_loading_gauge_transformations(trans_data, rot_data):
+    def create_train_profile_transformations(trans_data, rot_data):
         transf_matrices = [[] for _ in range(4)]
         
         # calculate transformations for distances 25m, 50m, 75m, 100m
@@ -57,7 +57,7 @@ def get_callbacks(app):
             trans_nparray = np.array(trans_data[i])  # convert from lists to numpy arrays
             rot_nparray = np.array(rot_data[i])
             for j in range(min(trans_nparray.shape[0], rot_nparray.shape[0])):
-                transf_matrix = calculate_loading_gauge_transformation_matrix(trans_nparray[j],
+                transf_matrix = calculate_train_profile_transformation_matrix(trans_nparray[j],
                                                                               rot_nparray[j])
                 transf_matrices[i].append(transf_matrix)
         return transf_matrices
@@ -406,8 +406,8 @@ def get_callbacks(app):
     @app.callback(
         Output('profile-trans-uploaded-file-div', 'style'),
         Output('profile-trans-filename-div', 'children'),
-        Output('gauge-trans-data', 'data'),
-        Output('gauge-line-data', 'data'),
+        Output('profile-trans-data', 'data'),
+        Output('profile-line-data', 'data'),
         Input('profile-trans-paths-store', 'data'),
         prevent_initial_call = True
     )
@@ -418,12 +418,12 @@ def get_callbacks(app):
             dirname = os.path.basename(profile_trans_paths['dir_path'])
             quasi_filename = os.path.join(dirname, profile_trans_paths['filename_prefix']) + "_*.csv"
             # load data from the files
-            profile_translations = load_gauge_translations(profile_trans_paths['dir_path'], 
+            profile_translations = load_profile_translations(profile_trans_paths['dir_path'], 
                                                            profile_trans_paths['filename_prefix'])
-            gauge_line_data = [[profile_translations[0]], [profile_translations[1]], [profile_translations[2]],
+            profile_line_data = [[profile_translations[0]], [profile_translations[1]], [profile_translations[2]],
                                 [profile_translations[3]]]
             
-            return {"display": "block"}, quasi_filename, profile_translations, gauge_line_data
+            return {"display": "block"}, quasi_filename, profile_translations, profile_line_data
         else:
             # it is the initial call
             return {"display": "none"}, "", no_update, no_update
@@ -432,7 +432,7 @@ def get_callbacks(app):
     @app.callback(
         Output('profile-rot-uploaded-file-div', 'style'),
         Output('profile-rot-filename-div', 'children'),
-        Output('gauge-rot-data', 'data'),
+        Output('profile-rot-data', 'data'),
         Input('profile-rot-paths-store', 'data'),
         prevent_initial_call = True
     )
@@ -443,7 +443,7 @@ def get_callbacks(app):
             dirname = os.path.basename(profile_rot_paths['dir_path'])
             quasi_filename = os.path.join(dirname, profile_rot_paths['filename_prefix']) + "_*.csv"
             # load data from the files
-            data = load_gauge_rotations(profile_rot_paths['dir_path'], profile_rot_paths['filename_prefix'])
+            data = load_profile_rotations(profile_rot_paths['dir_path'], profile_rot_paths['filename_prefix'])
             return {"display": "block"}, quasi_filename, data
         else:
             # it is the initial call

@@ -70,7 +70,7 @@ def load_pcl_timestamps(file_address):
     return pcl_timestamps
 
 # load predicted translations in distances 25m, 50m, 75m, 100m
-def load_gauge_translations(directory_path, filename_prefix):
+def load_profile_translations(directory_path, filename_prefix):
     translations = []
     for distance in [25, 50, 75, 100]:
         filename = f"{filename_prefix}_{distance}.csv"
@@ -80,13 +80,13 @@ def load_gauge_translations(directory_path, filename_prefix):
 
 
 # load predicted rotations in distances 25m, 50m, 75m, 100m
-def load_gauge_rotations(directory_path, filename_prefix):
-    gauge_rotations = [[] for _ in range(4)]
+def load_profile_rotations(directory_path, filename_prefix):
+    rotations = [[] for _ in range(4)]
     for i in range(4):   # for eveery distance
         filename = f"{filename_prefix}_{25 + i*25}.csv"
         file_path = os.path.join(directory_path, filename)
-        gauge_rotations_raw = load_space_separated_into_nparray(file_path)
-        for rotation_raw in gauge_rotations_raw:
+        rotations_raw = load_space_separated_into_nparray(file_path)
+        for rotation_raw in rotations_raw:
             rotation = load_rotation(rotation_raw)
-            gauge_rotations[i].append(rotation_to_inv_matrix(rotation))
-    return gauge_rotations
+            rotations[i].append(rotation_to_inv_matrix(rotation))
+    return rotations

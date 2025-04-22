@@ -7,8 +7,8 @@ import data_tab_components
 import data_tab_callbacks
 import visualization_tab_components
 import visualization_tab_callbacks
-import gauge_tab_components
-import gauge_tab_callbacks
+import profile_tab_components
+import profile_tab_callbacks
 import animation_control_components
 import animation_control_callbacks
 import params
@@ -16,7 +16,7 @@ from general_functions import calculate_projection_matrix, calculate_translation
                               load_rotation, rotation_to_euler, rotation_to_matrix, rotation_to_inv_matrix
 from loading_functions import load_csv_file_into_nparray, load_yaml_into_dict, \
                               load_timestamps_file_into_nparray, load_space_separated_into_nparray, \
-                              load_pcl_timestamps, load_gauge_translations, load_gauge_rotations
+                              load_pcl_timestamps, load_profile_translations, load_profile_rotations
 
 
 # load unaggregated point cloud data
@@ -59,12 +59,12 @@ timestamps_nparray = load_timestamps_file_into_nparray("data/joined/imu_joined_t
 # number of frames to generate
 frames_cnt = trans_nparray.shape[0]
 
-# load loading gauge data
-gauge_shape = [load_csv_file_into_nparray("data/loading_gauge.csv")]
-gauge_translations = load_gauge_translations("data/joined/profile", "profile_trans")
-gauge_rotations = load_gauge_rotations("data/joined/profile", "profile_rot")
-gauge_line_data = [[gauge_translations[0]], [gauge_translations[1]], [gauge_translations[2]],
-                    [gauge_translations[3]]]
+# load train profile data
+profile_shape = [load_csv_file_into_nparray("data/train_profile_shape.csv")]
+profile_translations = load_profile_translations("data/joined/profile", "profile_trans")
+profile_rotations = load_profile_rotations("data/joined/profile", "profile_rot")
+profile_line_data = [[profile_translations[0]], [profile_translations[1]], [profile_translations[2]],
+                    [profile_translations[3]]]
 
 # load vector data (polylines)
 vector_data = [
@@ -82,17 +82,17 @@ point_cloud_layer = {
     "visible": True
 }
 
-gauge_line_layer = {
-    "data": [],   # data for this layer is in the gauge-line-data store
+profile_line_layer = {
+    "data": [],   # data for this layer is in the profile-line-data store
     "color": [232, 175, 16],    # #e8af10
     "width": params.LINE_WIDTH,
     "visible": True
 }
 
-loading_gauge_layer = {
-    "data": gauge_shape,
+profile_layer = {
+    "data": profile_shape,
     "color": [225, 80, 255],    # #e250ff
-    "width": params.GAUGE_LINE_WIDTH,
+    "width": params.PROFILE_LINE_WIDTH,
     "visible": True
 }
 
@@ -117,7 +117,7 @@ view = {
 deck_dict = {
     "initialViewState": view_state,
     "views": [view],
-    "layers": [point_cloud_layer, gauge_line_layer, loading_gauge_layer, vector_layer],
+    "layers": [point_cloud_layer, profile_line_layer, profile_layer, vector_layer],
 }
 
 # a part of the Dash app which visualizes the data
@@ -179,8 +179,8 @@ tabs = dbc.Tabs(
             style={"height": "calc(100vh - 100px)", "overflowY": "auto", "overflowX":"hidden"}
         ),
         dbc.Tab(
-            gauge_tab_components.gauge_tab, 
-            tab_id="gauge", 
+            profile_tab_components.profile_tab, 
+            tab_id="profile", 
             label="Průjezdný profil", 
             label_style={"padding": "10px"}
         )
@@ -230,8 +230,8 @@ stores = [
     ),
 
     dcc.Store(
-        id='gauge-line-data',
-        data=gauge_line_data
+        id='profile-line-data',
+        data=profile_line_data
     ),
     dcc.Store(
         id='vector-data',
@@ -260,15 +260,15 @@ stores = [
     ),
     
     dcc.Store(
-        id='gauge-trans-data',         # for the loading gauge (train profile)
-        data=gauge_translations
+        id='profile-trans-data',         # for the train profile
+        data=profile_translations
     ),
     dcc.Store(
-        id='gauge-rot-data',
-        data=gauge_rotations
+        id='profile-rot-data',
+        data=profile_rotations
     ),
     dcc.Store(
-        id='gauge-transf-data'
+        id='profile-transf-data'
     ),
 
     dcc.Store(
@@ -361,11 +361,11 @@ app.layout = html.Div(
 # TODO optimize
 app.clientside_callback(
     """
-    function(data_dict, united_pc_data, gauge_line_data, vector_data, camera_timestamps, pcl_timestamps) {
+    function(data_dict, united_pc_data, profile_line_data, vector_data, camera_timestamps, pcl_timestamps) {
         if (window.initializeDeck) {
             window.data_dict = data_dict;  // make the data accessible to visualizations.js
             window.united_pc_data = united_pc_data;
-            window.gauge_line_data = gauge_line_data;
+            window.profile_line_data = profile_line_data;
             window.vector_data = vector_data;
             window.pcl_timestamps = pcl_timestamps;
             window.camera_timestamps = camera_timestamps;
@@ -382,7 +382,7 @@ app.clientside_callback(
     Output('visualization-data', 'id'),  # dummy output needed so that the initial call occurs
     Input('visualization-data', 'data'),
     Input('united-pc-data', 'data'),
-    Input('gauge-line-data', 'data'),
+    Input('profile-line-data', 'data'),
     Input('vector-data', 'data'),
     Input('camera-timestamps-data', 'data'),
     Input('pcl-timestamps-data', 'data')
@@ -452,7 +452,7 @@ app.clientside_callback(
 # add callbacks defined in other files
 visualization_tab_callbacks.get_callbacks(app)
 data_tab_callbacks.get_callbacks(app)
-gauge_tab_callbacks.get_callbacks(app)
+profile_tab_callbacks.get_callbacks(app)
 animation_control_callbacks.get_callbacks(app)
 
 if __name__ == "__main__":

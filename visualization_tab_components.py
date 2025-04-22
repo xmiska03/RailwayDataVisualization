@@ -22,7 +22,7 @@ point_size_widget = [
         type="number",
         min=10,
         max=50,
-        step=5
+        step=1
     ), width=6)
 ]
 
@@ -80,7 +80,7 @@ color_scale_interval_widget = [
         type="number",
         min=0,
         max=43,
-        step=4
+        step=1
     ), width=3),
     dbc.Col(html.Div("Do: "), width=1),
     dbc.Col(dbc.Input(
@@ -89,7 +89,7 @@ color_scale_interval_widget = [
         type="number",
         min=0,
         max=43,
-        step=4
+        step=1
     ), width=3)
 ]
 

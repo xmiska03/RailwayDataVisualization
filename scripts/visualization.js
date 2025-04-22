@@ -7,7 +7,7 @@ window.position = 0;
 window.pcl_position = 0;
 window.animation_running = false;
 window.frame_duration = 40;     // in milliseconds
-window.gauge_distance = '25';   // 25 meters
+window.profile_distance = '25';   // 25 meters
 window.scale_from = 0;          // boundaries of the point cloud color scale
 window.scale_to = 18;
 window.scale_middle = 9;
@@ -60,10 +60,10 @@ function getColorYP(d) {
   }
 }
 
-// converts loading gauge distance (in meters) to index in paths data and transformations data
-function gauge_distance_to_index(gauge_dist) {
+// converts train profile distance (in meters) to index in paths data and transformations data
+function profile_distance_to_index(profile_dist) {
   let i = 0;  // default is '25'
-  switch (window.gauge_distance) {
+  switch (window.profile_distance) {
     case '50':
       i = 1;
       break;
@@ -78,17 +78,17 @@ function gauge_distance_to_index(gauge_dist) {
 }
 
 
-// transformation for the loading gauge
-function gaugeGetPath(d) {
+// transformation for the train profile
+function profileGetPath(d) {
   const pos = window.position;
-  const n = gauge_distance_to_index(window.gauge_distance);
+  const n = profile_distance_to_index(window.profile_distance);
   const points = new Array(d.length);
   
   for (let i = 0; i < d.length; i++) {
-    //window.gauge_transf[0] - 25m distance
-    const x = d[i][0] * window.gauge_transf[n][pos][0][0] + d[i][1] * window.gauge_transf[n][pos][0][1] + d[i][2] * window.gauge_transf[n][pos][0][2] + window.gauge_transf[n][pos][0][3];
-    const y = d[i][0] * window.gauge_transf[n][pos][1][0] + d[i][1] * window.gauge_transf[n][pos][1][1] + d[i][2] * window.gauge_transf[n][pos][1][2] + window.gauge_transf[n][pos][1][3];
-    const z = d[i][0] * window.gauge_transf[n][pos][2][0] + d[i][1] * window.gauge_transf[n][pos][2][1] + d[i][2] * window.gauge_transf[n][pos][2][2] + window.gauge_transf[n][pos][2][3];
+    //window.profile_transf[0] - 25m distance
+    const x = d[i][0] * window.profile_transf[n][pos][0][0] + d[i][1] * window.profile_transf[n][pos][0][1] + d[i][2] * window.profile_transf[n][pos][0][2] + window.profile_transf[n][pos][0][3];
+    const y = d[i][0] * window.profile_transf[n][pos][1][0] + d[i][1] * window.profile_transf[n][pos][1][1] + d[i][2] * window.profile_transf[n][pos][1][2] + window.profile_transf[n][pos][1][3];
+    const z = d[i][0] * window.profile_transf[n][pos][2][0] + d[i][1] * window.profile_transf[n][pos][2][1] + d[i][2] * window.profile_transf[n][pos][2][2] + window.profile_transf[n][pos][2][3];
 
     points[i] = [x, y, z];
   }
@@ -116,10 +116,10 @@ function createPointCloudLayer(n) {
   });
 }
 
-function createGaugeLineLayer() {
+function createProfileLineLayer() {
   return new PathLayer({
-    id: 'gauge-line-layer',
-    data: window.gauge_line_data[gauge_distance_to_index(window.gauge_distance)],
+    id: 'profile-line-layer',
+    data: window.profile_line_data[profile_distance_to_index(window.profile_distance)],
     getColor: window.data_dict.layers[1].color,
     getPath: (d) => d,
     getWidth: window.data_dict.layers[1].width,
@@ -131,17 +131,17 @@ function createGaugeLineLayer() {
   });
 }
 
-function createGaugeLayer() {
+function createProfileLayer() {
   return new PathLayer({
-    id: 'gauge-layer',
+    id: 'profile-layer',
     data: window.data_dict.layers[2].data,
     getColor: window.data_dict.layers[2].color,
-    getPath: gaugeGetPath,
+    getPath: profileGetPath,
     getWidth: window.data_dict.layers[2].width,
     billboard: true,
     visible: window.data_dict.layers[2].visible,
     updateTriggers: {
-      getPath: [window.position, window.gauge_transf, window.gauge_distance], // needed when changing data accessors
+      getPath: [window.position, window.profile_transf, window.profile_distance], // needed when changing data accessors
       getColor: window.data_dict.layers[2].color
     },
     parameters: {
@@ -172,8 +172,8 @@ function createLayers() {
   for (let i = 0; i < window.curr_pcl_layers_cnt; i++) {
     window.layers[i] = createPointCloudLayer(i);
   }
-  window.layers[window.curr_pcl_layers_cnt] = createGaugeLineLayer();
-  window.layers[window.curr_pcl_layers_cnt + 1] = createGaugeLayer();
+  window.layers[window.curr_pcl_layers_cnt] = createProfileLineLayer();
+  window.layers[window.curr_pcl_layers_cnt + 1] = createProfileLayer();
   window.layers[window.curr_pcl_layers_cnt + 2] = createVectorLayer();
 }
 
@@ -294,7 +294,7 @@ function updateDeck() {
   const transform = `rotate(${ window.window.rotations_euler[pos][2] + window.camera_offset_roll }deg)`;
   canvas.style.transform = transform;
   dist_canvas.style.transform = transform;
-  createLayers();  // TODO: maybe optimize this so that only the right layers are recreated (only gauge here)
+  createLayers();  // TODO: maybe optimize this so that only the right layers are recreated (only profile here)
 
   window.deck.setProps({layers: window.layers});
 }
@@ -330,8 +330,8 @@ function changePCMode(display_united) {
   updatePCLayer();
 }
 
-// to change gauge line visibility, line width or color
-function updateGaugeLineLayerProps(visible, line_width, line_color) {
+// to change profile line visibility, line width or color
+function updateProfileLineLayerProps(visible, line_width, line_color) {
   // convert to RGB
   // the following line is taken from a piece of example code in deck.gl documentation (PathLayer section)
   const new_color = line_color.match(/[0-9a-f]{2}/g).map(x => parseInt(x, 16));
@@ -339,10 +339,10 @@ function updateGaugeLineLayerProps(visible, line_width, line_color) {
   window.data_dict.layers[1].visible = visible;
   window.data_dict.layers[1].width = parseInt(line_width, 10);
   window.data_dict.layers[1].color = new_color;
-  updateGaugeLineLayer();
+  updateProfileLineLayer();
 }
 
-function updateGaugeLineLayer() {
+function updateProfileLineLayer() {
   createLayers(); // TODO: maybe optimize this so that only the right layers are recreated
 
   window.deck.setProps({layers: window.layers});
@@ -368,8 +368,8 @@ function updateVectorLayer() {
 }
 
 
-// to change loading gauge visibility, line width or color
-function updateGaugeLayerProps(visible, line_width, line_color) {
+// to change train profile visibility, line width or color
+function updateProfileLayerProps(visible, line_width, line_color) {
   // convert to RGB
   // the following line is taken from a piece of example code in deck.gl documentation (PathLayer section)
   const new_color = line_color.match(/[0-9a-f]{2}/g).map(x => parseInt(x, 16));
@@ -485,8 +485,8 @@ window.updatePCLayer = updatePCLayer;
 window.changePCMode = changePCMode;
 window.updateVectorLayerProps = updateVectorLayerProps;
 window.updateVectorLayer = updateVectorLayer;
-window.updateGaugeLineLayerProps = updateGaugeLineLayerProps;
-window.updateGaugeLineLayer = updateGaugeLineLayer;
-window.updateGaugeLayerProps = updateGaugeLayerProps;
+window.updateProfileLineLayerProps = updateProfileLineLayerProps;
+window.updatevLineLayer = updateProfileLineLayer;
+window.updateProfileLayerProps = updateProfileLayerProps;
 window.runDeckAnimation = runDeckAnimation;
 window.stopDeckAnimation = stopDeckAnimation;
