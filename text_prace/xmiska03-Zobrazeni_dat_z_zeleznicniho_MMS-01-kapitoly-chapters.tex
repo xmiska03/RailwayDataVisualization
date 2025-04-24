@@ -10,7 +10,7 @@ Výstupom mobilného mapovacieho systému je množstvo dát z~rôznych senzorov.
 
 Pri vývoji aplikácie, ktorá má umožniť vizualizáciu týchto dát a navyše aj ďalších vektorových dát, je nutné poznať základné princípy zobrazovania 3D dát v~počítačovej grafike. Ďalej je potrebné vybrať si a naštudovať technológie, pomocou ktorých bude aplikácia vytvorená, a to konkrétne niektorý z~frameworkov pre tvorbu aplikácií v~jazyku Python a vhodný framework pre zobrazenie grafických dát. Práve to je predmetom tejto kapitoly.
 
-\section{Dierkový model kamery -- teoretický základ perspektívneho zobrazenia}
+\section{Dierkový model kamery}
 
 Kamera je v~počítačovej grafike pojem, ktorý označuje projekciu bodov z~trojrozmerného priestoru do roviny. Túto projekciu je možné vyjadriť pomocou matíc a je väčšinou bodová (\emph{central projection}).
 
@@ -139,16 +139,16 @@ kde $\widetilde{\mathbf{C}}$ sú súradnice stredu kamery vo všeobecnom súradn
 
 Parametre $\mathrm{R}$ a $\widetilde{\mathbf{C}}$ označujeme ako \textbf{vonkajšie parametre kamery}.
 
-Zdrojom všetkých informácií, ktoré boli uvedené v~tejto sekcii, je kniha \emph{Multiple View Geometry in Computer Vision} od autorov R. Hartley a A. Zisserman \cite{multiple_view_geometry}.
-
-
-\section{Vykresľovanie 3D dát v~počítačovej grafike}
-
-[world space, view space, clip space, screen space, view matrix, projection matrix, viewport transform, vzťah k~dierkovému modelu kamery]
+Zdrojom všetkých informácií, ktoré boli uvedené v~tejto sekcii, je kniha \emph{Multiple View Geometry in Computer Vision} od autorov R. Hartley a A. Zisserman \cite{multiple_view_geometry}. Odtiaľ sú prevzaté aj obrázky.
 
 \section{Skreslenie kamery}
 
 [parametre skreslenia, výpočet]
+
+\section{Vykresľovací reťazec}
+
+[world space, view space, clip space, screen space, view matrix, projection matrix, viewport transform, vzťah k~dierkovému modelu kamery]
+
 
 \section{Framework deck.gl a jeho nadstavba Pydeck}
 \label{sec:deck_gl}
@@ -179,7 +179,7 @@ Knižnica Pydeck je dobrým prostriedkom na vytvorenie jednoduchých vizualizác
     \label{fig:pydeck_dashdeck_schema}
 \end{figure}
 
-\section{Porovnanie rôznych spôsobov nastavenia polohy kamery vo frameworku deck.gl}
+\section{Nastavenie polohy kamery vo frameworku deck.gl}
 \label{sec:nastavenie_polohy_kamery}
 
 Súčasťou dodaných dát z~mobilného mapovacieho systému boli rotácie a translácie kamery. Pre nastavenie polohy vo frameworku deck.gl existujú dve možnosti:
@@ -195,7 +195,7 @@ Bližším popisom a zhodnotením výhod a nevýhod týchto dvoch metód sa zaob
 
 \subsubsection{Aplikovanie transformácií na dáta}
 
-Ako bolo zmienené v~sekcii \ref{sec:deck_gl}, dáta sa vo frameworku deck.gl členia do vrstiev. Každej vrstve je potom potrebné priradiť pole s~dátami a definovať pre ňu takzvané prístupové funkcie (\emph{data accessors}), ktoré určujú, akým spôsobom sa z~poľa s~dátami získa poloha a farba prvku. Napríklad u~vrstvy \texttt{PointCloudLayer} je potrebné definovať funkciu \texttt{getPosition} pre získanie polohy bodu a \texttt{getColor} pre výpočet farby bodu.
+Ako bolo zmienené v~sekcii \ref{sec:deck_gl}, dáta sa vo frameworku deck.gl členia do vrstiev. Každej vrstve je potom potrebné priradiť pole s~dátami a definovať pre ňu takzvané prístupové funkcie (\emph{data accessors}), ktoré určujú, akým spôsobom sa z~poľa s~dátami získa poloha a farba prvku. Napríklad u~vrstvy \texttt{PointCloudLayer} je potrebné definovať funkciu \texttt{getPosition} pre získanie polohy bodu a \texttt{getColor} pre výpočet farby bodu \cite{deck.gl_documentation}.
 
 Práve vo funkcii \texttt{getPosition} je možné aplikovať na polohu bodu ľubovoľnú transformáciu.
 
@@ -213,38 +213,182 @@ Veľkou nevýhodou je časová náročnosť, pri zmene polohy kamery sa totiž m
 
 \subsubsection{Aplikovanie transformácií na kameru}
 
-Meniť polohu a orientáciu kamery je v~deck.gl možné pomocou troch parametrov: \texttt{position}, \texttt{bearing} a \texttt{pitch}. To sú rotácie iba podľa dvoch osí, a teda nie je možné dosiahnuť všeobecnú rotáciu -- chýba možnosť nastaviť rotáciu okolo tretej osi, takzvaný \emph{roll} uhol.
+Meniť polohu a orientáciu kamery je v~deck.gl možné pomocou troch parametrov: \texttt{position}, \texttt{bearing} a \texttt{pitch} \cite{deck.gl_documentation}. To sú rotácie iba podľa dvoch osí, a teda nie je možné dosiahnuť všeobecnú rotáciu -- chýba možnosť nastaviť rotáciu okolo tretej osi, takzvaný \emph{roll} uhol.
 
 V~dokumentácii deck.gl je popísaná aj trieda \texttt{Viewport}, u~ktorej je možné namiesto parametrov \texttt{position}, \texttt{bearing} a \texttt{pitch} nastaviť maticu pohľadu \texttt{viewMatrix}, čo znamená možnosť použiť akúkoľvek rotáciu. Problém je však v~tom, že sa v~dokumentácii už nikde nepíše, ako túto triedu použiť. Ide teda o~nezrovnalosť, pravdepodobne pozostatok z~predchádzajúcich verzií deck.gl, kde táto možnosť bola, ale medzičasom bola zrušená. V~aktuálnej verzii je možné túto maticu už iba prečítať, ale nie nahradiť vlastnou.
 
 Nevýhodou tohto spôsobu nastavenia polohy kamery teda je, že sa nedá nastaviť \emph{roll} uhol. Tento problém je však možné vyriešiť trikom, a to otočením HTML elementu \texttt{canvas}, do ktorého deck.gl vykresľuje výsledné zobrazenie, pomocou CSS vlastnosti \texttt{transform}. 
 
-Ďalšou miernou nevýhodou je, že ak potrebujeme na kameru aplikovať nejakú zložitejšiu transformáciu, ako je napríklad na obrázku \ref{fig:transformacie_kamery}, tak je potrebné odvodiť vzorce, ktorými sa táto zložitejšia transformácia prevedie na parametre \texttt{position}, \texttt{bearing} a \texttt{pitch}. S~použitím metódy popísanej v~predchádzajúcej podsekcii má totiž tento konkrétny problém jednoduchšie riešenie: z~translácie $T_1$ a rotácie $R$ sa zloží transformačná matica, ktorá sa použije v~prístupovej funkcii, a translácia $T_2$ sa priamo použije ako poloha kamery.
+Za poznámku tiež stojí, že ak potrebujeme na kameru aplikovať nejakú zložitejšiu transformáciu než iba jednu rotáciu a posunutie, tak je potrebné odvodiť vzorce, ktorými sa táto zložitejšia transformácia prevedie na parametre \texttt{position}, \texttt{bearing} a \texttt{pitch}. Konrétnym prípadom, ktorý bolo potrebné vyriešiť v tejto práci, sa zaoberá nasledujúca kapitola.
+
+Veľkou výhodou naopak je, že na rozdiel od predchádzajúceho spôsobu nedochádza k~žianym aktualizáciám vrstiev, teda nie je potrebné prepočítavať polohy bodov na procesore ani ich znova nahrávať na grafickú kartu. Tým sa výrazne zvýši výkonnosť.
+
+\subsubsection{Upresnenie polohy kamery}
+
+Experimentmi s dodanými dátami sa zistilo, že ak je mračno bodov zobrazené presne podľa dodaných údajov o polohe a parametroch kamery, výsledné zobrazenie nesedí presne na záber z kamery. Aby naozaj sedelo, je potrebné pridať isté posunutie kamery. Taká situácia je zjednodušene znázornená na obrázku \ref{fig:transformacie_kamery} -- je zadaná translácia $T$ a rotácia $R$, ale kameru je ešte potrebné posunúť doprava transláciou $T'$.
 
 \begin{figure}[h]
     \centering
     \includegraphics[width=0.8\linewidth]{text_prace/obrazky-figures/tri_transformacie.pdf}
-    \caption{Zjednodušený príklad situácie, kedy je potrebné kombinovať viacero transformácií kamery. Je k~dispozícii translácia $T_1$ a rotácia $R$, ale kameru je ešte potrebné posunúť doprava transláciou $T_2$, aby bola v~strede koľajníc.}
+    \caption{Zjednodušený príklad situácie, kedy je potrebné kombinovať viacero transformácií kamery. Je k~dispozícii translácia $T$ a rotácia $R$, ale kameru je ešte potrebné posunúť doprava transláciou $T'$, aby bola v~strede koľajníc.}
     \label{fig:transformacie_kamery}
 \end{figure}
 
-Veľkou výhodou naopak je, že na rozdiel od predchádzajúceho spôsobu nedochádza k~žianym aktualizáciám vrstiev, teda nie je potrebné prepočítavať polohy bodov na procesore ani ich znova nahrávať na grafickú kartu. Tým sa výrazne zvýši výkonnosť.
+Ak by bolo pri implementácii v deck.gl možné použiť aplikovanie transformácií na dáta, mal by tento problém jednoduché riešenie: z~translácie $T$ a rotácie $R$ sa zloží transformačná matica, ktorá sa použije v~prístupovej funkcii, a translácia $T'$ sa priamo použije ako poloha kamery.
 
-\section{Frameworky pre tvorbu interaktívnej webovej aplikácie v~jazyku Python}
+Ak však tento prístup nie je vhodný, napríklad z dôvodu horšieho výkonu, je nutné nájsť transláciu $T_V$ a rotáciu $R_V$ tak, aby platil vzťah 
+
+$$ T R T' = T_V R_V \mathrm{.}$$
+
+Transformácie $T_V$ a $R_V$ sa potom už totiž dajú priamo previesť na parametre \texttt{position}, \texttt{bearing} a \texttt{pitch} (na prevod rotácie na \texttt{bearing} a \texttt{pitch} sa dá použiť napríklad trieda \texttt{Rotation} z knižnice \texttt{scipy}).
+
+Nech
+
+$$
+    T =
+    \begin{pmatrix}
+    1 & 0 & 0 & t_1 \\
+    0 & 1 & 0 & t_2 \\
+    0 & 0 & 1 & t_3 \\
+    0 & 0 & 0 & 1
+    \end{pmatrix}
+    \mathrm{,} \quad 
+    R =
+    \begin{pmatrix}
+    r_{11} & r_{12} & r_{13} & 0 \\
+    r_{21} & r_{22} & r_{23} & 0 \\
+    r_{31} & r_{32} & r_{33} & 0 \\
+    0 & 0 & 0 & 1
+    \end{pmatrix}
+    \mathrm{,} \quad 
+    T' =
+    \begin{pmatrix}
+    1 & 0 & 0 & t'_1 \\
+    0 & 1 & 0 & t'_2 \\
+    0 & 0 & 1 & t'_3 \\
+    0 & 0 & 0 & 1
+    \end{pmatrix}
+    \mathrm{,}
+$$
+$$
+    T_V =
+    \begin{pmatrix}
+    1 & 0 & 0 & t_{v1} \\
+    0 & 1 & 0 & t_{v2} \\
+    0 & 0 & 1 & t_{v3} \\
+    0 & 0 & 0 & 1
+    \end{pmatrix}
+    \quad \mathrm{a} \quad 
+    R_V =
+    \begin{pmatrix}
+    r_{v11} & r_{v12} & r_{v13} & 0 \\
+    r_{v21} & r_{v22} & r_{v23} & 0 \\
+    r_{v31} & r_{v32} & r_{v33} & 0 \\
+    0 & 0 & 0 & 1
+    \end{pmatrix}
+    \mathrm{.}
+$$
+
+Potom
+
+$$
+    T R T' =
+    \begin{pmatrix}
+    r_{11} & r_{12} & r_{13} & t'_1 r_{11} + t'_2 r_{12} + t'_3 r_{13} + t_1 \\
+    r_{21} & r_{22} & r_{23} &  t'_1 r_{21} + t'_2 r_{22} + t'_3 r_{23} + t_2 \\
+    r_{31} & r_{32} & r_{33} &  t'_1 r_{31} + t'_2 r_{32} + t'_3 r_{33} + t_3 \\
+    0 & 0 & 0 & 1
+    \end{pmatrix}
+$$
+
+a
+
+$$
+    T_V R_V =
+    \begin{pmatrix}
+    r_{v11} & r_{v12} & r_{v13} & t_{v1} \\
+    r_{v21} & r_{v22} & r_{v23} & t_{v2} \\
+    r_{v31} & r_{v32} & r_{v33} & t_{v3} \\
+    0 & 0 & 0 & 1
+    \end{pmatrix} \mathrm{.}
+$$
+
+Z toho je vyplýva, že musí platiť $R_V = R$ a
+
+$$
+    \begin{pmatrix}
+    t_{v1} \\
+    t_{v2} \\
+    t_{v3} \\
+    \end{pmatrix}
+    =
+    \begin{pmatrix}
+    t'_1 r_{11} + t'_2 r_{12} + t'_3 r_{13} + t_1 \\
+    t'_1 r_{21} + t'_2 r_{22} + t'_3 r_{23} + t_2 \\
+    t'_1 r_{31} + t'_2 r_{32} + t'_3 r_{33} + t_3
+    \end{pmatrix}
+    =
+    \begin{pmatrix}
+    r_{v11} & r_{v12} & r_{v13} \\
+    r_{v21} & r_{v22} & r_{v23} \\
+    r_{v31} & r_{v32} & r_{v33}
+    \end{pmatrix}
+    \begin{pmatrix}
+    t'_1 \\
+    t'_2 \\
+    t'_3
+    \end{pmatrix}
+    +
+    \begin{pmatrix}
+    t_1 \\
+    t_2 \\
+    t_3
+    \end{pmatrix} \mathrm{.}
+$$
+
+Tým sme našli hľadanú transláciu $T_V$ a rotáciu $R_V$.
+
+\section{Frameworky pre tvorbu webových aplikácií}
+
+Keďže hlavným cieľom práce bolo vytvoriť aplikáciu v jazyku Python, a to ideálne webovú, bolo potrebné preskúmať existujúce technológie, ktoré to umožňujú.
 
 \subsubsection{Porovnanie frameworkov Streamlit a Dash}
 
-Streamlit a Dash sú frameworky, ktoré majú rovnaké zameranie: oba slúžia na tvorbu webových aplikácií pre prácu s~dátami (\emph{data apps}) v~jazyku Python. Dash je oproti Streamlitu na nižšej úrovni abstrakcie, pretože sám o~sebe nemá žiaden vizuálny štýl a mnohé jeho komponenty sa priamo mapujú na HTML elementy, napríklad \texttt{dash.html.Div} a \texttt{dash.html.H1} \cite{streamlit_documentation}\cite{dash_documentation}.
+Streamlit a Dash sú frameworky, ktoré majú rovnaké zameranie: oba slúžia na tvorbu webových aplikácií pre prácu s~dátami (\emph{data apps}) v~jazyku Python. Dash je oproti Streamlitu na nižšej úrovni abstrakcie, pretože sám o~sebe nemá žiaden vizuálny štýl a mnohé jeho komponenty sa priamo mapujú na HTML elementy, napríklad \texttt{dash.html.Div} a \texttt{dash.html.H1} \cite{dash_documentation, streamlit_documentation}.
 
 Oba frameworky majú podporu pre Pydeck, u~Streamlitu je priamo k~dispozícii element \texttt{st.pydeck\_chart} a Dash má na tento účel vytvorenú prídavnú knižnicu \textbf{Dash Deck}. Ukázalo sa však, že \texttt{st.pydeck\_chart} podporuje iba pohľad \texttt{MapView}, ktorý je určený na zobrazenie dát na mape a nedá sa použiť na perspektívne zobrazenie bodov v~trojrozmernom priestore. Preto je pre účely tejto práce element \texttt{st.pydeck\_chart} prakticky nepoužiteľný.
 
 Dash Deck má navyše tú výhodu, že umožňuje vynechať Pydeck a definovať zobrazenie iba pomocou slovníkov so štruktúrou zodpovedajúcou tej, ktorú vyžaduje modul @deck.gl/json, čo je tiež znázornené na obrázku \ref{fig:pydeck_dashdeck_schema}. To trochu zefektívni vykonávanie zmien vo vizualizácii, keďže taká reprezentácia umožní jednoduchšie vykonávanie úprav.
 
+Z týchto dôvodov bol pre implementáciu zvolený framework Dash, ktorý je podrobnejšie popísaný v nasledujúcej podsekcii.
+
 \subsubsection{Popis frameworku Dash}
 
-[...]
+Dash je framework, ktorý umožňuje tvorbu webových aplikácií v~jazyku Python. Vytvorený kód aplikácie sa spúšťa v rámci HTTP servera a generuje HTML dokument a skripty v jazyku JavaScript, ktoré server odošle klientovi. Tieto skripty následne komunikujú sa serverom, čím sa zabezpečuje funkcionalita aplikácie. Server je bezstavový a neuchováva si žiadne informácie o klientoch.
 
-\chapter{Návrh aplikácie pre vizualizáciu dát z~železničného mobilného mapovacieho systému}
+Kód webovej aplikácie napísanej s využitím frameworku Dash sa skladá z dvoch základných častí: komponentov a callbackov.
+
+\emph{Komponenty} sú prvky používateľského rozhrania, ktoré sa skladajú do stromovej štruktúry. Je možné použiť komponenty priamo zodpovedajúce HTML elementom (Dash HTML Components), komponenty z knižnice Dash Core Components (napríklad \texttt{Graph}, \texttt{Input}, \texttt{Tabs}, \texttt{Upload}) a ďalšie špeciálne komponenty \cite{dash_documentation}.
+
+Pre túto prácu je významný komponent \texttt{Store} z knižnice Dash Core Components, ktorý umožňuje uložiť dáta na strane klienta. Hodí sa na uloženie dát, ktoré sa následne zobrazujú pomocou frameworku deck.gl.
+
+Ďalej je možné použiť knižnicu \textbf{Dash Bootstrap Components} (DBC), ktorá poskytuje ďalšie komponenty, ikony, lepšie možnosti pre rozloženie stránky, a v neposlednom rade vizuálne štýly \cite{dbc_documentation}.
+
+Tam, kde nestačia štýly a možnosti rozloženia stránky z DBC, je možné u komponentov dodefinovať vlastné pravidlá v jazyku CSS.
+
+\emph{Callbacky} vytvárajú funkcionalitu aplikácie. Každý callback je funkcia, ktorá má vstupy a výstupy. Vstupy a výstupy sú vždy atribúty konkrétnych komponentov. Callback sa zavolá na začiatku behu aplikácie (táto vlastnosť sa dá zrušiť) a potom vždy, keď sa zmení niektorý z jeho vstupov. Callback môže mať aj špeciálne vstupy typu \texttt{State}, ktorých zmena callback nespustí. Platí obmedzenie, že každý atribút komponentu môže byť výstupom maximálne jedného callbacku \cite{dash_documentation}. U vstupov žiadne obmedzenia nie sú.
+
+Existujú dva typy callbackov.
+\begin{itemize}
+    \item Obyčajné callbacky. Sú napísané v jazyku Python. Klient má iba informáciu o ich vstupoch a výstupoch. Keď sa zmení niektorý zo vstupov, klient pošle na server požiadavok obsahujúci hodnoty všetkých vstupov. Server spustí kód callbacku a pošle klientovi odpoveď, ktorá obsahuje hodnoty všetkých výstupov.
+    \item Klientske callbacky. Sú napísané v jazyku JavaScript. Klient má k dispozícii celý kód callbacku. Keď sa zmení niektorý zo vstupov, klient vykoná kód callbacku bez akejkoľvek komunikácie so serverom.
+\end{itemize}
+
+Je zrejmé, že klientske callbacky sú efektívnejšie než tie obyčajné, pretože ich nespomaľuje réžia komunikácie so serverom. Najvýraznejšie sa to prejaví vtedy, keď vstupy alebo výstupy obsahujú veľké množstvo dát.
+
+K aplikácii vytvorenej pomocou frameworku Dash je možné pridať vlastné štýlové predpisy a skripty alebo moduly v jazyku JavaScript. Je potrebné uložiť ich do priečinka s názvom \texttt{assets} v koreňovom priečinku aplikácie. Rovnako je nutné postupovať aj pri vkladaní obrázkov a videí. Všetky štýlové predpisy, skripty a moduly z priečinka \texttt{assets} Dash automaticky načítava a pripája k aplikácii \cite{dash_documentation}.
+
+\chapter{Návrh aplikácie}
 
 Cieľom tejto práce bolo vytvoriť používateľskú aplikáciu. Výsledná aplikácia mala byť webová, aby ju bolo možné spustiť jednoducho pomocou webového prehliadača. Mala by spĺňať nasledujúce body:
 
@@ -261,7 +405,33 @@ Cieľom tejto práce bolo vytvoriť používateľskú aplikáciu. Výsledná apl
 
 \section{Návrh používateľského rozhrania}
 
-[návrh vrátane popisu zvolených farebných škál pre mračno bodov]
+Pri návrhu používateľského rozhrania aplikácie bolo prioritou zobrazenie vizualizácie ako hlavnej časti aplikácie na čo najväčšej ploche a tiež tak, aby bola viditeľná vo všetkých stavoch.
+
+Z ovládacích prvkov sú za najdôležitejšie považované prvky pre zmenu polohy vlaku, ktoré sú umiestnené v spodnom paneli. Všetky ostatné ovládacie prvky sú skryté v bočnom paneli, ktorý sa dá vysunúť tlačítkom v ľavom hornom rohu. Celkový návrh vzhľadu je na obrázku \ref{fig:navrh_gui}.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.9\linewidth]{text_prace/obrazky-figures/navrh1.pdf}
+    \includegraphics[width=0.9\linewidth]{text_prace/obrazky-figures/navrh2.pdf}
+    \caption{Návrh používateľského rozhrania aplikácie vytvorený pomocou nástroja Figma.}
+    \label{fig:navrh_gui}
+\end{figure}
+
+Celkovou ideou návrhu je používanie čo najviac štandardných prvkov, aby sa v aplikácii používatelia ľahko zorientovali. Tomu napomáha aj použitie knižnice Bootstrap, ktorá je u webových aplikácií veľmi často používaná, a preto budú jej prvky pravdepodobne pre používateľov intuitívne.
+
+Prvky v bočnom paneli sú rozdelené do troch záložiek.
+
+\begin{enumerate}
+    \item Záložka \uv{Dáta}. Umožňuje používateľovi nahrať do aplikácie dáta z mobilného mapovacieho systému.
+    \item Záložka \uv{Zobrazenie}. Tu sa dajú nastaviť parametre zobrazenia, napríklad farby, veľkosti bodov a skreslenie.
+    \item Záložka \uv{Prejazdný profil}. Týka sa iba zobrazenia predikcie polohy prejazdného profilu.
+\end{enumerate}
+
+Pre používateľskú prívetivosť by mala mať aplikácia nasledujúce vlastnosti:
+
+[...]
+
+[obrázok: farebné škály pre mračno bodov]
 
 \section{Problém nahrávania dát do aplikácie}
 
@@ -279,7 +449,7 @@ Preto by mala výsledná aplikácia kombinovať oba prístupy, projektový súbo
 
 [krátke zhrnutie finálnej implementácie]
 
-\section{Prvá etapa implementácie -- hľadanie vhodných technológií}
+\section{Prvá etapa implementácie}
 
 Prvým krokom implementácie bolo napísanie skriptu v~jazyku Python, ktorý vykresľoval mračno bodov bez použitia špeciálnych knižníc či frameworkov. K~dispozícii pritom bola jedna sada ukážkových dát, ktorá sa skladala z~mračna bodov, kalibračnej matice a postupnosti translácií a rotácií, ktoré predstavovali pohyb vlaku po trati. Mračno bodov obsahovalo 201~880 bodov s~intenzitou od 0 do 42 a bolo definovaných 500 polôh vlaku. K~tomu boli dodané obrázky, ktoré ukazovali, ako by mal vyzerať výsledok zobrazenia (obrázok \ref{fig:referencny-obrazok}).
 
@@ -298,7 +468,7 @@ Pomocou tohto frameworku bola vytvorená jednoduchá webová aplikácia zobrazuj
 
 Tento čas sa podarilo významne zredukovať použitím knižnice Dash Deck bez knižnice Pydeck. Výsledok však stále nebol dosť dobrý na to, aby mohla hladko bežať animácia pohybu vlaku, a ani napriek rôznym pokusom sa ho už nepodarilo v~rámci tejto kombinácie technológií vo významnejšej miere vylepšiť. Čas vykreslenia mračna bodov bol pritom úmerný počtu bodov a príčina neefektivity bola v~spôsobe implementácie knižnice Dash Deck. Bolo navyše potrebné rátať s~tým, že aplikácia bude zaťažená aj zobrazovaním videa. Preto bolo rozhodnuté optimalizovať vykresľovanie dát vynechaním knižnice Dash Deck a použitím frameworku deck.gl priamo z~jazyka Javascript.
 
-\section{Optimalizácia vykresľovania mračna bodov priamym použitím jazyka JavaScript}
+\section{Optimalizácia vykresľovania mračna bodov}
 
 Pythonový framework Dash interne používa na vytváranie používateľského rozhrania JavaScript, konkrétne framework React \cite{dash_documentation}. Jeho tvorcovia rátali s~tým, že vývojári, ktorí ho budú používať, budú niekedy chcieť priamo použiť javascriptový kód. Preto to tento framework umožňuje viacerými spôsobmi:
 
@@ -376,11 +546,19 @@ Dôležitou metrikou pri posudzovaní výkonnosti animácií je snímková frekv
 
 Podľa vstavaného ukazovateľa snímkovej frekvencie v~prehliadači Google Chrome dosahovala skúmaná animácia pred optimalizáciu zhruba 28 až 34~FPS, zatiaľ čo po nej 51 až 55~FPS. Aj v~tomto ohľade teda nastalo významné zlepšenie.
 
-\section{Zobrazenie prejazdného profilu vlaku}
-
 \section{Implementácia animácie pohybu vlaku}
 
-\section{Vyhodnotenie používateľskej prívetivosti aplikácie}
+\section{Zobrazenie prejazdného profilu vlaku}
+
+\section{Implementácia skreslenia}
+
+\chapter{Testovanie}
+
+\section{Zobrazenie dodaných dát}
+
+\section{Výkonnosť}
+
+\section{Vyhodnotenie používateľskej prívetivosti}
 
 \chapter{Záver}
 
