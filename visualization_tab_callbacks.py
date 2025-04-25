@@ -1,7 +1,10 @@
 # This file contains definitions of dash callbacks used in the "visualization" tab 
 # of the app.
 
-from dash import Output, Input, Patch, no_update
+import base64
+import tomllib
+
+from dash import Output, Input, State, Patch, no_update
 
 def get_callbacks(app):
 
@@ -30,15 +33,14 @@ def get_callbacks(app):
         function(dropdown_value) {
             if (dropdown_value == 'united') {
                 window.changePCMode(true);
-                return true;
             } else {
                 window.changePCMode(false);
-                return
             }
+            return dropdown_value;
         }
         """,
-        Output('display-united-store', 'data'),
-        Input('display-united-dropdown', 'value'),
+        Output('point-cloud-type-store', 'data'),
+        Input('point-cloud-type-dropdown', 'value'),
         prevent_initial_call=True
     )
 
@@ -76,9 +78,9 @@ def get_callbacks(app):
         Input('scale-colors-store', 'data'),
         Input('pc-data-aggregation', 'data'),
         Input('united-pc-data-aggregation', 'data'),
-        Input('display-united-store', 'data')
+        Input('point-cloud-type-store', 'data')
     )
-    def change_scale_graph(scale_from_raw, scale_to_raw, colors, pc_data, united_pc_data, display_united):
+    def change_scale_graph(scale_from_raw, scale_to_raw, colors, pc_data, united_pc_data, pc_type):
         if (scale_from_raw == None or scale_to_raw == None):
             return no_update, no_update
         
@@ -88,7 +90,7 @@ def get_callbacks(app):
         
         # write data into the graph
         for i in range(43):
-            if display_united:
+            if pc_type == 'united':
                 patched_figure["data"][0]["y"][i] = united_pc_data[i]
             else:
                 patched_figure["data"][0]["y"][i] = pc_data[i]
@@ -206,16 +208,17 @@ def get_callbacks(app):
     # set the sliders back to default
     app.clientside_callback(
         """
-        function(btn) {
-            dash_clientside.set_props("camera-x-slider-input", {value: 0});
-            dash_clientside.set_props("camera-y-slider-input", {value: 0});
-            dash_clientside.set_props("camera-z-slider-input", {value: 0});
-            dash_clientside.set_props("camera-yaw-slider-input", {value: 0});
-            dash_clientside.set_props("camera-pitch-slider-input", {value: 0});
-            dash_clientside.set_props("camera-roll-slider-input", {value: 0});
+        function(btn, default_offsets) {
+            dash_clientside.set_props("camera-x-slider-input", {value: default_offsets[0]});
+            dash_clientside.set_props("camera-y-slider-input", {value: default_offsets[1]});
+            dash_clientside.set_props("camera-z-slider-input", {value: default_offsets[2]});
+            dash_clientside.set_props("camera-yaw-slider-input", {value: default_offsets[3]});
+            dash_clientside.set_props("camera-pitch-slider-input", {value: default_offsets[4]});
+            dash_clientside.set_props("camera-roll-slider-input", {value: default_offsets[5]});
         }
         """,
         Input('back-to-default-button', 'n_clicks'),
+        State('camera-offset-default-store', 'data'),
         prevent_initial_call=True
     )
 
@@ -377,4 +380,186 @@ def get_callbacks(app):
         Input('distortion-checkbox', 'value'),
         prevent_initial_call=True
     )
+
+    # export workspace settings
+    @app.callback(
+        Output("workspace-download", "data"),
+        Input("export-workspace-button", "n_clicks"),
+        
+        State('point-cloud-checkbox', 'value'),
+        State('point-cloud-type-dropdown', 'value'),
+        State('point-size-input', 'value'),
+        State('color-scale-dropdown', 'value'),
+        State('scale-from-input', 'value'),
+        State('scale-to-input', 'value'),
+        State('point-opacity-input', 'value'),
+
+        State('camera-picture-checkbox', 'value'),
+
+        State('vector-data-checkbox', 'value'),
+        State('line-width-input', 'value'),
+        State('line-color-picker', 'value'),
+
+        State('camera-x-slider-input', 'value'),
+        State('camera-y-slider-input', 'value'),
+        State('camera-z-slider-input', 'value'),
+        State('camera-yaw-slider-input', 'value'),
+        State('camera-pitch-slider-input', 'value'),
+        State('camera-roll-slider-input', 'value'),
+
+        State('distortion-checkbox', 'value'),
+
+        State('train-profile-checkbox', 'value'),
+        State('profile-distance-dropdown', 'value'),
+        State('profile-width-input', 'value'),
+        State('profile-color-picker', 'value'),
+
+        State('profile-line-checkbox', 'value'),
+        State('profile-line-width-input', 'value'),
+        State('profile-line-color-picker', 'value'),
+        
+        prevent_initial_call=True
+    )
+    def export_workspace(n_clicks, 
+             pc_checkbox, pc_type, point_size, color_scale, scale_from, scale_to, point_opacity,
+             video_checkbox,
+             vec_data_checkbox, vec_data_width, vec_data_color,
+             cam_offset_x, cam_offset_y, cam_offset_z, cam_offset_yaw, cam_offset_pitch, cam_offset_roll, 
+             distortion_checkbox,
+             profile_checkbox, profile_dist, profile_width, profile_color,
+             profile_line_checkbox, profile_line_width, profile_line_color,
+             ):
+        content = (
+            '# point cloud \n'
+            f'display_point_cloud = {"true" if "pcl" in pc_checkbox else "false"} \n'
+            f'point_cloud_type = "{pc_type}" \n'
+            f'point_size = {point_size} \n'
+            f'color_scale = "{color_scale}" \n'
+            f'color_scale_from = {scale_from} \n'
+            f'color_scale_to = {scale_to} \n'
+            f'point_cloud_opacity = {point_opacity} \n'
+            '\n'
+            '# video \n'
+            f'display_video = {"true" if "pic" in video_checkbox else "false"} \n'
+            '\n'
+            '# vector data \n'
+            f'display_vector_data = {"true" if "vec" in vec_data_checkbox else "false"} \n'
+            f'vector_data_line_width = {vec_data_width} \n'
+            f'vector_data_line_color = "{vec_data_color}" \n'
+            '\n'
+            '# camera position offset \n'
+            f'camera_offset_x = {cam_offset_x} \n'
+            f'camera_offset_y = {cam_offset_y} \n'
+            f'camera_offset_z = {cam_offset_z} \n'
+            f'camera_offset_yaw = {cam_offset_yaw} \n'
+            f'camera_offset_pitch = {cam_offset_pitch} \n'
+            f'camera_offset_roll = {cam_offset_roll} \n'
+            '\n'
+            '# distortion \n'
+            f'distortion = {"true" if "dist" in distortion_checkbox else "false"} \n'
+            '\n'
+            '# train profile \n'
+            f'display_train_profile = {"true" if "profile" in profile_checkbox else "false"} \n'
+            f'train_profile_distance = "{profile_dist}" \n'
+            f'train_profile_line_width = {profile_width} \n'
+            f'train_profile_line_color = "{profile_color}" \n'
+            '\n'
+            '# line through train profile positions \n'
+            f'display_profile_line = {"true" if "line" in profile_line_checkbox else "false"} \n'
+            f'profile_line_line_width = {profile_line_width} \n'
+            f'profile_line_line_color = "{profile_line_color}" \n'
+            '\n'
+        )
+        return dict(content=content, filename="workspace.toml")
+    
+    # import workspace settings
+    @app.callback(
+        Output('point-cloud-checkbox', 'value'),
+        Output('point-cloud-type-dropdown', 'value'),
+        Output('point-size-input', 'value'),
+        Output('color-scale-dropdown', 'value'),
+        Output('scale-from-input', 'value'),
+        Output('scale-to-input', 'value'),
+        Output('point-opacity-input', 'value'),
+
+        Output('camera-picture-checkbox', 'value'),
+
+        Output('vector-data-checkbox', 'value'),
+        Output('line-width-input', 'value'),
+        Output('line-color-picker', 'value'),
+
+        Output('camera-x-slider-input', 'value'),
+        Output('camera-y-slider-input', 'value'),
+        Output('camera-z-slider-input', 'value'),
+        Output('camera-yaw-slider-input', 'value'),
+        Output('camera-pitch-slider-input', 'value'),
+        Output('camera-roll-slider-input', 'value'),
+        Output('camera-offset-default-store', 'data'),
+
+        Output('distortion-checkbox', 'value'),
+
+        Output('train-profile-checkbox', 'value'),
+        Output('profile-distance-dropdown', 'value'),
+        Output('profile-width-input', 'value'),
+        Output('profile-color-picker', 'value'),
+
+        Output('profile-line-checkbox', 'value'),
+        Output('profile-line-width-input', 'value'),
+        Output('profile-line-color-picker', 'value'),
+
+        Input('import-workspace-upload', 'contents'),
+        prevent_initial_call = True
+    )
+    def import_workspace(file_content):
+        if file_content is None:
+            return (no_update,) * 26
+
+        # new file uploaded
+        content_type, content_string = file_content.split(',')
+        decoded = base64.b64decode(content_string)
+        data = tomllib.loads(decoded.decode("utf-8"))
+
+        # load settings from toml file
+        cam_offset_x = data["camera_offset_x"]
+        cam_offset_y = data["camera_offset_y"]
+        cam_offset_z = data["camera_offset_z"]
+        cam_offset_yaw = data["camera_offset_yaw"]
+        cam_offset_pitch = data["camera_offset_pitch"]
+        cam_offset_roll = data["camera_offset_roll"]
+
+        return (
+            ["pcl"] if data["display_point_cloud"] else [],
+            data["point_cloud_type"],
+            data["point_size"],
+            data["color_scale"],
+            data["color_scale_from"],
+            data["color_scale_to"],
+            data["point_cloud_opacity"],
+
+            ["pic"] if data["display_video"] else [],
+
+            ["vec"] if data["display_vector_data"] else [],
+            data["vector_data_line_width"],
+            data["vector_data_line_color"],
+
+            cam_offset_x,
+            cam_offset_y,
+            cam_offset_z,
+            cam_offset_yaw,
+            cam_offset_pitch,
+            cam_offset_roll,
+            [cam_offset_x, cam_offset_y, cam_offset_z, cam_offset_yaw, cam_offset_pitch, cam_offset_roll],
+
+            ["dist"] if data["distortion"] else [],
+
+            ["profile"] if data["display_train_profile"] else [],
+            data["train_profile_distance"],
+            data["train_profile_line_width"],
+            data["train_profile_line_color"],
+
+            ["line"] if data["display_profile_line"] else [],
+            data["profile_line_line_width"],
+            data["profile_line_line_color"]
+        )
+           
 

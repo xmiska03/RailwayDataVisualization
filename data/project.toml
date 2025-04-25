@@ -2,7 +2,6 @@
 project_path = "/home/zmiskanova/Plocha/BP/bakalarka/data"
 
 # point cloud data
-show_united_pcd = true                          # the app displays either united or divided point cloud data
 united_pcd_path = "joined/scans.pcd"            # one file with the whole point cloud
 divided_pcd_path = "joined/joined_pcd_files"    # point cloud divided into multiple files
 divided_pcd_filename_prefix = "pcd"

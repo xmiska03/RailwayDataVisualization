@@ -10,7 +10,7 @@ point_cloud_type_widget = [
     dbc.Col(dbc.Select(
         options={'united': 'sjednocené', 'divided': 'rozdělené'},
         value='divided',
-        id='display-united-dropdown',
+        id='point-cloud-type-dropdown',
     ), width=6)
 ]
 
@@ -132,8 +132,8 @@ camera_position_x_widget = [
         value=0,
         id="camera-x-slider-input",
         type="range",
-        min=-3,
-        max=3,
+        min=-4,
+        max=4,
         style={"margin": "10px", "width": "95%"}
     ), width=7)
 ]
@@ -196,9 +196,26 @@ camera_position_roll_widget = [
 
 back_to_default_button = [
     dbc.Col(html.Div(""), width=7),
-    dbc.Col(dbc.Button("Vrátit původní", id="back-to-default-button", style={"width": "100%"}), width=4)
+    dbc.Col(dbc.Button("Vrátit původní", id="back-to-default-button", style={"width": "100%"}), width=4),
+    dcc.Store(id="camera-offset-default-store", data=[0, 0, 0, 0, 0, 0])
 ]
 
+export_workspace_widget = [
+    dbc.Col(dbc.Button(
+        "Exportovat nastavení zobrazení", 
+        id="export-workspace-button",
+        style={"width": "100%"}
+    ), width=7),
+    dcc.Download(id="workspace-download")  # not visible
+]
+
+import_workspace_widget = [
+    dbc.Col(dcc.Upload(
+        dbc.Button("Importovat nastavení zobrazení", style={"width": "100%"}), 
+        id="import-workspace-upload",
+        style={"width": "100%"}
+    ), width=7)
+]
 
 visualization_tab = [
     dbc.Row(html.Div("Mračno bodů", style={"fontWeight": "bold", "textAlign": "center", "paddingBottom": "0.5em", 'marginTop': '15px'})),
@@ -254,4 +271,8 @@ visualization_tab = [
             id='distortion-checkbox'
         )
     ),
+    dbc.Row(html.Hr(), style={"marginTop": "15px"}),
+    
+    dbc.Row(export_workspace_widget),
+    dbc.Row(import_workspace_widget, style={"marginTop": "15px"})
 ]   

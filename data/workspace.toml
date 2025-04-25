@@ -1,0 +1,39 @@
+# point cloud
+display_point_cloud = true
+point_cloud_type = "divided"
+point_size = 24
+color_scale = "bgr"
+color_scale_from = 0
+color_scale_to = 15
+point_cloud_opacity = 0.6
+
+# video
+display_video = true
+
+# vector data
+display_vector_data = true
+vector_data_line_width = 5
+vector_data_line_color = "#fa650f"
+
+# camera position offset
+camera_offset_x = 1.52
+camera_offset_y = 0.22
+camera_offset_z = 0.4
+camera_offset_yaw = 0.64
+camera_offset_pitch = 0
+camera_offset_roll = 0
+
+# distortion
+distortion = false
+
+# train profile
+display_train_profile = true
+train_profile_distance = "25"
+train_profile_line_width = 3
+train_profile_line_color = "#e250ff"
+
+# line through train profile positions
+display_profile_line = false
+profile_line_line_width = 3
+profile_line_line_color = "#e8af10"
+

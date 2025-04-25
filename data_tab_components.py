@@ -163,10 +163,10 @@ profile_rot_uploaded_files = dbc.Stack(
 
 data_tab = [
     # project file
-    dbc.Row(html.Div("Projektový soubor (.toml)"), style={"fontWeight": "bold", "textAlign": "center", "marginTop": "15px"}),
+    dbc.Row(html.Div("Projektový soubor (.toml)"), style={"fontWeight": "bold", "textAlign": "center", "marginTop": "25px"}),
     dbc.Row(html.Div(project_file_upload, id="project-file-upload-div")),
     dbc.Row(html.Div(project_file_uploaded_file, id="project-file-uploaded-file-div")),
-    dbc.Row(html.Hr(style={'marginTop':'10px'})),
+    dbc.Row(html.Hr(style={'marginTop':'20px'})),
 
     # point cloud
     dbc.Row(html.Div("Mračno bodů"), style={"fontWeight": "bold", "textAlign": "center"}), 

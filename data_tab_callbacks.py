@@ -69,7 +69,6 @@ def get_callbacks(app):
         Output('project-file-uploaded-file-div', 'style'),
         Output('project-file-filename-div', 'children'),
         
-        Output('display-united-dropdown', 'value'),
         Output('united-pcd-path-store', 'data'),
         Output('divided-pcd-paths-store', 'data'),
         Output('pc-timestamps-path-store', 'data'),
@@ -97,7 +96,6 @@ def get_callbacks(app):
             data = tomllib.loads(decoded.decode("utf-8"))
 
             # load data from toml file and use them as needed
-            display_united_dropdown_val = 'united' if data['show_united_pcd'] else 'divided'
             united_pcd_path = os.path.join(data['project_path'], data['united_pcd_path'])
             divided_pcd_paths = {
                 "dir_path": os.path.join(data['project_path'], data['divided_pcd_path']),
@@ -120,14 +118,14 @@ def get_callbacks(app):
             }
 
             return {"display": "none"}, {"display": "block"}, filename, \
-                display_united_dropdown_val, united_pcd_path, divided_pcd_paths, pc_timestamps_path, \
+                united_pcd_path, divided_pcd_paths, pc_timestamps_path, \
                 video_path, vector_data_path, \
                 translations_path, rotations_path, timestamps_path, \
                 profile_trans_paths, profile_rot_paths
         else:
             # file deleted (or it is the initial call)
             return {"display": "block"}, {"display": "none"}, "", \
-                no_update, no_update, "", "", no_update, "", no_update, no_update, no_update, "", ""
+                no_update, "", "", no_update, "", no_update, no_update, no_update, "", ""
 
 
     # upload/delete file with united point cloud
