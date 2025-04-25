@@ -550,3 +550,53 @@ def get_callbacks(app):
         Output('camera-timestamps-data', 'id'),  # dummy output needed so that the initial call occurs
         Input('camera-timestamps-data', 'data')
     )
+
+    # pass new data from stores to visualization in deck.gl
+    app.clientside_callback(
+        """
+        function(data_dict) {
+            window.data_dict = data_dict;
+        }
+        """,
+        Input('visualization-data', 'data')
+    )
+    app.clientside_callback(
+        """
+        function(united_pc_data) {
+            window.united_pc_data = united_pc_data;
+        }
+        """,
+        Input('united-pc-data', 'data')
+    )
+    app.clientside_callback(
+        """
+        function(profile_line_data) {
+            window.profile_line_data = profile_line_data;
+        }
+        """,
+        Input('profile-line-data', 'data')
+    )
+    app.clientside_callback(
+        """
+        function(vector_data) {
+            window.vector_data = vector_data;
+        }
+        """,
+        Input('vector-data', 'data')
+    )
+    app.clientside_callback(
+        """
+        function(camera_timestamps_data) {
+            window.camera_timestamps_data = camera_timestamps_data;
+        }
+        """,
+        Input('camera-timestamps-data', 'data')
+    )
+    app.clientside_callback(
+        """
+        function(pcl_timestamps_data) {
+            window.pcl_timestamps_data = pcl_timestamps_data;
+        }
+        """,
+        Input('pcl-timestamps-data', 'data')
+    )

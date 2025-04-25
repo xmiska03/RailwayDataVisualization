@@ -163,7 +163,7 @@ tabs = dbc.Tabs(
         dbc.Tab(
             dcc.Loading(        # display a circle over the data tab when the app is loading something
                 type="circle",
-                overlay_style={"visibility":"visible"},
+                overlay_style={"visibility": "visible"},
                 children=data_tab_components.data_tab
             ),
             tab_id="data", 
@@ -212,7 +212,6 @@ color_mode_switch = html.Div(
         'fontSize': '1.1rem'
     }
 )
-
 
 # stores used for storing data on the clients side
 stores = [
@@ -357,13 +356,12 @@ app.layout = html.Div(
 
 # callbacks - the logic of the app
 
-# (re)initialize the deck visualization
-# TODO optimize
+# initialize the deck visualization
 app.clientside_callback(
     """
     function(data_dict, united_pc_data, profile_line_data, vector_data, camera_timestamps, pcl_timestamps) {
         if (window.initializeDeck) {
-            window.data_dict = data_dict;  // make the data accessible to visualizations.js
+            window.data_dict = data_dict;  // make the data accessible to visualization.js
             window.united_pc_data = united_pc_data;
             window.profile_line_data = profile_line_data;
             window.vector_data = vector_data;
@@ -381,11 +379,11 @@ app.clientside_callback(
     """,
     Output('visualization-data', 'id'),  # dummy output needed so that the initial call occurs
     Input('visualization-data', 'data'),
-    Input('united-pc-data', 'data'),
-    Input('profile-line-data', 'data'),
-    Input('vector-data', 'data'),
-    Input('camera-timestamps-data', 'data'),
-    Input('pcl-timestamps-data', 'data')
+    State('united-pc-data', 'data'),
+    State('profile-line-data', 'data'),
+    State('vector-data', 'data'),
+    State('camera-timestamps-data', 'data'),
+    State('pcl-timestamps-data', 'data')
 )
 
 # roll out the side panel on button click

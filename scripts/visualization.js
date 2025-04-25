@@ -6,7 +6,6 @@ window.frames_cnt = 500;
 window.position = 0;
 window.pcl_position = 0;
 window.animation_running = false;
-window.frame_duration = 40;     // in milliseconds
 window.profile_distance = '25';   // 25 meters
 window.scale_from = 0;          // boundaries of the point cloud color scale
 window.scale_to = 18;

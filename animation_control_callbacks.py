@@ -77,7 +77,6 @@ def get_callbacks(app):
         """
         function(speed_str) {
             let speed = parseFloat(speed_str);
-            window.frame_duration = 40 / speed;       // adjust deck animation speed (used in visualization.js)
             const video = document.getElementById('background-video');
             video.playbackRate = speed;               // adjust video speed
         }
