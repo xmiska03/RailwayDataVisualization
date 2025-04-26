@@ -390,16 +390,16 @@ K aplikácii vytvorenej pomocou frameworku Dash je možné pridať vlastné št�
 
 \chapter{Návrh aplikácie}
 
-Cieľom tejto práce bolo vytvoriť používateľskú aplikáciu. Výsledná aplikácia mala byť webová, aby ju bolo možné spustiť jednoducho pomocou webového prehliadača. Mala by spĺňať nasledujúce body:
+Cieľom tejto práce bolo vytvoriť používateľskú aplikáciu. Výsledná aplikácia mala byť webová, aby ju bolo možné spustiť jednoducho pomocou webového prehliadača. Čo sa týka funkcionality, mala by spĺňať nasledujúce body:
 
 \begin{itemize}
     \item Zobrazenie dát z~mobilného mapovacieho systému. Tieto dáta sú tvorené mračnom bodov z~lidaru, kamerovým záznamom, údajmi o~pohybe vlaku a ďalšími vektorovými dátami a mali by byť zobrazené z~pohľadu strojvedúceho vlaku.
-    \item Umožniť používateľovi vybrať si konkrétnu pozíciu vlaku aj prehrať si animáciu pohybu vlaku.
+    \item Umožniť používateľovi vybrať si konkrétnu pozíciu vlaku alebo prehrať si animáciu pohybu vlaku s nastaviteľnou rýchlosťou.
     \item Umožniť používateľovi nahrať súbory s~dátami na zobrazenie: súbor s~mračnom bodov, video z~kamery na čele vlaku, súbor s~vektorovými dátami, textové súbory s~údajmi o~pohybe vlaku -- pole translácií, pole rotácií a pole zodpovedajúcich časových razítok.
-    \item Zobrazovať dva typy dát z~lidaru -- buď malé, postupne nasnímané mračná bodov s~časovými razítkami, alebo iba jedno celistvé mračno bodov, ktoré vzniklo ich spojením (u~oboch typov ale ide o~agregované dáta -- všetky body sú v~jednej spoločnej súradnicovej sústave). Umožniť používateľovi prepínať medzi týmito dvoma typmi.
-    \item Poskytnúť používateľovi možnosti prispôsobenia zobrazenia, ako napríklad zmeny viditeľnosti jednotlivých vrstiev (mračno bodov, vektorové dáta, kamerový záznam) a základné nastavenia zobrazenia mračna bodov (rôzne farebné škály podľa intenzity, veľkosť a priehľadnosť bodov, zobrazenie bodov len do určitej vzdialenosti) aj vektorových dát (farba a hrúbka čiar). Užitočná by bola aj možnosť doladiť parametre zobrazovania mračna bodov a vektorových dát (posun aj otočenie kamery doprava/doľava, nahor/nadol, posun dopredu/dozadu), aby bolo možné toto zobrazenie prispôsobiť záznamu z~kamery. Kamera totiž môže byť na vlaku rôzne umiestnená a údaje z~nej môžu byť oproti údajom z~mračna bodov posunuté.
-    \item Zobrazovať prejazdný profil vlaku v~predikovanej polohe v~rôznych vzdialenostiach pred vlakom -- 25, 50, 75 a 100m. Zobrazovať aj čiaru spájajúcu predikované polohy. Umožniť používateľovi nahrať súbory s~týmito predikovanými polohami.
-    \item Intuitívnosť a používateľská prívetivosť.
+    \item Zobrazovať dva typy dát z~lidaru -- buď malé, postupne nasnímané kusy mračna bodov s~časovými razítkami, alebo iba jedno celistvé mračno bodov, ktoré vzniklo ich spojením (u~oboch typov ale ide o~agregované dáta -- všetky body sú v~jednej spoločnej súradnicovej sústave). Umožniť používateľovi prepínať medzi týmito dvoma typmi.
+    \item Poskytnúť používateľovi možnosti prispôsobenia zobrazenia, ako napríklad zmeny viditeľnosti jednotlivých vrstiev (mračno bodov, vektorové dáta, kamerový záznam) a základné nastavenia zobrazenia mračna bodov (rôzne farebné škály podľa intenzity, veľkosť a priehľadnosť bodov, zobrazenie bodov len do určitej vzdialenosti) aj vektorových dát (farba a hrúbka čiar).
+    \item Mať prepínač na zapnutie a vypnutie skreslenia mračna bodov a vektorových dát podľa parametrov skreslenia kamery.
+    \item Zobrazovať prejazdný profil vlaku v~predikovanej polohe v~rôznych vzdialenostiach pred vlakom -- 25, 50, 75 a 100m. Zobrazovať aj čiaru spájajúcu predikované polohy. (Súbory s predikovanými polohami sú súčasťou dát, ktoré aplikácia načítava.)
 
 \end{itemize}
 
@@ -407,7 +407,7 @@ Cieľom tejto práce bolo vytvoriť používateľskú aplikáciu. Výsledná apl
 
 Pri návrhu používateľského rozhrania aplikácie bolo prioritou zobrazenie vizualizácie ako hlavnej časti aplikácie na čo najväčšej ploche a tiež tak, aby bola viditeľná vo všetkých stavoch.
 
-Z ovládacích prvkov sú za najdôležitejšie považované prvky pre zmenu polohy vlaku, ktoré sú umiestnené v spodnom paneli. Všetky ostatné ovládacie prvky sú skryté v bočnom paneli, ktorý sa dá vysunúť tlačítkom v ľavom hornom rohu. Celkový návrh vzhľadu je na obrázku \ref{fig:navrh_gui}.
+Z ovládacích prvkov sú za najdôležitejšie považované prvky pre zmenu polohy vlaku, ktoré sú umiestnené v spodnom paneli. Všetky ostatné ovládacie prvky sú skryté v bočnom paneli, ktorý sa dá vysunúť tlačítkom v ľavom hornom rohu, a sú rozdelené do troch záložiek -- nahrávanie dát, prispôsobenie zobrazenia a samostatná záložka pre prejazdný profil. Celkový návrh vzhľadu je na obrázku \ref{fig:navrh_gui}.
 
 \begin{figure}[h]
     \centering
@@ -417,19 +417,26 @@ Z ovládacích prvkov sú za najdôležitejšie považované prvky pre zmenu pol
     \label{fig:navrh_gui}
 \end{figure}
 
-Celkovou ideou návrhu je používanie čo najviac štandardných prvkov, aby sa v aplikácii používatelia ľahko zorientovali. Tomu napomáha aj použitie knižnice Bootstrap, ktorá je u webových aplikácií veľmi často používaná, a preto budú jej prvky pravdepodobne pre používateľov intuitívne.
+Hlavnou ideou návrhu je používanie čo najviac štandardných prvkov, aby sa v aplikácii používatelia ľahko zorientovali. Tomu napomáha aj použitie knižnice Bootstrap, ktorá je u webových aplikácií veľmi často používaná, a preto budú jej prvky pravdepodobne pre používateľov intuitívne.
 
-Prvky v bočnom paneli sú rozdelené do troch záložiek.
+Pre používateľskú prívetivosť by mala aplikácia spĺňať nasledujúce body:
 
 \begin{enumerate}
-    \item Záložka \uv{Dáta}. Umožňuje používateľovi nahrať do aplikácie dáta z mobilného mapovacieho systému.
-    \item Záložka \uv{Zobrazenie}. Tu sa dajú nastaviť parametre zobrazenia, napríklad farby, veľkosti bodov a skreslenie.
-    \item Záložka \uv{Prejazdný profil}. Týka sa iba zobrazenia predikcie polohy prejazdného profilu.
+    \item všeobecné vlastnosti:
+    \begin{itemize}
+        \item intuitívnosť,
+        \item responzívny design,
+        \item hladký beh animácií,
+        \item možnosť exportu a importu nastavení zobrazenia,
+        \item svetlý aj tmavý režim,
+        \item kompatibilita s rôznymi prehliadačmi, prípadnú nekompatibilitu používateľovi ohlásiť,
+    \end{itemize}
+    \item v záložke \uv{Dáta}:
+    \begin{itemize}
+        \item prehľadné zobrazenie, aké dáta boli nahrané, možnosť ich nahradenia inými dátami,
+        \item zobrazovanie indikátoru, že práve prebieha nahrávanie dát.
+    \end{itemize}
 \end{enumerate}
-
-Pre používateľskú prívetivosť by mala mať aplikácia nasledujúce vlastnosti:
-
-[...]
 
 [obrázok: farebné škály pre mračno bodov]
 
@@ -447,7 +454,29 @@ Preto by mala výsledná aplikácia kombinovať oba prístupy, projektový súbo
 
 \chapter{Implementácia navrhnutej aplikácie}
 
-[krátke zhrnutie finálnej implementácie]
+Navrhnutá webová aplikácia je implementovaná v jazyku Python s využitím frameworku Dash. Pre optimalizáciu obsahuje aplikácia aj skript napísaný v jazyku Javascript, ktorý používa pre vykresľovanie mračna bodov a vektorových dát framework deck.gl a na rozdiel od zvyšku kódu aplikácie sa vykonáva priamo na klientovi. Táto štruktúra je schematicky znázornená na obrázku \ref{fig:schema_implementacie}.
+
+Zdrojový kód je rozdelený do nasledujúcich súborov:
+\begin{itemize}
+    \item \texttt{app.py} -- Hlavný súbor, inicializuje a spustí aplikáciu. Definuje základné rozloženie aplikácie -- vizualizácia na celú výšku okna, spodný panel a bočný panel so záložkami.
+    \item \texttt{params.py} -- Počiatočné parametre.
+    \item \texttt{loading\_functions.py} -- Pomocné funkcie pre načítanie dát zo súborov.
+    \item \texttt{general\_functions.py} -- Pomocné funkcie pre výpočet projekčnej matice, transformačných matíc a operácií s rotáciami.
+    \item Súbory s komponentmi a callbackmi rozdelené podľa štruktúry používateľského rozhrania:
+    \begin{itemize}
+        \item \texttt{animation\_control\_components.py}, \texttt{animation\_control\_callbacks.py} \\ -- komponenty v spodnom paneli,
+        \item \texttt{data\_tab\_components.py}, \texttt{data\_tab\_callbacks.py}, \\\texttt{visualization\_tab\_components.py}, \texttt{visualization\_tab\_callbacks.py}, \\ \texttt{profile\_tab\_components.py}, \texttt{profile\_tab\_callbacks.py} \\ -- komponenty v záložkách v bočnom paneli.
+    \end{itemize}
+    \item \texttt{visualization.js} -- Vizualizácia mračna bodov a vektorových dát pomocou frameworku deck.gl, riadenie animácie phybu vlaku.
+\end{itemize}
+  
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.7\linewidth]{text_prace/obrazky-figures/schema_implementacie.pdf}
+    \caption{Schéma finálnej implementácie.}
+    \label{fig:schema_implementacie}
+\end{figure}
 
 \section{Prvá etapa implementácie}
 
@@ -546,15 +575,62 @@ Dôležitou metrikou pri posudzovaní výkonnosti animácií je snímková frekv
 
 Podľa vstavaného ukazovateľa snímkovej frekvencie v~prehliadači Google Chrome dosahovala skúmaná animácia pred optimalizáciu zhruba 28 až 34~FPS, zatiaľ čo po nej 51 až 55~FPS. Aj v~tomto ohľade teda nastalo významné zlepšenie.
 
+\section{Rozdelenie dát do vrstiev}
+
+Pri vizualizácii dát pomocou frameworku deck.gl sú použité dva typy vrstiev:
+\begin{itemize}
+    \item \texttt{PointCloudLayer} pre mračno bodov,
+    \item \texttt{PathLayer} pre vektorové dáta.
+\end{itemize}
+Rozdelenie vizualizácie na vrstvy je znázornené na obrázku \ref{fig:vrstvy}.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.8\linewidth]{text_prace/obrazky-figures/vrstvy.pdf}
+    \caption{Schéma rozdelenia dát do vrstiev. Počet vrstiev s mračnom bodov závisí od typu zobrazovaného mračna bodov.}
+    \label{fig:vrstvy}
+\end{figure}
+
+Na začiatku tvorby práce bola na zobrazenie vektorových dát použitá vrstva \texttt{LineLayer}. Ukázalo sa však, že vstva \texttt{LineLayer} je prispôsobená iba pre zobrazovanie čiar na mapách a pri použití nemapového pohľadu ako \texttt{FirstPersonView} nefunguje dobre -- niektoré čiary sa otáčajú kolmo ku kamere a tým pádom sa ich šírka zmenšuje, niekedy až tak, že úplne prestanú byť viditeľné. Toto správanie u vrstvy \texttt{LineLayer} nie je možné zmeniť. Naopak u vrstvy \texttt{PathLayer} je možné nastaviť vlastnosť \texttt{billboard}, ktorá znamená otočenie čiar smerom ku kamere, preto bola nakoniec táto vrstva použitá namiesto vrstvy \texttt{LineLayer}. \texttt{PathLayer} sa od \texttt{LineLayer} líši ešte tým, že čiary majú pevnú šírku v pixeloch a nezužujú sa podľa toho, ako ďaleko sú od kamery.
+
+Vizualizácia obsahuje nasledujúce vrstvy:
+\begin{itemize}
+    \item Mračno bodov. Ak aplikácia zobrazuje \emph{rozdelené} mračno bodov, teda malé, postupne nasnímané časti s časovými razítkami, tak je vrstiev desať a zobrazujú desať z týchto častí -- jednu, ktorá zodpovedá danej pozícii, a deväť predchádzajúcich (obrázok \ref{fig:vrstvy}, časť a)). Ak aplikácia zobrazuje \emph{celistvé} mračno bodov, tak je celé v jednej vrstve (obrázok \ref{fig:vrstvy}, časť b)).
+    \item Čiara spájajúca predikované polohy prejazdného profilu vlaku.
+    \item Prejazdný profil vlaku v predikovanej polohe. Od ostatných vektorových dát sa líši tým, že sa jeho poloha mení pri zmene polohy kamery. To je v implementácii dosiahnuté pomocou špeciálnej prístupovej funkcie \texttt{profileGetPath} (prístupové funkcie boli popísané v sekcii \ref{sec:nastavenie_polohy_kamery}, podsekcia Aplikovanie transformácií na dáta). 
+    \item Ďalšie vektorové dáta.
+\end{itemize}
+
+\subsubsection{Farebné škály}
+
+Okrem polohy má každý bod v mračne bodov v dodanej sade dát určenú ešte jednu vlastnosť -- intenzitu v rozmedzí od 0 do 42, ktorú je vhodné farebne rozlíšiť.
+
+Boli implementované dve farebné škály, klasická modro-zeleno-červená a žlto-fialová, pričom u oboch si môže používateľ zvoliť, od akej intenzity začína a pri akej končí. Ak je napríklad nastavená žlto-fialová farebná škála od 0 do 20, tak to znamená, že body s intenzitou 0 budú mať žltú farbu, body s intenzitou 20 a vyššou fialovú farbu a body s intenzitou od 1 do 19 kombinovanú farbu.
+
+Pre prehľadnosť bol tiež implementovaný graf, ktorý používateľovi ukazuje relatívne počty bodov s jednotlivými intenzitami a aké majú nastavené farby. Ukážky možných nastavení sú na obrázku \ref{fig:farebna_skala}.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.35\linewidth]{text_prace/obrazky-figures/farebna_skala1.png}
+    \includegraphics[width=0.35\linewidth]{text_prace/obrazky-figures/farebna_skala2.png}
+    \includegraphics[width=0.35\linewidth]{text_prace/obrazky-figures/farebna_skala3.png}
+    \includegraphics[width=0.35\linewidth]{text_prace/obrazky-figures/farebna_skala4.png}
+    \caption{Nastaviteľná farebná škála pre mračno bodov. Vodorovná os predstavuje intenzitu, vertikálna os predstavuje počet bodov.}
+    \label{fig:farebna_skala}
+\end{figure}
+
 \section{Implementácia animácie pohybu vlaku}
 
-\section{Zobrazenie prejazdného profilu vlaku}
+[obrázok prepisovania vrstiev]
 
 \section{Implementácia skreslenia}
+
 
 \chapter{Testovanie}
 
 \section{Zobrazenie dodaných dát}
+
+% Užitočná by bola aj možnosť doladiť parametre zobrazovania mračna bodov a vektorových dát (posun aj otočenie kamery doprava/doľava, nahor/nadol, posun dopredu/dozadu), aby bolo možné toto zobrazenie prispôsobiť záznamu z~kamery. Kamera totiž môže byť na vlaku rôzne umiestnená a údaje z~nej môžu byť oproti údajom z~mračna bodov posunuté.
 
 \section{Výkonnosť}
 
