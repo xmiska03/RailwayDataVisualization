@@ -259,7 +259,7 @@ def get_callbacks(app):
             return {"display": "none"}, {"display": "block"}, filename, server_filename, update_number+1
         else:
             # file deleted (or it is the initial call)
-            return {"display": "block"}, {"display": "none"}, "", no_update, update_number+1
+            return {"display": "block"}, {"display": "none"}, "", no_update, no_update
     
 
     # upload/delete file with vector data
@@ -453,7 +453,7 @@ def get_callbacks(app):
         """
         function(update_number, camera_pos) {
             const video = document.getElementById('background-video');
-            const videoTime = parseInt(camera_pos) / 25;
+            const videoTime = window.camera_timestamps[camera_pos];
             video.currentTime = videoTime;
         }
         """,

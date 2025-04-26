@@ -1,6 +1,6 @@
 import math
 
-# visualization parameters
+# initial visualization parameters
 POINT_SIZE = 20
 NEAR_PLANE = 0.1
 FAR_PLANE = 300
