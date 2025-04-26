@@ -1,7 +1,6 @@
-from dash import Dash, html, dcc, callback, Output, Input, State, Patch, ctx, clientside_callback
+from dash import Dash, html, dcc, Output, Input, State
 import dash_bootstrap_components as dbc
 from pypcd4 import PointCloud
-from scipy.spatial.transform import Rotation
 
 import data_tab_components
 import data_tab_callbacks
@@ -15,7 +14,7 @@ import params
 from general_functions import calculate_projection_matrix, calculate_translation_from_extr_mat, \
                               load_rotation, rotation_to_euler, rotation_to_matrix, rotation_to_inv_matrix
 from loading_functions import load_csv_file_into_nparray, load_yaml_into_dict, \
-                              load_timestamps_file_into_nparray, load_space_separated_into_nparray, \
+                              load_timestamps_file_into_nparray, \
                               load_pcl_timestamps, load_profile_translations, load_profile_rotations
 
 
@@ -103,19 +102,12 @@ vector_layer = {
     "visible": True
 }
 
-view_state = {
-    "bearing": params.BEARING,
-    "pitch": params.PITCH,
-    "position": [params.POSITION_OFFSET[0], params.POSITION_OFFSET[1], params.POSITION_OFFSET[2]]
-}
-
 view = {
     "projectionMatrix": proj_matrix,
     "controller": False
 }
 
 deck_dict = {
-    "initialViewState": view_state,
     "views": [view],
     "layers": [point_cloud_layer, profile_line_layer, profile_layer, vector_layer],
 }

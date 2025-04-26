@@ -2,9 +2,6 @@ import math
 
 # visualization parameters
 POINT_SIZE = 20
-POSITION_OFFSET = [0, 0, 0]
-BEARING = 90
-PITCH = 0                    # turn the camera up/down
 NEAR_PLANE = 0.1
 FAR_PLANE = 300
 OPACITY = 0.6

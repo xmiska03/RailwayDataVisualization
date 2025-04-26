@@ -10,10 +10,10 @@ window.profile_distance = '25';   // 25 meters
 window.scale_from = 0;          // boundaries of the point cloud color scale
 window.scale_to = 18;
 window.scale_middle = 9;
-window.camera_offset_x = 0;     // camera offset set manually by the user
-window.camera_offset_y = 0;
-window.camera_offset_z = 0;
-window.camera_offset_yaw = 0;
+window.camera_offset_x = 1.52;     // camera offset set manually by the user
+window.camera_offset_y = 0.22;
+window.camera_offset_z = 0.4;
+window.camera_offset_yaw = 0.64;
 window.camera_offset_pitch = 0;
 window.camera_offset_roll = 0;
 window.display_united = false;    // diplay united point cloud data
@@ -185,23 +185,11 @@ function initializeDeck() {
     setTimeout(initializeDeck, 40);  // try again in 40 ms
     return;
   }
-
-  const INITIAL_VIEW_STATE = {
-    bearing: window.data_dict.initialViewState.bearing + window.window.rotations_euler[window.position][0],
-    pitch: window.data_dict.initialViewState.pitch + window.window.rotations_euler[window.position][1],
-    position: [
-      window.data_dict.initialViewState.position[0] + window.translations[window.position][0],
-      window.data_dict.initialViewState.position[1] + window.translations[window.position][1],
-      window.data_dict.initialViewState.position[2] + window.translations[window.position][2]
-    ]
-  };
   
   const VIEW = new FirstPersonView({
     projectionMatrix: window.data_dict.views[0].projectionMatrix,
     controller: window.data_dict.views[0].controller
   });
-
-  createLayers();
 
   // the context is created manually to specify "preserveDrawingBuffer: true".
   // that is needed to enable reading the pixels of the visualisation for applying distortion.
@@ -209,9 +197,8 @@ function initializeDeck() {
   const context = canvas.getContext("webgl2", { preserveDrawingBuffer: true, premultipliedAlpha: false });
 
   window.deck = new Deck({
-    initialViewState: INITIAL_VIEW_STATE,
     views: [VIEW],
-    layers: window.layers,
+    layers: [],
     canvas: 'visualization-canvas',
     context: context,
     onDeviceInitialized: () => {
@@ -227,6 +214,8 @@ function initializeDeck() {
       }
     }
   });
+
+  updateDeck();
 
   window.deck_initialized = true;
 }
@@ -259,17 +248,15 @@ function changeLayersData() {
 function updateDeck() {
   /*
   The final position of the virtual camera is a combination of:
-    - camera offset settings from a file + initial parameters set in the Python code 
-      (window.data_dict.initialViewState)
     - custom camera offset set by the user (window.camera_offset_*)
     - current position of the train (determined by the window.position variable, data is in arrays 
       window.translations, window.rotations_inv, window.rotations_euler)
   */
   const pos = window.position;
 
-  const offset_x = window.data_dict.initialViewState.position[0] + window.camera_offset_x;
-  const offset_y = window.data_dict.initialViewState.position[1] + window.camera_offset_y;
-  const offset_z = window.data_dict.initialViewState.position[2] + window.camera_offset_z;
+  const offset_x = window.camera_offset_x;
+  const offset_y = window.camera_offset_y;
+  const offset_z = window.camera_offset_z;
   const sum_x = offset_x + window.rotations[pos][0][0] * window.translations[pos][0] + window.rotations[pos][0][1] * window.translations[pos][1] + window.rotations[pos][0][2] * window.translations[pos][2];
   const sum_y = offset_y + window.rotations[pos][1][0] * window.translations[pos][0] + window.rotations[pos][1][1] * window.translations[pos][1] + window.rotations[pos][1][2] * window.translations[pos][2];
   const sum_z = offset_z + window.rotations[pos][2][0] * window.translations[pos][0] + window.rotations[pos][2][1] * window.translations[pos][1] + window.rotations[pos][2][2] * window.translations[pos][2];
@@ -281,8 +268,8 @@ function updateDeck() {
 
   // make a new viewstate from the new position
   const INITIAL_VIEW_STATE = {
-    bearing: window.data_dict.initialViewState.bearing + window.window.rotations_euler[pos][0] + window.camera_offset_yaw,
-    pitch: window.data_dict.initialViewState.pitch + window.window.rotations_euler[pos][1] + window.camera_offset_pitch,
+    bearing: 90 + window.rotations_euler[pos][0] + window.camera_offset_yaw,
+    pitch: window.rotations_euler[pos][1] + window.camera_offset_pitch,
     position: [final_x, final_y, final_z]
   };
   window.deck.setProps({initialViewState: INITIAL_VIEW_STATE});

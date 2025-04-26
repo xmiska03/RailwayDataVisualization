@@ -12,7 +12,7 @@ display_video = true
 
 # vector data
 display_vector_data = true
-vector_data_line_width = 5
+vector_data_line_width = 3
 vector_data_line_color = "#fa650f"
 
 # camera position offset
