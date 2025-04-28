@@ -238,8 +238,8 @@ def get_callbacks(app):
                 const K3 = 0.3354456739081583
 
                 const canvas = document.getElementById("visualization-canvas");
-                const width = canvas.width;
-                const height = canvas.height;
+                const height = window.innerHeight;   // canvas does not have initialized size yet
+                const width = Math.round(2048/1536 * height);
 
                 window.dist_array = new Array(height);
 
@@ -277,10 +277,8 @@ def get_callbacks(app):
                 //console.log("distortion pre-calculation took", Date.now() - beg_time, "ms");
             }
 
-            // the function needs to be called when the canvas is initialized
-            setTimeout(() => {
-                precalculateDistortion();
-            }, 1000);
+            // the first calculation
+            precalculateDistortion();
 
             // and then every time the canvas is resized (e. g. when window is resized)
             window.onresize = () => {
