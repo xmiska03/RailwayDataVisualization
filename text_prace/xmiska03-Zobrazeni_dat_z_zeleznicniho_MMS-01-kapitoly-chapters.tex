@@ -438,8 +438,6 @@ Pre používateľskú prívetivosť by mala aplikácia spĺňať nasledujúce bo
     \end{itemize}
 \end{enumerate}
 
-[obrázok: farebné škály pre mračno bodov]
-
 \section{Problém nahrávania dát do aplikácie}
 
 Dáta, ktoré má vyvíjaná webová aplikácia zobrazovať, sú rozdelené do väčšieho množstva súborov rôznych typov. Nahrávať ich do aplikácie klasickým spôsobom po jednom či po nejakých skupinách by bolo síce možné, ale pre používateľov časovo náročné a veľmi nepraktické.
@@ -469,7 +467,6 @@ Zdrojový kód je rozdelený do nasledujúcich súborov:
     \end{itemize}
     \item \texttt{visualization.js} -- Vizualizácia mračna bodov a vektorových dát pomocou frameworku deck.gl, riadenie animácie phybu vlaku.
 \end{itemize}
-  
 
 \begin{figure}[h]
     \centering
@@ -499,7 +496,17 @@ Tento čas sa podarilo významne zredukovať použitím knižnice Dash Deck bez 
 
 \section{Optimalizácia vykresľovania mračna bodov}
 
-Pythonový framework Dash interne používa na vytváranie používateľského rozhrania JavaScript, konkrétne framework React \cite{dash_documentation}. Jeho tvorcovia rátali s~tým, že vývojári, ktorí ho budú používať, budú niekedy chcieť priamo použiť javascriptový kód. Preto to tento framework umožňuje viacerými spôsobmi:
+Počas vývoja aplikácia prešla niekoľkými zmenami spôsobu vykresľovania mračna bodov a vektorových dát z dôvodu optimalizácie výkonu, ktoré sú popísané v nasledujúcich podsekciách.
+
+Všetky v nich uvedené merania prebiehali na notebooku s~operačným systémom Ubuntu 24.04.1, procesorom Intel Core i5-9300H~×~8, grafickou kartou Intel UHD Graphics 630 (CFL GT2) a veľkosťou operačnej pamäte 16~GiB.
+
+Profiling prebiehal v~prehliadači Google Chrome 133.0.6943.126 s~rozlíšením obrazovky 1480~×~832. Bol použitý profiler vstavaný v~tomto prehliadači.
+
+\subsubsection{Optimalizácia priamym použitím frameworku deck.gl}
+
+Aby bolo možné vynechať Dash Deck a použiť deck.gl priamo, bolo nutné nájsť spôsob, ako do aplikácie napísanej pomocou pythonového frameworku Dash zahrnúť kód v jazyku JavaScript, a zabezpečiť komunikáciu medzi týmto kódom a zvyškom aplikácie.
+
+Dash interne používa na vytváranie používateľského rozhrania JavaScript, konkrétne framework React \cite{dash_documentation}. Jeho tvorcovia rátali s~tým, že vývojári, ktorí ho budú používať, budú niekedy chcieť priamo použiť javascriptový kód. Preto to tento framework umožňuje viacerými spôsobmi:
 
 \begin{itemize}
     \item Klientske callbacky. Podobajú sa tým štandardným, ale na rozdiel od nich bežia iba na klientovi a píšu sa v~jazyku JavaScript. Štandardné callbacky bežia na serveri a píšu sa v~Pythone.
@@ -509,14 +516,12 @@ Pythonový framework Dash interne používa na vytváranie používateľského r
 
 V~tejto práci bola pre jednoduchosť využitá prvá a druhá možnosť. Bol napísaný skript \texttt{visualisation.js}, v~ktorom sú definované funkcie pre zobrazenie a zmeny zobrazenia dát pomocou deck.gl. Odkazy na tieto funkcie sú potom priradené do objektu \texttt{window}, aby bolo možné volať ich z~klientskych callbackov. Tento objekt teda tvorí rozhranie skriptu \texttt{visualisation.js}, ktoré je využívané zvyškom kódu aplikácie.
 
-Pre správne pripojenie zdrojových kódov frameworku deck.gl k~javascriptovému kódu tak, aby mohol fungovať v~rámci aplikácie napísanej vo frameworku Dash, je nutné použiť bundler. V~rámci tejto práce bol použitý bundler Webpack. Výstupnému skriptu je potrebné nastaviť príponu \texttt{.mjs}, aby ho Dash spustil ako modul.
-
-Meranie výkonnosti vykresľovania mračna bodov pred a po optimalizácii je popísané v~tabuľkách \ref{tab:js_optimalizacia_pred} a \ref{tab:js_optimalizacia_po}.
+Pre správne pripojenie zdrojových kódov frameworku deck.gl k~javascriptovému kódu tak, aby mohol fungovať v~rámci aplikácie napísanej vo frameworku Dash, bolo nutné použiť bundler. V~rámci tejto práce bol použitý bundler Webpack. Výstupnému skriptu bolo potrebné nastaviť príponu \texttt{.mjs}, aby ho Dash spustil ako modul. Mimo modulu totiž nie je v jazyku JavaScript možné použiť deklaráciu \texttt{import}, ktorá je nutná pre pripojenie zdrojových kódov frameworku deck.gl.
 
 \begin{table}[h]
     \centering
     \begin{tabular}{>{\centering\arraybackslash}m{10em}|>{\centering\arraybackslash}m{13em}|>{\centering\arraybackslash}m{12em}}
-        {\RaggedRight Nastavenie parametra \texttt{interval} [ms]} &  {\RaggedRight Čas, za ktorý prebehla celá animácia (100 snímok) [s]} & {\RaggedRight Priemerný čas vykreslenia jedného snímku [ms]} \\ \hline
+        {\RaggedRight Nastavenie parametra \texttt{interval} [ms]} &  {\RaggedRight Čas, za ktorý prebehla celá animácia (100 snímok) [s]} & {\RaggedRight Priemerný čas vykreslenia jednej snímky [ms]} \\ \hline
         1000 & 101 & 1010 \\
         800 & 80 & 800 \\
         750 & 76 & 760 \\
@@ -524,14 +529,14 @@ Meranie výkonnosti vykresľovania mračna bodov pred a po optimalizácii je pop
         650 & 71 & 710 \\
         600 & 70 & 700 \\
     \end{tabular}
-    \caption{Výkonnosť vykresľovania mračna bodov obsahujúceho 201~880 bodov \textbf{pred optimalizáciou}, teda iba pomocou kódu v~jazyku Python. Použité technológie: Python, Dash, Dash Deck. Z~nameraných údajov vyplýva, že minimálny čas potrebný vykreslenie jednej snímky je asi 750~ms, čo znamená, že rýchlosť nedosahuje ani 2 snímky za sekundu.}
+    \caption{Výkonnosť vykresľovania mračna bodov obsahujúceho 201~880 bodov \emph{pred prvou optimalizáciou}, teda iba pomocou kódu v~jazyku Python. Použité technológie: Python, Dash, Dash Deck. Z~nameraných údajov vyplýva, že minimálny čas potrebný vykreslenie jednej snímky je asi 750~ms, čo znamená, že rýchlosť nedosahuje ani 2 snímky za sekundu.}
     \label{tab:js_optimalizacia_pred}
 \end{table}
 
 \begin{table}[h]
     \centering
     \begin{tabular}{>{\centering\arraybackslash}m{10em}|>{\centering\arraybackslash}m{13em}|>{\centering\arraybackslash}m{12em}}
-         Nastavenie parametra \texttt{interval} [ms] &  Čas, za ktorý prebehla celá animácia (500 snímok) [s] & Priemerný čas vykreslenia jedného snímku [ms] \\ \hline
+         Nastavenie parametra \texttt{interval} [ms] &  Čas, za ktorý prebehla celá animácia (500 snímok) [s] & Priemerný čas vykreslenia jednej snímky [ms] \\ \hline
         250 & 126 & 252 \\
         200 & 101 & 202 \\
         150 & 76 & 152 \\
@@ -539,39 +544,60 @@ Meranie výkonnosti vykresľovania mračna bodov pred a po optimalizácii je pop
         100 & 63 & 126 \\
          75 & 62 & 124 \\
     \end{tabular}
-    \caption{Výkonnosť vykresľovania mračna bodov obsahujúceho 201~880 bodov \textbf{po optimalizácii}, teda s~vykresľovaním dát v~jazyku Javascript. Použité technológie: Python, Dash, Javascript, deck.gl. Z~nameraných údajov vyplýva, že minimálny čas potrebný vykreslenie jednej snímky je asi 150~ms, čo zodpovedá rýchlosti asi 6 snímok za sekundu.}
+    \caption{Výkonnosť vykresľovania mračna bodov obsahujúceho 201~880 bodov \emph{po prvej optimalizácii}, teda s~vykresľovaním dát v~jazyku Javascript. Použité technológie: Python, Dash, Javascript, deck.gl. Z~nameraných údajov vyplýva, že minimálny čas potrebný vykreslenie jednej snímky je asi 150~ms, čo zodpovedá rýchlosti asi 6 snímok za sekundu.}
     \label{tab:js_optimalizacia_po}
 \end{table}
 
-Riadenie animácie pomocou komponentu \texttt{Interval} frameworku Dash je pomerne ťažkopádne, pretože funguje na základe komunikácie medzi klientom a serverom a tým animáciu spomaľuje. Preto bolo vhodné ho niečím nahradiť, napríklad riadením animácie v~Javascripte iba na klientskej strane.
+Meraná bola výkonnosť vykresľovania mračna bodov počas animácie pohybu vlaku. Animácia bola riadená pomocou komponentu \texttt{Interval} frameworku Dash, ktorého funkcionalita spočíva v tom, že periodicky spúšťa callback, pričom periódu určuje parameter \texttt{interval}.
 
-[odmerať a popísať, ako sa to vylepšilo]
+Meranie výkonnosti vykresľovania mračna bodov pred a po optimalizácii je popísané v~tabuľkách \ref{tab:js_optimalizacia_pred} a \ref{tab:js_optimalizacia_po}.
 
-\section{Výber spôsobu nastavenia polohy kamery}
+Z dát v tabuľkách vyplýva, že optimalizácia výkon výrazne zlepšila. 
 
-V~sekcii \ref{sec:nastavenie_polohy_kamery} boli popísané dva rôzne spôsoby nastavenia polohy kamery vo frameworku deck.gl. V~implementácii aplikácie bol použitý najprv prvý spôsob, teda aplikovanie transformácií na dáta, pretože bol jednoduchší a priamo vyplynul z~prvej fázy implementácie (vykreslenie mračna bodov v~jazyku Python bez použitia frameworku). Ten bol následne zmenený na druhý spôsob, teda aplikovanie transformácií na kameru, pretože sa ukázalo, že tak dôjde k~významnej optimalizácii.
+\subsubsection{Optimalizácia riadením animácie výhradne na strane klienta}
 
-Nasledujúce merania prebiehali na notebooku s~operačným systémom Ubuntu 24.04.1, procesorom Intel Core i5-9300H~×~8, grafickou kartou Intel UHD Graphics 630 (CFL GT2) a veľkosťou operačnej pamäte 16~GiB, v~prehliadači Google Chrome 133.0.6943.126 s~rozlíšením obrazovky 1480~×~832. Bol použitý profiler vstavaný v~tomto prehliadači.
+Optimalizácia popísaná v predchádzajúcej podsekcii síce priniesla z hľadiska výkonu zlepšenie, ale výsledok stále nebol dostačujúci. 
 
-V~aplikácii sa prehrávala animácia pohybu kamery spojená s~videom. Vizualizované dáta tvorila jedna vrstva \texttt{PointCloudLayer}, ktorá obsahovala 201~880 bodov.
+Riadenie animácie pomocou komponentu \texttt{Interval} frameworku Dash je totiž pomerne ťažkopádne, pretože funguje na základe komunikácie medzi klientom a serverom a tým animáciu spomaľuje. Preto bolo vhodné nahradiť ho riadením animácie v~jazyku JavaScript výhradne na strane klienta.
+
+Podrobný popis tohto spôsobu riadenia animácie je uvedený v sekcii \ref{sec:implementacia_animacie}.
 
 \begin{figure}[h!]
     \centering
-    \includegraphics[width=1\linewidth]{text_prace/obrazky-figures/profiling1.pdf}
-    \caption{Profiling animácie pohybu kamery pred optimalizáciou. Transformácie sa aplikujú na dáta a počítajú sa na CPU.}
-    \label{fig:profiling1}
+    \includegraphics[width=1\linewidth]{text_prace/obrazky-figures/profiling_interval.pdf}
+    \caption{Profiling animácie pohybu vlaku, ktorá je riadená pomocou komponentu \texttt{Interval}.}
+    \label{fig:profiling_interval}
 \end{figure}
 
 \begin{figure}[h!]
     \centering
+    \includegraphics[width=1\linewidth]{text_prace/obrazky-figures/profiling1.pdf}
+    \caption{Profiling animácie pohybu vlaku, ktorá je riadená iba pomocou kódu v jazyku JavaScript.}
+    \label{fig:profiling1}
+\end{figure}
+
+Oba spôsoby boli porovnané pomocou profilingu. V~aplikácii sa prehrávala animácia pohybu kamery spojená s~videom. Vizualizované dáta tvorila jedna vrstva \texttt{PointCloudLayer}, ktorá obsahovala 201~880 bodov. Výsledky profilingu sú na obrázkoch \ref{fig:profiling_interval} a \ref{fig:profiling1}.
+
+Z grafov je možné vyčítať, že hoci sa zvýšilo zaťaženie procesora, výrazne sa znížil čas potrebný na vykreslenie jednej snímky animácie, čo umožnilo vykreslenie väčšieho počtu snímok za sekundu (v grafoch sekcia \uv{úlohy}).
+
+Animácia teda bežala hladšie, ale výkon aplikácie stále nebol vyhovujúci, pretože animácia výrazne zaťažovala procesor a hodnota snímkovej frekvencie stále miestami dosahovala príliš nízke hodnoty (v grafoch červené čiary v sekcii \uv{FPS}).
+
+\subsubsection{Optimalizácia použitím iného spôsobu nastavenia polohy kamery}
+
+V~sekcii \ref{sec:nastavenie_polohy_kamery} boli popísané dva rôzne spôsoby nastavenia polohy kamery vo frameworku deck.gl. V~implementácii aplikácie bol použitý najprv prvý spôsob, teda aplikovanie transformácií na dáta, pretože bol jednoduchší a priamo vyplynul z~prvej fázy implementácie (vykreslenie mračna bodov v~jazyku Python bez použitia frameworku). Ten bol následne zmenený na druhý spôsob, teda aplikovanie transformácií na kameru, pretože sa ukázalo, že tak dôjde k~významnej optimalizácii.
+
+Nový spôsob nastavenia polohy kamery bol analyzovaný pomocou profilingu rovnakej animácie ako v prechádzajúcej podsekcii.
+
+\begin{figure}[h!]
+    \centering
     \includegraphics[width=1\linewidth]{text_prace/obrazky-figures/profiling2.pdf}
-    \caption{Profiling animácie pohybu kamery po optimalizácii. Transformácie sa aplikujú iba na kameru.}
+    \caption{Profiling animácie pohybu vlaku s novým spôsobom nastavenia polohy kamery.}
     \label{fig:profiling2}
 \end{figure}
 
 Z~nameraných údajov vyplýva, že táto optimalizácia veľmi výrazne znížila zaťaženie procesora. Zatiaľ čo pred optimalizáciou (obr. \ref{fig:profiling1}) sa počas trojsekudového intervalu vykonával javascriptový kód 2,745 sekúnd, po optimalizácii (obr. \ref{fig:profiling2}) to bolo iba 239 milisekúnd, čo predstavuje viac než desaťnásobné zníženie.
 
-Dôležitou metrikou pri posudzovaní výkonnosti animácií je snímková frekvencia meraná v~FPS (\emph{frames per second}, počet vykreslených snímkov za sekundu). V~ideálnom prípade by sa snímková frekvencia mala blížiť 60~FPS, pretože vtedy sa animácia ľudskému oku zdá hladká \cite{chrome_profiling}.
+Dôležitou metrikou pri posudzovaní výkonnosti animácií je snímková frekvencia meraná v~FPS (\emph{frames per second}, počet vykreslených snímok za sekundu). V~ideálnom prípade by sa snímková frekvencia mala blížiť 60~FPS, pretože vtedy sa animácia ľudskému oku zdá hladká \cite{chrome_profiling}.
 
 Podľa vstavaného ukazovateľa snímkovej frekvencie v~prehliadači Google Chrome dosahovala skúmaná animácia pred optimalizáciu zhruba 28 až 34~FPS, zatiaľ čo po nej 51 až 55~FPS. Aj v~tomto ohľade teda nastalo významné zlepšenie.
 
@@ -620,6 +646,7 @@ Pre prehľadnosť bol tiež implementovaný graf, ktorý používateľovi ukazuj
 \end{figure}
 
 \section{Implementácia animácie pohybu vlaku}
+\label{sec:implementacia_animacie}
 
 [obrázok prepisovania vrstiev]
 
@@ -643,4 +670,3 @@ Pre prehľadnosť bol tiež implementovaný graf, ktorý používateľovi ukazuj
 
 % Pro kompilaci po částech (viz projekt.tex) nutno odkomentovat
 %\end{document}
-

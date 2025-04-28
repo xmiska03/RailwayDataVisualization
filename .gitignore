@@ -1,4 +1,4 @@
 myenv/*
 __pycache__/*
 assets/video_exact.mp4
-assets/temp/*.pcd
+assets/temp/*
