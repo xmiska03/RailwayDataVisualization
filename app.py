@@ -28,8 +28,8 @@ for i in range(596):
 pcl_timestamps = load_pcl_timestamps("data/joined/joined_pcl_timestamps.txt")
 
 # load aggregated point cloud data
-#united_pc = PointCloud.from_path("data/joined/scans.pcd")
-united_pc = PointCloud.from_path("data/joined/joined_pcd_files/pcd_0.pcd")   # for development
+united_pc = PointCloud.from_path("data/joined/scans.pcd")
+#united_pc = PointCloud.from_path("data/joined/joined_pcd_files/pcd_0.pcd")   # for development
 united_pc_nparray = united_pc.numpy(("x", "y", "z", "intensity"))
 
 # load camera parameters
@@ -444,6 +444,8 @@ visualization_tab_callbacks.get_callbacks(app)
 data_tab_callbacks.get_callbacks(app)
 profile_tab_callbacks.get_callbacks(app)
 animation_control_callbacks.get_callbacks(app)
+
+server = app.server
 
 if __name__ == "__main__":
     app.run(debug=True, dev_tools_hot_reload=False)
