@@ -470,7 +470,7 @@ def get_callbacks(app):
         now = int(time.time())  # current time in seconds
         for filename in os.listdir("assets/temp"):    # find all temporary video files
             file_path = f"assets/temp/{filename}"
-            if os.path.isfile(file_path):
+            if os.path.isfile(file_path) and len(filename) >= 20:
                 if now - int(filename[15:-4]) > 120:  # determine if the file is at least 2 minutes old
                     os.remove(file_path)
 

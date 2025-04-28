@@ -265,7 +265,7 @@ stores = [
 
     dcc.Store(
         id='point-cloud-type-store',  # decides whether the app displays united or divided point cloud data
-        data=False
+        data='united'
     )
 ] 
 
