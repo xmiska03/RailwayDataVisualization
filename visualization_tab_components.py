@@ -9,7 +9,7 @@ point_cloud_type_widget = [
     dbc.Col(html.Div("Typ: "), width=5),
     dbc.Col(dbc.Select(
         options={'united': 'sjednocené', 'divided': 'rozdělené'},
-        value='divided',
+        value='united',
         id='point-cloud-type-dropdown',
     ), width=6)
 ]

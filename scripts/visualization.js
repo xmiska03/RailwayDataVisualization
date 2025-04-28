@@ -8,15 +8,15 @@ window.pcl_position = 0;
 window.animation_running = false;
 window.profile_distance = '25';   // 25 meters
 window.scale_from = 0;          // boundaries of the point cloud color scale
-window.scale_to = 18;
-window.scale_middle = 9;
-window.camera_offset_x = 1.52;     // camera offset set manually by the user
-window.camera_offset_y = 0.22;
-window.camera_offset_z = 0.4;
-window.camera_offset_yaw = 0.64;
+window.scale_to = 20;
+window.scale_middle = 10;
+window.camera_offset_x = 0;     // camera offset set manually by the user
+window.camera_offset_y = 0;
+window.camera_offset_z = 0;
+window.camera_offset_yaw = 0;
 window.camera_offset_pitch = 0;
 window.camera_offset_roll = 0;
-window.display_united = false;    // diplay united point cloud data
+window.display_united = true;    // diplay united point cloud data
 window.curr_pcl_layers_cnt = 10;  // how many point cloud layer are displayed currently
 window.pcl_layers_cnt = 10;       // how many point cloud layer are displayed when displaying ununited pc
 
@@ -298,7 +298,9 @@ function updatePCLayerProps(visible, point_size, point_color, opacity) {
 function updatePCLayer() {
   createLayers(); // TODO: maybe optimize this so that only the right layers are recreated
 
-  window.deck.setProps({layers: window.layers});
+  if (window.deck_initialized) {
+    window.deck.setProps({layers: window.layers});
+  }
 }
 
 function changePCMode(display_united) {
