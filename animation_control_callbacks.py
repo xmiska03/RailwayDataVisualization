@@ -11,19 +11,13 @@ def get_callbacks(app):
         """
         function(btn) {
             const video = document.getElementById('background-video');
-            const icon = document.getElementById("play-button").querySelector("i");
-
             if (!window.animation_running) {
-                window.runDeckAnimation();         // run both deck animation and the video
+                window.runDeckAnimation();        // run both deck animation and the video
                 video.play();
-                icon.classList.remove("bi-play-fill");
-                icon.classList.add("bi-pause-fill");
-            } else {
-                // the video will not pause immediately, so the pause event needs to be used
+                // define a callback that will run at the end of the animation
                 video.onpause=function(){ window.stopDeckAnimation() };
+            } else {
                 video.pause();
-                icon.classList.add("bi-play-fill");
-                icon.classList.remove("bi-pause-fill");
             }
         }
         """,
