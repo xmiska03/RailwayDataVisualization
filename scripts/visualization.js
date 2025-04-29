@@ -381,28 +381,11 @@ function animationStep(now, metadata) {
     }
   }
 
-  //if (window.animation_running) requestAnimationFrame(animationStep);
-  //console.log("animationStep - video.currentTime is: ", video.currentTime);
-  //if (metadata) console.log("animationStep - metadata.mediaTime is: ", metadata.mediaTime);
-  //console.log("animationStep - setting position: ", window.position);
- 
   if (window.position >= window.frames_cnt - 2) {  // end of animation
-    if (window.animation_running == true) {
-      window.animation_running = false;
-      const icon = document.getElementById("play-button").querySelector("i");  // change icon
-      icon.classList.toggle("bi-play-fill");
-      icon.classList.toggle("bi-pause-fill");
-    }
-    
+    // stop the video
+    const video = document.getElementById('background-video');
+    video.pause();      // will fire stopDeckAnimation()
     window.position = window.frames_cnt - 1;           // show the last frame
-    // this has to be done with the elements so that Dash knows about the changes
-    dash_clientside.set_props("camera-position-input", {value: window.position});
-    dash_clientside.set_props("camera-position-slider-input", {value: window.position});
-    const time_sec = Math.floor(video.currentTime - 0.001); // get time in seconds, round to whole number
-    const minutes = Math.floor(time_sec / 60);
-    const seconds = time_sec % 60;
-    const label = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`
-    dash_clientside.set_props("current-time-div", {children: label});
   }
 
   // change point cloud data if we are not displaying the united point cloud
@@ -437,8 +420,15 @@ function runDeckAnimation() {
     const video = document.getElementById('background-video');
     video.currentTime = 0;
     window.position = 0;
+    window.pcl_position = 0;
+    pcl_layers_positions = new Array(window.curr_pcl_layers_cnt).fill(0);
     window.updateDeck();
   }
+
+  // change play icon to pause icon
+  const icon = document.getElementById("play-button").querySelector("i");
+  icon.classList.remove("bi-play-fill");
+  icon.classList.add("bi-pause-fill");
   
   window.animation_running = true;
   animationStep();
@@ -446,20 +436,22 @@ function runDeckAnimation() {
 
 function stopDeckAnimation() {
   window.animation_running = false;
+  // change pause icon back to play icon
+  const icon = document.getElementById("play-button").querySelector("i");
+  icon.classList.add("bi-play-fill");
+  icon.classList.remove("bi-pause-fill");
 
-  setTimeout(() => {
-    const video = document.getElementById('background-video');
-    // fix video offset
-    video.currentTime = video.currentTime;
-    // this has to be done with the GUI elements so that Dash knows about the changes
-    dash_clientside.set_props("camera-position-input", {value: window.position});
-    dash_clientside.set_props("camera-position-slider-input", {value: window.position});
-    const time_sec = Math.floor(video.currentTime - 0.001); // get time in seconds, round to whole number
-    const minutes = Math.floor(time_sec / 60);
-    const seconds = time_sec % 60;
-    const label = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`
-    dash_clientside.set_props("current-time-div", {children: label});
-  }, 500);
+  const video = document.getElementById('background-video');
+  // fix video offset
+  video.currentTime = video.currentTime;
+  // this has to be done with the GUI elements so that Dash knows about the changes
+  dash_clientside.set_props("camera-position-input", {value: window.position});
+  dash_clientside.set_props("camera-position-slider-input", {value: window.position});
+  const time_sec = Math.floor(video.currentTime - 0.001); // get time in seconds, round to whole number
+  const minutes = Math.floor(time_sec / 60);
+  const seconds = time_sec % 60;
+  const label = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`
+  dash_clientside.set_props("current-time-div", {children: label});
 }
 
 // make the functions global
