@@ -399,9 +399,6 @@ function animationStep(now, metadata) {
       // mark the next set of data as old data
       pcl_layers_index = (pcl_layers_index + 1) % window.curr_pcl_layers_cnt;
     }
-
-    createLayers();
-    window.deck.setProps({layers: window.layers});
   }
  
   // update the visualization
@@ -445,6 +442,7 @@ function stopDeckAnimation() {
   // fix video offset
   video.currentTime = video.currentTime;
   // this has to be done with the GUI elements so that Dash knows about the changes
+  // could not be done while the animation was running, because it is slow 
   dash_clientside.set_props("camera-position-input", {value: window.position});
   dash_clientside.set_props("camera-position-slider-input", {value: window.position});
   const time_sec = Math.floor(video.currentTime - 0.001); // get time in seconds, round to whole number

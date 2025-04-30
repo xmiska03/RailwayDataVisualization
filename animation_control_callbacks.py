@@ -15,7 +15,7 @@ def get_callbacks(app):
                 window.runDeckAnimation();        // run both deck animation and the video
                 video.play();
                 // define a callback that will run at the end of the animation
-                video.onpause=function(){ window.stopDeckAnimation() };
+                video.onpause = function(){ window.stopDeckAnimation() };
             } else {
                 video.pause();
             }

@@ -8,7 +8,7 @@
 
 Výstupom mobilného mapovacieho systému je množstvo dát z~rôznych senzorov. Dáta, ktoré boli poskytnuté k~tvorbe tejto práce, obsahovali v~prvom rade mračná bodov získané z~lidaru. Aby bolo možné s~týmito mračnami bodov pracovať a vhodne ich zobrazovať, je potrebné, aby mobilný mapovací systém zaznamenával údaje o~svojej polohe. V~tomto prípade boli k~dispozícii údaje o~transláciách a rotáciách kamery s~časovými razítkami. Ďalej býva súčasťou mobilného mapovacieho systému klasická kamera. Pre zobrazenie mračna bodov takým spôsobom, aby sa zobrazenie čo najviac zhodovalo s~kamerovým záznamom, je nutné poznať parametre kamery -- kalibračnú maticu a prípadne aj parametre skreslenia.
 
-Pri vývoji aplikácie, ktorá má umožniť vizualizáciu týchto dát a navyše aj ďalších vektorových dát, je nutné poznať základné princípy zobrazovania 3D dát v~počítačovej grafike. Ďalej je potrebné vybrať si a naštudovať technológie, pomocou ktorých bude aplikácia vytvorená, a to konkrétne niektorý z~frameworkov pre tvorbu aplikácií v~jazyku Python a vhodný framework pre zobrazenie grafických dát. Práve to je predmetom tejto kapitoly.
+Pri vývoji aplikácie, ktorá má umožniť vizualizáciu týchto dát a navyše aj ďalších vektorových dát, je nutné poznať základné princípy zobrazovania 3D dát v~počítačovej grafike. Ďalej je potrebné vybrať si a naštudovať technológie, pomocou ktorých bude aplikácia vytvorená, a to konkrétne niektorý z~frameworkov pre tvorbu aplikácií v~jazyku Python a vhodný framework pre zobrazenie grafických dát. Všetko toto je predmetom tejto kapitoly.
 
 \section{Dierkový model kamery}
 
@@ -143,7 +143,71 @@ Zdrojom všetkých informácií, ktoré boli uvedené v~tejto sekcii, je kniha \
 
 \section{Skreslenie kamery}
 
-[parametre skreslenia, výpočet]
+Dierkový model kamery zodpovedá spôsobu, akým zachytávajú obraz reálne kamery, iba približne, ale nie presne. Obraz z reálnej kamery má zvyčajne navyše ešte skreslenie.
+
+Existujú rôzne modely skreslenia, z ktorých najčastejšie používané sú radiálne skreslenie (\emph{radial distortion}) a tangenciálne skreslenie (\emph{tangential/decentering distortion}) \cite{sun_cooperstock_camera_calibration}.
+
+Radiálne skreslenie vzniká v dôsledku rozdielneho lomu lúčov v strede a na okraji šošovky a je tým väčšie, čím menšia je šošovka. Príklad radiálneho skreslenia je na obrázku \ref{fig:radialne_skreslenie}. Tangenciálne skreslenie vzniká vtedy, keď šošovka nie je rovnobežná s obrazovou rovinou~\cite{matlab_camera_calibration}. Reálne kamery zvyčajne majú radiálne skreslenie väčšie než tangenciálne \cite{opencv_camera_calibration_older}.
+
+Radiálne skreslenie sa počíta vzťahmi
+
+$$x_{distorted} = x(1 + k_1 r^2 + k_2 r^4 + k_3 r^6)$$
+$$y_{distorted} = y(1 + k_1 r^2 + k_2 r^4 + k_3 r^6)$$
+
+kde
+
+\begin{itemize}
+    \item $x, y$ sú normalizované obrazové súradnice (\emph{normalized image coordinates}) bodu pred skreslením,
+    \item $k_1, k_2, k_3$ sú koeficienty radiálneho skreslenia,
+    \item $r^2 = x^2 + y^2$ \cite{opencv_camera_calibration}.
+\end{itemize}
+
+Normalizovaný obrazový súradnicový systém je súradnicový systém, ktorý má tieto vlastnosti:
+\begin{itemize}
+    \item Jeho stred je v strede obrazu,
+    \item Väčšia dimenzia obrazu má veľkosť 1.
+\end{itemize}
+
+Teda napríklad obraz s pomerom strán 4:3 bude v normalizovanom obrazovom súradnicovom systéme obdĺžnik s ľavým dolným rohom v bode $[-0.5, 3/4 \times (-0.5)]$ a pravým horným rohom v bode $[0.5, 3/4 \times 0.5]$.
+
+Prevod zo súradníc pixelu v obraze s rozlíšením $w \times h$ pixelov do normalizovaných obrazových súradníc je nasledovný \cite{opensfm_coordinate_systems}:
+
+$$
+x_{norm} = \frac{x_{pix} - \frac{w-1}{2}}{max(w, h)}
+\mathrm{,} \quad
+y_{norm} = \frac{y_{pix} - \frac{h-1}{2}}{max(w, h)}
+\mathrm{.}
+$$
+
+Tangenciálne skreslenie sa počíta vzťahmi
+
+$$x_{distorted} = x + [2 p_1 x y + p_2(r^2 + 2 x^2)]$$
+$$y_{distorted} = y + [ p_1(r^2 + 2 y^2) + 2 p_2 x y]$$
+
+kde
+
+\begin{itemize}
+    \item $x, y, r^2$ sú rovnaké ako u radiálneho skreslenia,
+    \item $p_1, p_2$ sú koeficienty tangenciálneho skreslenia \cite{opencv_camera_calibration}.
+\end{itemize}
+
+Vzťahy pre výpočet radiálneho a tangenciálneho skreslenia zároveň sú nasledovné \cite{sun_cooperstock_camera_calibration}:
+
+$$x_{distorted} = x(1 + k_1 r^2 + k_2 r^4 + k_3 r^6) + [2 p_1 x y + p_2(r^2 + 2 x^2)]$$
+$$y_{distorted} = y(1 + k_1 r^2 + k_2 r^4 + k_3 r^6) + [ p_1(r^2 + 2 y^2) + 2 p_2 x y]$$
+
+Koeficienty skreslenia sa zvyčajne udávajú ako pätica \cite{opencv_camera_calibration}
+
+$$(k_1, k_2, p_1, p_2, k_3)\mathrm{.}$$
+
+Proces zisťovania parametrov kamery, vrátane koeficientov skreslenia, sa nazýva kalibrácia kamery (\emph{camera calibration}) \cite{matlab_camera_calibration}.
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.6\linewidth]{text_prace/obrazky-figures/radialne_skreslenie.png}
+    \caption{Radiálne skreslenie ilustrované na mriežke. Bledomodrá mriežka je pôvodná, čierna skreslená. Pri tvorbe obrázku boli použité skutočné parametre radiálneho skreslenia kamery mobilného mapovacieho systému, ktoré boli súčasťou dát dodaných k tvorbe tejto práce: $k_1 = -0.183217$, $k_2 = 0.026917$, $k_3 = 0.335446$}.
+    \label{fig:radialne_skreslenie}
+\end{figure}
 
 \section{Vykresľovací reťazec}
 
@@ -648,7 +712,49 @@ Pre prehľadnosť bol tiež implementovaný graf, ktorý používateľovi ukazuj
 \section{Implementácia animácie pohybu vlaku}
 \label{sec:implementacia_animacie}
 
-[obrázok prepisovania vrstiev]
+Animácia pohybu vlaku sa vykonáva výhradne na strane klienta, bez komunikácie so serverom. Zabezpečujú ju tri javascriptové funkcie, ktorých definícia sa nachádza v súbore \texttt{visualization.js}: \texttt{runDeckAnimation}, \texttt{stopDeckAnimation} a \texttt{animationStep}.
+
+V tejto sekcii je popísaný princíp fungovania animácie, pre prehľadnosť boli vynechané niektoré menej dôležité implementačné detaily.
+
+Keď používateľ klikne na tlačítko pre prehranie animácie, spustí sa klientsky callback, ktorý vykoná nasledujúci kód:
+
+\begin{lstlisting}
+const video = document.getElementById('background-video');
+window.runDeckAnimation();
+video.play();
+video.onpause = function(){ window.stopDeckAnimation() };
+\end{lstlisting}
+
+Funkcia \texttt{runDeckAnimation} reinicializuje niektoré parametre, ak je to potrebné, a potom zavolá funkciu \texttt{animationStep}.
+
+Funkcia \texttt{animationStep} vykonáva tieto kroky:
+
+\begin{enumerate}
+    \item Najprv zabezpečí, aby sa zavolala znova pri najbližšom vykreslení nového snímku vo videu:
+    \begin{lstlisting}
+const video = document.getElementById('background-video');
+video.requestVideoFrameCallback(animationStep);
+    \end{lstlisting}
+
+    \item Potom na základe časových razítok polôh kamery v mračne bodov a aktuálneho času videa vypočíta aktualizovanú polohu kamery. Ak je to posledná poloha, zastaví video metódou \texttt{pause}.
+
+    \item Ak aplikácia zobrazuje mračno bodov typu real-time, tak následne na základe časových razítok mračna bodov zistí, či by sa nemali zobraziť nejaké nové časti. Vymieňanie častí prebieha efektívnym cyklickým spôsobom, ktorý je znázornený na obrázku \ref{fig:vrstvy_animacia}.
+
+    \item Potom prebehne samotná aktualizácia vizualizácie (v skripte funkcia \texttt{updateDeck}), kedy sa kamera posunie na novú polohu a aktualizujú sa vrstvy (v skripte funkcia \texttt{createLayers}), čím sa posunie prejazdný profil a prípadne sa vymenia časti mračna bodov.
+
+    \item Ako posledné sa aktualizujú prvky v grafickom používateľskom rozhraní, ktoré ukazujú stav animácie -- posuvník, čas a vstupné pole s číslom snímky.
+\end{enumerate}
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.4\linewidth]{text_prace/obrazky-figures/vrstvy_animacia.pdf}
+    \caption{Schéma cyklického prepisovania deck.gl vrstiev obsahujúcich mračno bodov typu real-time. Vizualizácia obsahuje vždy desať vrstiev, ktoré zobrazujú desať častí mračna bodov. Ak podľa časových razítok má byť zobrazená nejaká nová časť, tak sa prepíše vždy tá najstaršia.}
+    \label{fig:vrstvy_animacia}
+\end{figure}
+
+Animácia sa končí buď tak, že používateľ klikne na tlačítko pre zastavenie animácie, čím sa spustí klientsky callback, ktorý zastaví video metódou \texttt{pause()}, alebo tak, že skončí video, alebo tak, že je dosiahnutá posledná poloha kamery. V každom prípade sa spustí funkcia \texttt{stopDeckAnimation}, pretože bola na začiatku animácie nastavená ako callback pre udalosť zastavenia videa.
+
+Funkcia \texttt{stopDeckAnimation} upovedomí framework Dash o novej hodnote posuvníka, času a vstupného poľa s číslom snímku. Toto sa nevykonáva počas animácie, pretože je to výkonovo náročné.
 
 \section{Implementácia skreslenia}
 
@@ -670,3 +776,4 @@ Pre prehľadnosť bol tiež implementovaný graf, ktorý používateľovi ukazuj
 
 % Pro kompilaci po částech (viz projekt.tex) nutno odkomentovat
 %\end{document}
+
