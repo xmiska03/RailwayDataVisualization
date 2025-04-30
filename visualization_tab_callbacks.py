@@ -252,20 +252,16 @@ def get_callbacks(app):
                         // pre-calculate new coordinates for the pixel
 
                         // convert to normalized image coordinates
-                        const y_norm = (y - Math.round(height/2)) / width
-                        const x_norm = (x - Math.round(width/2)) / width
+                        const y_norm = (y - Math.round((height-1)/2)) / width
+                        const x_norm = (x - Math.round((width-1)/2)) / width
                         const r_pow2 = x_norm*x_norm + y_norm*y_norm    // r^2
                         
-                        // count the radial distortion
-                        const px_coef = (1 + K1*r_pow2 + K2*r_pow2*r_pow2 + K3*r_pow2*r_pow2)
-                        const x_dist_norm = x_norm * px_coef
-                        const y_dist_norm = y_norm * px_coef
-
-                        // count the tangential distortion
-                        /*
-                        x_dist_norm = x_norm + (2*P1*x_norm*y_norm + P2*(r_pow2 + 2*x_norm*x_norm))
-                        y_dist_norm = y_norm + (P1*(r_pow2 + 2*y_norm*y_norm) + 2*P1*x_norm*y_norm)
-                        */
+                        // count the distortion (radial + tangential)
+                        const radial_coef = (1 + K1*r_pow2 + K2*r_pow2*r_pow2 + K3*r_pow2*r_pow2)
+                        const x_tangential = (2*P1*x_norm*y_norm + P2*(r_pow2 + 2*x_norm*x_norm))
+                        const y_tangential = (P1*(r_pow2 + 2*y_norm*y_norm) + 2*P1*x_norm*y_norm)
+                        const x_dist_norm = x_norm * radial_coef + x_tangential
+                        const y_dist_norm = y_norm * radial_coef + y_tangential
 
                         // convert back from normalized image coordinates to pixels
                         const y_dist = Math.round(y_dist_norm * width + Math.round(height/2))
