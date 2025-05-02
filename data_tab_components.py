@@ -171,13 +171,13 @@ data_tab = [
     # point cloud
     dbc.Row(html.Div("Mračno bodů"), style={"fontWeight": "bold", "textAlign": "center"}), 
     # united point cloud
-    dbc.Row(html.Div("Sjednocené mračno bodů (.pcd):")),
+    dbc.Row(html.Div("Mračno bodů typu postprocess (.pcd):")),
     dbc.Row(html.Div(united_pc_upload, id="united-pc-upload-div")),
     dbc.Row(html.Div(united_pc_uploaded_file, id="united-pc-uploaded-file-div")),
     # divided point cloud (+ timestamps) is "read-only" in the GUI, can only be changed in the project file
-    dbc.Row(html.Div("Rozdělené mračno bodů (.pcd soubory):")),
+    dbc.Row(html.Div("Mračno bodů typu real-time (.pcd soubory):")),
     dbc.Row(html.Div(divided_pc_uploaded_files, id="divided-pc-uploaded-file-div")),
-    dbc.Row(html.Div("Časová razítka rozděleného mračna bodů (.txt):")),
+    dbc.Row(html.Div("Časová razítka mračna bodů typu real-time (.txt):")),
     dbc.Row(html.Div(pc_timestamps_uploaded_files, id="pc-timestamps-uploaded-file-div")),
     dbc.Row(html.Hr(style={'marginTop':'15px'})),
     

@@ -155,7 +155,7 @@ def get_callbacks(app):
             # new file uploaded
             content_type, content_string = file_content.split(',')
             decoded = base64.b64decode(content_string)
-            # write the video to a temporary file
+            # write the point cloud to a temporary file
             server_filename = f"assets/temp/uploaded_pcd_{int(time.time())}.pcd" # filename with a timestamp
             with open(server_filename, "wb") as f:
                 f.write(decoded)

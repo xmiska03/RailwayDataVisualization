@@ -8,7 +8,7 @@ from params import POINT_SIZE, OPACITY, LINE_WIDTH  # default values
 point_cloud_type_widget = [
     dbc.Col(html.Div("Typ: "), width=5),
     dbc.Col(dbc.Select(
-        options={'united': 'sjednocené', 'divided': 'rozdělené'},
+        options={'united': 'postprocess', 'divided': 'real-time'},
         value='divided',
         id='point-cloud-type-dropdown',
     ), width=6)
@@ -45,9 +45,9 @@ color_scale_graph = [
                 'marker': {'color': ['#FFFFFF' for _ in range(43)]}
             }],
             'layout': {
-                'height': 100,
-                'margin': {'l': 0, 'r': 0, 't': 0, 'b': 0},
-                'xaxis': {'showticklabels': False, 'showgrid': False},
+                'height': 140,
+                'margin': {'l': 5, 'r': 0, 't': 0, 'b': 20},
+                'xaxis': {'showgrid': False, 'color': '#909090'},
                 'yaxis': {'showticklabels': False, 'showgrid': False},
                 'bargap': 0.6,
                 'plot_bgcolor': '#rgba(0,0,0,0)',
@@ -263,7 +263,6 @@ visualization_tab = [
     dbc.Row(back_to_default_button),
     dbc.Row(html.Hr(), style={"marginTop": "15px"}),
     
-    #dbc.Row(dbc.Button("Zkreslení", id="distortion-button"), style={"width":"10em", "marginLeft": "1px"})
     dbc.Row(html.Div("Zkreslení", style={"fontWeight": "bold", "textAlign": "center", "paddingBottom": "0.5em",})),
     dbc.Row(dcc.Checklist(
             options=[{'label': ' zobrazovat se zkreslením', 'value': 'dist'}],
