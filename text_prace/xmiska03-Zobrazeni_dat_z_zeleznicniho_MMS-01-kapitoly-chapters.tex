@@ -12,7 +12,9 @@ Pri vývoji aplikácie, ktorá má umožniť vizualizáciu týchto dát a navyš
 
 \section{Dierkový model kamery}
 
-Kamera je v~počítačovej grafike pojem, ktorý označuje projekciu bodov z~trojrozmerného priestoru do roviny. Túto projekciu je možné vyjadriť pomocou matíc a je väčšinou bodová (\emph{central projection}).
+Zdrojom všetkých informácií, ktoré budú uvedené v~tejto sekcii, je kniha \emph{Multiple View Geometry in Computer Vision} od autorov R. Hartley a A. Zisserman \cite{multiple_view_geometry}.
+
+Kamera je v oblasti počítačovej grafiky a počítačového videnia pojem, ktorý označuje projekciu bodov z~trojrozmerného priestoru do roviny. Túto projekciu je možné vyjadriť pomocou matíc a je väčšinou bodová (\emph{central projection}).
 
 Existuje niekoľko rôznych modelov kamery, z~ktorých najjednoduchší je dierkový model kamery (\emph{pinhole camera model}). U~tohto modelu je stred projekcie $\mathbf{C}$  (\emph{camera centre}) v~počiatku Euklidovského súradnicového systému a body sa premietajú do roviny $z = f$, ktorá sa označuje ako obrazová rovina (\emph{image plane}).
 
@@ -21,14 +23,14 @@ Princíp zobrazenia je nasledovný: obrazom bodu $\mathbf{X} = (X, Y, Z)^T$ je b
 \begin{figure}[h!]
     \centering
     \includegraphics[width=0.7\linewidth]{text_prace/obrazky-figures/model_kamery1.pdf}
-    \caption{Zakladný princíp dierkového modelu kamery.}
+    \caption{Zakladný princíp dierkového modelu kamery \cite{multiple_view_geometry}.}
     \label{fig:model_kamery1}
 \end{figure}
 
 \begin{figure}[h!]
     \centering
     \includegraphics[width=0.7\linewidth]{text_prace/obrazky-figures/model_kamery2.pdf}
-    \caption{Náčrt odvodenia súradníc bodu $\mathbf{x}$.}
+    \caption{Náčrt odvodenia súradníc bodu $\mathbf{x}$ \cite{multiple_view_geometry}.}
     \label{fig:model_kamery2}
 \end{figure}
 
@@ -124,12 +126,22 @@ $\mathrm{P} = \begin{bmatrix} \mathrm{K} | 0 \end{bmatrix}$, kde $0$ predstavuje
 \begin{figure}[h!]
     \centering
     \includegraphics[width=0.7\linewidth]{text_prace/obrazky-figures/model_kamery3.pdf}
-    \caption{Súradnicový systém so stredom v~bode $(-p_x, -p_y, f)^T$ obrazovej roviny.}
+    \caption{Súradnicový systém so stredom v~bode $(-p_x, -p_y, f)^T$ obrazovej roviny \cite{multiple_view_geometry}.}
     \label{fig:model_kamery3}
 \end{figure}
 
+U niektorých kamier je možné, že súradnicový systém obrazovej roviny nemá rovnakú mierku na oboch osiach. Vtedy sú v kalibračnej matici namiesto parametra $f$ parametre $f_x$, $f_y$ a matica má podobu
 
-Parametre $f$, $p_x$ a $p_y$ označujeme ako \textbf{vnútorné parametre kamery}.
+$$ \mathrm{K'} 
+=
+\begin{bmatrix}
+f_x &     &  p_x \\
+    & f_y &  p_y \\
+    &     &   1  
+\end{bmatrix} \mathrm{.}
+$$
+
+Parametre $p_x$, $p_y$ a $f$, prípadne $f_x$ a $f_y$ označujeme ako \textbf{vnútorné parametre kamery}.
 
 Až doteraz sme predpokladali, že kamera má stred v~počiatku súradnicovej sústavy a je \uv{otočená} v~smere osi $z$, t. j. že obrazová rovina je rovnobežná s~rovinou $xy$. V~praxi to tak však nebýva a kamera má v~súradnicovom systéme, v~ktorom sú definované zobrazované body, istú rotáciu a transláciu. V~takom prípade rozlišujeme všeobecný súradnicový systém a súradnicový systém kamery (\emph{world coordinate frame} a \emph{camera coordinate frame}).
 
@@ -138,8 +150,6 @@ $$\widetilde{\mathbf{X}}_{\mathrm{cam}} = \mathrm{R} (\widetilde{\mathbf{X}} - \
 kde $\widetilde{\mathbf{C}}$ sú súradnice stredu kamery vo všeobecnom súradnicovom systéme a $\mathrm{R}$ je rotačná matica $3 \times 3$ reprezentujúca orientáciu súradnicového systému kamery. To vedie k~novému vyjadreniu projekčnej matice ako $\mathrm{P} = \mathrm{K} \mathrm{R} \bigl[ \mathrm{I} | - \widetilde{\mathbf{C}} \bigr]$, kde $\mathrm{I}$ je jednotková matica $3 \times 3$.
 
 Parametre $\mathrm{R}$ a $\widetilde{\mathbf{C}}$ označujeme ako \textbf{vonkajšie parametre kamery}.
-
-Zdrojom všetkých informácií, ktoré boli uvedené v~tejto sekcii, je kniha \emph{Multiple View Geometry in Computer Vision} od autorov R. Hartley a A. Zisserman \cite{multiple_view_geometry}. Odtiaľ sú prevzaté aj obrázky.
 
 \section{Skreslenie kamery}
 
@@ -202,7 +212,7 @@ $$(k_1, k_2, p_1, p_2, k_3)\mathrm{.}$$
 
 Proces zisťovania parametrov kamery, vrátane koeficientov skreslenia, sa nazýva kalibrácia kamery (\emph{camera calibration}) \cite{matlab_camera_calibration}.
 
-\begin{figure}[h!]
+\begin{figure}[t]
     \centering
     \includegraphics[width=0.6\linewidth]{text_prace/obrazky-figures/radialne_skreslenie.png}
     \caption{Radiálne skreslenie ilustrované na mriežke. Bledomodrá mriežka je pôvodná, čierna skreslená. Pri tvorbe obrázku boli použité skutočné parametre radiálneho skreslenia kamery mobilného mapovacieho systému, ktoré boli súčasťou dát dodaných k tvorbe tejto práce: $k_1 = -0.183217$, $k_2 = 0.026917$, $k_3 = 0.335446$}.
@@ -211,8 +221,276 @@ Proces zisťovania parametrov kamery, vrátane koeficientov skreslenia, sa nazý
 
 \section{Vykresľovací reťazec}
 
-[world space, view space, clip space, screen space, view matrix, projection matrix, viewport transform, vzťah k~dierkovému modelu kamery]
+Proces vykresľovania trojrozmerných objektov na dvojrozmernú obrazovku v počítačovej grafike pozostáva z viacerých transformácií. Vykresľované objekty sú postupne prevádzané cez niekoľko súradnicových systémov pomocou transformačných matíc.
 
+Abstraktný model, ktorý popisuje sériu krokov potrebných k zobrazeniu trojrozmernej scény zloženej z viacerých objektov, sa nazýva vykresľovací reťazec (\emph{graphics/rendering pipeline}). Vykresľovací reťazec zahŕňa popis prenosu dát na grafickú kartu, výpočet finálnej polohy objektu na obrazovke, rasterizáciu (určenie, ktoré pixely zodpovedajú vektorovo popísaným objektom) a výpočet farby pixelov \cite{stemkoski_graphics}.
+
+Vykresľovací reťazec môže mať rôzne podoby. V tejto sekcii je popísaná verzia, ktorú používa knižnica OpenGL, pretože, ako bude popísané v sekcii \ref{sec:deck_gl}, pri implementácii tejto práce bol použitý framework, ktorý používa rozhranie WebGL, ktoré je založené práve na knižnici OpenGL \cite{webgl_overview}.
+
+Vykresľované objekty sa typicky skladajú z bodov (\emph{vertices}) pospájaných hranami do trojuholníkov \cite{stemkoski_graphics}. Táto sekcia sa bude zaoberať iba popisom transformácie bodov z lokálneho súradnicového systému do finálnej polohy vo vykreslenom obraze.
+
+Na začiatku vykresľovacieho reťazca sú body v lokálnom súradnicovom systéme (\emph{\mbox{local}/ object space}, každý objekt má vlastný súradnicový systém), s homogénnymi súradnicami v tvare $V_{local} = (x, y, z, 1)^T$. Potom prechádzajú transformáciami, ktoré sa počítajú násobením súradníc bodu maticami a sú znázornené na obrázku \ref{fig:suradnicove_systemy}. Sú to nasledujúce transformácie:
+
+\begin{enumerate}
+    \item Modelová transformácia (\emph{model transformation}). Každý objekt vo vykresľovanej scéne má vlastnú modelovú maticu $M_{model}$ (\emph{model matrix}), ktorá popisuje jeho pozíciu, orientáciu a veľkosť v scéne. Po modelovej transformácii sú súradnice bodov v súradnicovom systéme scény (\emph{world space}) \cite{de_vries_coordinate_systems, stemkoski_graphics}.
+    \item Pohľadová transformácia (\emph{view transformation}). Prevádza body zo súradnicového systému scény do súradnicového systému kamery (\emph{view/camera/eye space}). Zodpovedá jej pohľadová matica $M_{view}$ (\emph{view matrix}), ktorá popisuje polohu a orientáciu kamery v súradnicovom systéme scény \cite{de_vries_coordinate_systems, stemkoski_graphics}. 
+    \item Projekcia (\emph{projection transformation}). Je buď ortografická, alebo perspektívna. Prevádza body zo súradnicového systému kamery do orezávacieho súradnicového systému (\emph{clip space}). Určuje, ktoré body scény budú viditeľné a ktoré nie, pretože sa zobrazia iba body, ktoré budú mať v orezávacom súradnicovom systéme všetky súradnice v intervale $(-1, 1)$ \cite{stemkoski_graphics}. Týmto súradniciam sa hovorí aj \emph{normalized device coordinates} (NDC). Oblasť v súradnicovom systéme scény, ktorá bude vo finálnom obraze viditeľná, sa nazýva \emph{frustum}. U ortografickej projekcie má tvar kvádra a u perspektívnej projekcie má tvar zrezaného ihlana \cite{de_vries_coordinate_systems}, čo ilustruje obrázok \ref{fig:perspektivna_projekcia_frustum}. Zodpovedá jej projekčná matica (\emph{projection matrix}), ktorá má tvar 
+    $$
+    M_{projection} = 
+    \begin{pmatrix}
+    k_1 & 0 & k_2 & 0 \\
+    0 & k_3 & k_4 & 0 \\
+    0 & 0 & \frac{-(f+n)}{f-n} & \frac{-2fn}{f-n} \\
+    0 & 0 & -1 & 0
+    \end{pmatrix}
+    \mathrm{,}
+    $$
+    kde $n$ a $f$ sú vzdialenosti prednej a zadnej orezávacej rovniny (\emph{near plane} a \emph{far plane}, znázornené na obrázku \ref{fig:perspektivna_projekcia_frustum}) \cite{ahn_projection_matrix}. \\ 
+    Po vynásobení súradníc bodov projekčnou maticou je potrebné ešte vydeliť ich súradnice v tvare $(x, y, z, w)^T$ homogénnou zložkou, čím vznikne tvar $(x/w, y/w, z/w, 1)^T$ aby bolo možné zistiť, či sú všetky súradnice v intervale $(-1, 1)$, a teda či bude bod súčasťou výsledného obrazu. Táto operácia sa nazýva perspektívne delenie (\emph{perspective division}) \cite{de_vries_coordinate_systems}.  
+    \item Transformácia do súradnicového systému obrazu (\emph{viewport transform}). Prevádza body z orezávacieho súradnicového systému do súradnicového systému finálneho obrazu (\emph{\mbox{screen} space}) \cite{de_vries_coordinate_systems}. Matica, ktorá vykonáva túto transformáciu, sa nazýva \emph{viewport transform matrix} a má tvar
+    $$
+    M_{viewport} = 
+    \begin{pmatrix}
+    \frac{w}{2} & 0 & 0 & \frac{w}{2} \\
+    0 & \frac{h}{2} & 0 & \frac{h}{2} \\
+    0 & 0 & \frac{f-n}{2} & \frac{f+n}{2} \\
+    0 & 0 & 0 & 1
+    \end{pmatrix}
+    \mathrm{,}
+    $$
+    kde $w$ a $h$ je výška a šírka obrazu v pixeloch \cite{ahn_viewport_transform}.
+\end{enumerate}
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=1\linewidth]{text_prace/obrazky-figures/suradnicove_systemy.png}
+    \caption{Transformácie medzi rôznymi súradnicovými systémami, ktoré sú súčasťou vykresľovacieho reťazca \cite{de_vries_coordinate_systems}. [PREKRESLIŤ VEKTOROVO]}
+    \label{fig:suradnicove_systemy}
+\end{figure}
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.5\linewidth]{text_prace/obrazky-figures/perspektivna_projekcia_frustum.png}
+    \caption{\emph{Frustum} -- oblasť v súradnicovom systéme scény, ktorá bude vo finálnom obraze viditeľná -- u perspektívnej projekcie \cite{de_vries_coordinate_systems}. [PREKRESLIŤ VEKTOROVO]}
+    \label{fig:perspektivna_projekcia_frustum}
+\end{figure}
+
+Pozíciu bodu $V_{local}$ vo finálnom vykreslenom obraze scény je teda možné matematicky vyjadriť ako súčin
+
+$$ M_{viewport} \cdot M_{projection} \cdot M_{view} \cdot M_{model} \cdot V_{local} \mathrm{.}$$
+
+Transformácia z lokálneho súradnicového systému do NDC prebieha na programovateľnej časti grafickej karty, ktorá sa nazýva \emph{vertex shader} \cite{de_vries_coordinate_systems}.
+
+\subsubsection{Vzťah vykresľovacieho reťazca k dierkovému modelu kamery}
+
+Vykresľovací reťazec a dierkový model kamery sú modely, ktoré sú si podobné, pretože sa oba zaoberajú transformáciou trojrozmernej scény do dvojrozmerného obrazu. Používajú sa však v odlišných oblastiach -- dierkový model kamery sa typicky používa v teórii počítačového videnia a vykresľovací reťazec sa týka počítačovej grafiky a zobrazovania trojrozmerných modelov.
+
+Rozdiely a podobnosti oboch modelov je možné zhrnúť týmito bodmi:
+\begin{itemize}
+    \item Dierkový model kamery nemá nič zodpovedajúce modelovej transformácii. Zobrazované body sú už od začiatku v rovnakom súradnicovom systéme ako kamera.
+    \item Pohľadová transformácia zodpovedá vonkajším parametrom kamery.
+    \item Vnútorné parametre kamery zodpovedajú projekcii a transformácii do súradnicového systému obrazu. Vykresľovací reťazec má špeciálny medzistupeň - orezávací súradnicový systém, ktorý dierkový model kamery nemá.
+    \item Dierkový model kamery je jednoduchší, pretože na rozdiel od vykresľovacieho reťazca nemá prednú a zadnú orezávaciu rovinu a nerieši prekrývanie objektov. Vykreľovací reťazec ponecháva aj vo finálnych súradniciach bodu v obraze hodnotu $z$, teda hĺbku, aby u prekrývajúcich sa objektov bolo možné zistiť, ktorý z nich je v popredí. Dierkový model kamery nič také nezahŕňa.
+\end{itemize}
+
+Za poznámku stojí, že v oboch modeloch sa vyskytuje termín \emph{projekčná matica}, ale ide o dve rôzne matice.
+
+V rámci tejto práce bolo potrebné skombinovať znalosti z oboch oblastí, pretože súčasťou dodaných dát bola kalibračná matica kamery, pomocou ktorej mali byť dáta zobrazené, ale použitý framework si vyžadoval zadať projekčnú maticu (tú z vykresľovacieho reťazca).
+
+Problém sa dá formulovať nasledovne: je známa projekčná matica (tá z dierkového modelu kamery), ktorá prevádza body zo súradnicového systému kamery priamo do súradnicového systému obrazu, pričom nepočíta hodnotu hĺbky. Je potrebné vypočítať projekčnú maticu, ktorá bude prevádzať body zo súradnicového systému kamery do orezávacieho súradnicového systému tak, aby následne po automatickom prevode do súradnicového systému obrazu výsledný obraz zodpovedal zadanej projekčnej matici. Rozmery $w \times h$ výsledného obrazu sú známe.
+
+Riešenie je možné matematicky odvodiť. Známa projekčná matica, ktorá prevádza body priamo do súradnicového systému obrazu, má tvar
+
+$$ \mathrm{P} =
+\begin{pmatrix}
+f_x & 0 & p_x & 0 \\
+0 & f_y & p_y & 0 \\
+0 & 0 &  1  & 0
+\end{pmatrix} \mathrm{.}
+$$
+
+Potrebujeme nájsť maticu $M_{projection}$ takú, aby platila rovnosť
+
+$$M_{viewport} \cdot M_{projection} \cdot V_{view} = P \cdot V_{view} \mathrm{,}$$
+
+teda parametre $k_1$, $k_2$, $k_3$ a $k_4$ také, aby platila rovnosť
+
+$$
+\begin{pmatrix}
+\frac{w}{2} & 0 & 0 & \frac{w}{2} \\
+0 & \frac{h}{2} & 0 & \frac{h}{2} \\
+0 & 0 & \frac{f-n}{2} & \frac{f+n}{2} \\
+0 & 0 & 0 & 1
+\end{pmatrix}
+\cdot
+\begin{pmatrix}
+k_1 & 0 & k_2 & 0 \\
+0 & k_3 & k_4 & 0 \\
+0 & 0 & \frac{-(f+n)}{f-n} & \frac{-2fn}{f-n} \\
+0 & 0 & -1 & 0
+\end{pmatrix}
+\cdot
+\begin{pmatrix}
+x \\
+y \\
+z \\
+1
+\end{pmatrix}
+=
+\begin{pmatrix}
+f_x & 0 & p_x & 0 \\
+0 & f_y & p_y & 0 \\
+? & ? & ? & ? \\
+0 & 0 &  1  & 0
+\end{pmatrix}
+\cdot
+\begin{pmatrix}
+x \\
+y \\
+z \\
+1
+\end{pmatrix} \mathrm{.}
+$$
+
+Otázniky pridané do matice $P$ zastupujú výpočet súradnice $z$, ktorý pôvodná matica neobsahovala, ale pri vykresľovaní trojrozmenej scény v počítačovej grafike je nutný.
+
+Rovnosť zjednodušíme
+$$
+\begin{pmatrix}
+\frac{w}{2} & 0 & 0 & \frac{w}{2} \\
+0 & \frac{h}{2} & 0 & \frac{h}{2} \\
+0 & 0 & \frac{f-n}{2} & \frac{f+n}{2} \\
+0 & 0 & 0 & 1
+\end{pmatrix}
+\cdot
+\begin{pmatrix}
+k_1 x + k_2 z \\
+k_3 y + k_4 z \\
+\frac{-(f+n)}{f-n} z + \frac{-2fn}{f-n} \\
+-z
+\end{pmatrix}
+=
+\begin{pmatrix}
+f_x x + p_x z \\
+f_y y + p_y z \\
+? z + ? \\
+z
+\end{pmatrix} \mathrm{,}
+$$
+
+vykonáme delenie homogénnou súradnicou
+
+$$
+\begin{pmatrix}
+\frac{w}{2} & 0 & 0 & \frac{w}{2} \\
+0 & \frac{h}{2} & 0 & \frac{h}{2} \\
+0 & 0 & \frac{f-n}{2} & \frac{f+n}{2} \\
+0 & 0 & 0 & 1
+\end{pmatrix}
+\cdot
+\begin{pmatrix}
+- k_1 \frac{x}{z} - k_2 \\
+- k_3 \frac{y}{z} - k_4 \\
+\frac{(f+n)}{f-n} + \frac{2fn}{z(f-n)} \\
+1
+\end{pmatrix}
+=
+\begin{pmatrix}
+f_x \frac{x}{z} + p_x \\
+f_y \frac{y}{z} + p_y \\
+? + \frac{?}{z} \\
+1
+\end{pmatrix}
+$$
+
+a znova zjednodušíme
+
+$$
+\begin{pmatrix}
+\frac{w}{2} (- k_1 \frac{x}{z} - k_2) + \frac{w}{2} \\
+\frac{h}{2} (- k_3 \frac{y}{z} - k_4) + \frac{h}{2} \\
+\frac{f-n}{2} (\frac{(f+n)}{f-n} + \frac{2fn}{z(f-n)}) + \frac{f+n}{2} \\
+1
+\end{pmatrix}
+=
+\begin{pmatrix}
+f_x \frac{x}{z} + p_x \\
+f_y \frac{y}{z} + p_y \\
+? + \frac{?}{z} \\
+1
+\end{pmatrix}
+$$
+
+$$
+\begin{pmatrix}
+- k_1 \frac{w}{2} \frac{x}{z} - k_2 \frac{w}{2} + \frac{w}{2} \\
+- k_3 \frac{h}{2} \frac{y}{z} - k_4 \frac{h}{2} + \frac{h}{2} \\
+f + n + \frac{fn}{z} \\
+1
+\end{pmatrix}
+=
+\begin{pmatrix}
+f_x \frac{x}{z} + p_x \\
+f_y \frac{y}{z} + p_y \\
+? + \frac{?}{z} \\
+1
+\end{pmatrix}
+$$
+
+$$
+\begin{pmatrix}
+- k_1 \frac{w}{2} \frac{x}{z} + \frac{w}{2} (1 - k_2)\\
+- k_3 \frac{h}{2} \frac{y}{z} + \frac{h}{2} (1 - k_4)\\
+f + n + \frac{fn}{z} \\
+1
+\end{pmatrix}
+=
+\begin{pmatrix}
+f_x \frac{x}{z} + p_x \\
+f_y \frac{y}{z} + p_y \\
+? + \frac{?}{z} \\
+1
+\end{pmatrix} \mathrm{.}
+$$
+
+Z toho vyplýva, že parametre $n$ a $f$ je možné si zvoliť ľubovoľne, pretože ich zadaná matica nedefinuje, a že musí platiť
+
+$$
+-k_1 \frac{w}{2} = f_x 
+\mathrm{,} \quad
+\frac{w}{2} (1 - k_2) = p_x \mathrm{,}
+$$
+$$
+-k_3 \frac{h}{2} = f_y
+\mathrm{,} \quad
+\frac{h}{2} (1 - k_4) = p_y \mathrm{,}
+$$
+
+a teda sme dospeli k hľadanému vyjadreniu parametrov $k_1$, $k_2$, $k_3$ a $k_4$
+
+$$
+k_1 = - \frac{2 f_x}{w}
+\mathrm{,} \quad
+k_2 = 1 - \frac{2 p_x}{w} \mathrm{,}
+$$
+$$
+k_3 = - \frac{2 f_y}{h}
+\mathrm{,} \quad
+k_4 = 1 - \frac{2 p_x}{w} \mathrm{.}
+$$
+
+Hľadaná projekčná matica má teda tvar
+
+$$
+M_{projection}
+=
+\begin{pmatrix}
+- \frac{2 f_x}{w} & 0 & 1 - \frac{2 p_x}{w} & 0 \\
+0 & - \frac{2 f_y}{h} & 1 - \frac{2 p_x}{w} & 0 \\
+0 & 0 & \frac{-(f+n)}{f-n} & \frac{-2fn}{f-n} \\
+0 & 0 & -1 & 0
+\end{pmatrix} \mathrm{.}
+$$
 
 \section{Framework deck.gl a jeho nadstavba Pydeck}
 \label{sec:deck_gl}
@@ -228,7 +506,7 @@ Vizualizácia dát v~deck.gl sa skladá z~dvoch základných častí:
     Časť \texttt{ViewState} určuje polohu a orientáciu kamery, pričom u~orientácie je možné určiť iba dva uhly (\emph{bearing} a \emph{pitch}). Typ pohľadu definuje spôsob interakcie vizualizácie s~používateľom, napríklad pre zobrazenie trate z~pohľadu strojvedúceho je ideálny typ \texttt{FirstPersonView}.
 \end{itemize}
 
-To, že sa deck.gl na vizualizáciu dát z~mobilného mapovacieho systému naozaj hodí, dokazujú ukážky na jeho webových stránkach. Použiteľnosť vrstvy \texttt{PointCloudLayer} demonštruje plynulá animácia mračna vyše 800~000 bodov.
+To, že sa deck.gl na vizualizáciu dát z~mobilného mapovacieho systému naPozaj hodí, dokazujú ukážky na jeho webových stránkach. Použiteľnosť vrstvy \texttt{PointCloudLayer} demonštruje plynulá animácia mračna vyše 800~000 bodov.
 
 Na webových stránkach deck.gl sa nachádza aj galéria projektov vytvorených pomocou tohto frameworku. Medzi nimi je Autonomous Visualization System, toolkit pre vývoj webových aplikácií pre vizualizáciu dát z~autonómnych vozidiel \cite{avs}. Na webových stránkach tohto projektu je ukážka takej aplikácie, ktorá zobrazuje vozidlo, dáta z~lidaru, vektorové dáta, ako napríklad trasu vozidla, a záznam z~kamery. To je veľmi podobné aplikácii vyvíjanej v~rámci tejto práce, ale je tu niekoľko rozdielov. Poprvé, mračno bodov nie je agregované, a teda sa v~každom kroku animácie zobrazuje iba v~tom momente nasnímaná časť, a podruhé, kamerový záznam sa zobrazuje oddelene, a nie na pozadí mračna bodov a vektorových dát.
 
@@ -460,7 +738,12 @@ Cieľom tejto práce bolo vytvoriť používateľskú aplikáciu. Výsledná apl
     \item Zobrazenie dát z~mobilného mapovacieho systému. Tieto dáta sú tvorené mračnom bodov z~lidaru, kamerovým záznamom, údajmi o~pohybe vlaku a ďalšími vektorovými dátami a mali by byť zobrazené z~pohľadu strojvedúceho vlaku.
     \item Umožniť používateľovi vybrať si konkrétnu pozíciu vlaku alebo prehrať si animáciu pohybu vlaku s nastaviteľnou rýchlosťou.
     \item Umožniť používateľovi nahrať súbory s~dátami na zobrazenie: súbor s~mračnom bodov, video z~kamery na čele vlaku, súbor s~vektorovými dátami, textové súbory s~údajmi o~pohybe vlaku -- pole translácií, pole rotácií a pole zodpovedajúcich časových razítok.
-    \item Zobrazovať dva typy dát z~lidaru -- buď malé, postupne nasnímané kusy mračna bodov s~časovými razítkami, alebo iba jedno celistvé mračno bodov, ktoré vzniklo ich spojením (u~oboch typov ale ide o~agregované dáta -- všetky body sú v~jednej spoločnej súradnicovej sústave). Umožniť používateľovi prepínať medzi týmito dvoma typmi.
+    \item Zobrazovať dva typy dát z~lidaru:
+    \begin{itemize}
+        \item \emph{real-time} -- malé, postupne nasnímané kusy mračna bodov s~časovými razítkami,
+        \item \emph{postprocess} -- jedno celistvé mračno bodov, ktoré vzniklo ich spojením.
+    \end{itemize}
+    (U~oboch typov ide o~agregované dáta -- všetky body sú v~jednej spoločnej súradnicovej sústave). Umožniť používateľovi prepínať medzi týmito dvoma typmi.
     \item Poskytnúť používateľovi možnosti prispôsobenia zobrazenia, ako napríklad zmeny viditeľnosti jednotlivých vrstiev (mračno bodov, vektorové dáta, kamerový záznam) a základné nastavenia zobrazenia mračna bodov (rôzne farebné škály podľa intenzity, veľkosť a priehľadnosť bodov, zobrazenie bodov len do určitej vzdialenosti) aj vektorových dát (farba a hrúbka čiar).
     \item Mať prepínač na zapnutie a vypnutie skreslenia mračna bodov a vektorových dát podľa parametrov skreslenia kamery.
     \item Zobrazovať prejazdný profil vlaku v~predikovanej polohe v~rôznych vzdialenostiach pred vlakom -- 25, 50, 75 a 100m. Zobrazovať aj čiaru spájajúcu predikované polohy. (Súbory s predikovanými polohami sú súčasťou dát, ktoré aplikácia načítava.)
@@ -685,7 +968,7 @@ Na začiatku tvorby práce bola na zobrazenie vektorových dát použitá vrstva
 
 Vizualizácia obsahuje nasledujúce vrstvy:
 \begin{itemize}
-    \item Mračno bodov. Ak aplikácia zobrazuje \emph{rozdelené} mračno bodov, teda malé, postupne nasnímané časti s časovými razítkami, tak je vrstiev desať a zobrazujú desať z týchto častí -- jednu, ktorá zodpovedá danej pozícii, a deväť predchádzajúcich (obrázok \ref{fig:vrstvy}, časť a)). Ak aplikácia zobrazuje \emph{celistvé} mračno bodov, tak je celé v jednej vrstve (obrázok \ref{fig:vrstvy}, časť b)).
+    \item Mračno bodov. Ak aplikácia zobrazuje \emph{rozdelené} mračno bodov, teda malé, postupne nasnímané časti s časovými razítkami, tak je vrstiev desať a zobrazujú desať z týchto častí -- jednu, ktorá zodpovedá danej pozícii, a deväť predchádzajúcich (obrázok \ref{fig:vrstvy}, časť a)). Ak aplikácia zobrazuje mračno bodov typu postprocess, tak je celé v jednej vrstve (obrázok \ref{fig:vrstvy}, časť b)).
     \item Čiara spájajúca predikované polohy prejazdného profilu vlaku.
     \item Prejazdný profil vlaku v predikovanej polohe. Od ostatných vektorových dát sa líši tým, že sa jeho poloha mení pri zmene polohy kamery. To je v implementácii dosiahnuté pomocou špeciálnej prístupovej funkcie \texttt{profileGetPath} (prístupové funkcie boli popísané v sekcii \ref{sec:nastavenie_polohy_kamery}, podsekcia Aplikovanie transformácií na dáta). 
     \item Ďalšie vektorové dáta.
@@ -759,7 +1042,7 @@ Funkcia \texttt{stopDeckAnimation} upovedomí framework Dash o novej hodnote pos
 \section{Implementácia skreslenia}
 
 
-\chapter{Testovanie}
+\chapter{Testovanie a evaluácia}
 
 \section{Zobrazenie dodaných dát}
 
@@ -776,4 +1059,3 @@ Funkcia \texttt{stopDeckAnimation} upovedomí framework Dash o novej hodnote pos
 
 % Pro kompilaci po částech (viz projekt.tex) nutno odkomentovat
 %\end{document}
-
