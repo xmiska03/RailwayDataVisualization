@@ -1,6 +1,7 @@
 from dash import Dash, html, dcc, Output, Input, State
 import dash_bootstrap_components as dbc
 from pypcd4 import PointCloud
+import os
 
 import data_tab_components
 import data_tab_callbacks
@@ -17,6 +18,10 @@ from loading_functions import load_csv_file_into_nparray, load_yaml_into_dict, \
                               load_timestamps_file_into_nparray, \
                               load_pcl_timestamps, load_profile_translations, load_profile_rotations
 
+
+# create directory for temporary files
+if not os.path.exists("assets/temp"):
+   os.makedirs("assets/temp")
 
 # load unaggregated point cloud data
 pc_nparray = []

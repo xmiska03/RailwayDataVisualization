@@ -152,6 +152,7 @@ kde $\widetilde{\mathbf{C}}$ sú súradnice stredu kamery vo všeobecnom súradn
 Parametre $\mathrm{R}$ a $\widetilde{\mathbf{C}}$ označujeme ako \textbf{vonkajšie parametre kamery}.
 
 \section{Skreslenie kamery}
+\label{sec:skreslenie}
 
 Dierkový model kamery zodpovedá spôsobu, akým zachytávajú obraz reálne kamery, iba približne, ale nie presne. Obraz z reálnej kamery má zvyčajne navyše ešte skreslenie.
 
@@ -712,7 +713,7 @@ Kód webovej aplikácie napísanej s využitím frameworku Dash sa skladá z dvo
 
 \emph{Komponenty} sú prvky používateľského rozhrania, ktoré sa skladajú do stromovej štruktúry. Je možné použiť komponenty priamo zodpovedajúce HTML elementom (Dash HTML Components), komponenty z knižnice Dash Core Components (napríklad \texttt{Graph}, \texttt{Input}, \texttt{Tabs}, \texttt{Upload}) a ďalšie špeciálne komponenty \cite{dash_documentation}.
 
-Pre túto prácu je významný komponent \texttt{Store} z knižnice Dash Core Components, ktorý umožňuje uložiť dáta na strane klienta. Hodí sa na uloženie dát, ktoré sa následne zobrazujú pomocou frameworku deck.gl.
+Pre túto prácu je významný komponent sklad (\texttt{Store}) z knižnice Dash Core Components, ktorý umožňuje uložiť dáta na strane klienta. Hodí sa na uloženie dát, ktoré sa následne zobrazujú pomocou frameworku deck.gl.
 
 Ďalej je možné použiť knižnicu \textbf{Dash Bootstrap Components} (DBC), ktorá poskytuje ďalšie komponenty, ikony, lepšie možnosti pre rozloženie stránky, a v neposlednom rade vizuálne štýly \cite{dbc_documentation}.
 
@@ -799,49 +800,259 @@ Preto by mala výsledná aplikácia kombinovať oba prístupy, projektový súbo
 
 \chapter{Implementácia navrhnutej aplikácie}
 
-Navrhnutá webová aplikácia je implementovaná v jazyku Python s využitím frameworku Dash. Pre optimalizáciu obsahuje aplikácia aj skript napísaný v jazyku Javascript, ktorý používa pre vykresľovanie mračna bodov a vektorových dát framework deck.gl a na rozdiel od zvyšku kódu aplikácie sa vykonáva priamo na klientovi. Táto štruktúra je schematicky znázornená na obrázku \ref{fig:schema_implementacie}.
+Navrhnutá webová aplikácia je implementovaná v jazyku Python s využitím frameworku Dash. Pre optimalizáciu obsahuje aplikácia aj skript napísaný v jazyku Javascript, ktorý používa pre vykresľovanie mračna bodov a vektorových dát hardvérovo akcelerovaný framework deck.gl a na rozdiel od zvyšku kódu aplikácie sa vykonáva priamo na klientovi. Táto štruktúra je schematicky znázornená na obrázku \ref{fig:schema_implementacie}.
+
+Vizuálny štýl používateľského rozhrania čiastočne zabezpečuje knižnica Dash Bootstrap Components, čiastočne je dodefinovaný pomocou CSS.
 
 Zdrojový kód je rozdelený do nasledujúcich súborov:
 \begin{itemize}
-    \item \texttt{app.py} -- Hlavný súbor, inicializuje a spustí aplikáciu. Definuje základné rozloženie aplikácie -- vizualizácia na celú výšku okna, spodný panel a bočný panel so záložkami.
+    \item \texttt{app.py} -- Hlavný modul, inicializuje a spustí aplikáciu.
     \item \texttt{params.py} -- Počiatočné parametre.
     \item \texttt{loading\_functions.py} -- Pomocné funkcie pre načítanie dát zo súborov.
     \item \texttt{general\_functions.py} -- Pomocné funkcie pre výpočet projekčnej matice, transformačných matíc a operácií s rotáciami.
-    \item Súbory s komponentmi a callbackmi rozdelené podľa štruktúry používateľského rozhrania:
-    \begin{itemize}
-        \item \texttt{animation\_control\_components.py}, \texttt{animation\_control\_callbacks.py} \\ -- komponenty v spodnom paneli,
-        \item \texttt{data\_tab\_components.py}, \texttt{data\_tab\_callbacks.py}, \\\texttt{visualization\_tab\_components.py}, \texttt{visualization\_tab\_callbacks.py}, \\ \texttt{profile\_tab\_components.py}, \texttt{profile\_tab\_callbacks.py} \\ -- komponenty v záložkách v bočnom paneli.
-    \end{itemize}
-    \item \texttt{visualization.js} -- Vizualizácia mračna bodov a vektorových dát pomocou frameworku deck.gl, riadenie animácie phybu vlaku.
+    \item Moduly s komponentmi a callbackmi rozdelené podľa štruktúry používateľského rozhrania. Sú to štyri dvojice súborov. V jednom súbore z dvojice sú vždy definované komponenty používateľského rozhrania vrátane ich vizuálneho štýlu, v tom druhom k nim patriace callbacky.
+    \item \texttt{visualization.js} -- Vizualizácia mračna bodov a vektorových dát pomocou frameworku deck.gl, riadenie animácie phybu vlaku. Činnosť tohto skriptu je podrobnejšie popísaná v sekciách \ref{sec:vrstvy} a \ref{sec:implementacia_animacie}. 
 \end{itemize}
 
-\begin{figure}[h]
+\section{Popis modulov}
+
+Táto sekcia sa venuje podrobnejšiemu popisu niektorých modulov.
+
+\begin{figure}[t]
     \centering
     \includegraphics[width=0.7\linewidth]{text_prace/obrazky-figures/schema_implementacie.pdf}
     \caption{Schéma finálnej implementácie.}
     \label{fig:schema_implementacie}
 \end{figure}
 
-\section{Prvá etapa implementácie}
+\subsubsection{Hlavný modul \newline {\normalsize \textmd{(súbor \texttt{app.py})}}}
 
-Prvým krokom implementácie bolo napísanie skriptu v~jazyku Python, ktorý vykresľoval mračno bodov bez použitia špeciálnych knižníc či frameworkov. K~dispozícii pritom bola jedna sada ukážkových dát, ktorá sa skladala z~mračna bodov, kalibračnej matice a postupnosti translácií a rotácií, ktoré predstavovali pohyb vlaku po trati. Mračno bodov obsahovalo 201~880 bodov s~intenzitou od 0 do 42 a bolo definovaných 500 polôh vlaku. K~tomu boli dodané obrázky, ktoré ukazovali, ako by mal vyzerať výsledok zobrazenia (obrázok \ref{fig:referencny-obrazok}).
+Načíta zo súborov ukažkové dáta, ktoré aplikácia zobrazí po spustení. Tieto dáta spolu s počiatočnými parametrami uloží do skladov, z ktorých ich následne callbacky definované v module \emph{data} kopírujú do objektu \texttt{window}, aby boli prístupné skriptu \texttt{visualization.js}.
+
+Definuje základné rozloženie a vzhľad aplikácie -- vizualizácia na celú výšku okna, spodný panel, bočný panel s troma záložkami a prvok na prepínanie svetlého a tmavého režimu. Vizualizácia je zložená z troch HTML elementov: \texttt{Video}, \texttt{Canvas}, do ktorého vykresľuje dáta framework deck.gl, a druhý \texttt{Canvas} pre implementáciu skreslenia. Toto základné rozloženie je definované väčšinou pomocou CSS pravidiel. Záložka \emph{Data} je obalená komponentom \texttt{Loading} z knižnice Dash Core Components, ktorý sa používateľovi zobrazuje, keď prebieha aktualizácia niektorého prvku z tejto záložky, teda keď aplikácia nahráva dáta.
+
+Modul načíta všetky potrebné komponenty a callbacky z iných modulov, inicializuje a spustí aplikáciu. Obsahuje tri klientske callbacky - jeden pre inicializáciu vizualizácie, jeden pre vysúvanie bočného panelu a jeden pre prepínanie svetlého a tmavého režimu.
+
+\subsubsection{Modul \emph{animation control} \newline {\normalsize \textmd{
+(súbory \texttt{animation\_control\_components.py}, \texttt{animation\_control\_callbacks.py})
+}}}
+
+Obsahuje prvky pre ovládanie animácie -- spustenie a zastavenie, posunutie, zmena rýchlosti, výber konkrétneho snímku, -- ktoré sa nachádzajú v spodnom paneli. Prvky sú rozmiestnené s využitím CSS mechanizmov \emph{grid} a \emph{flexbox}.
+
+Keďže riadenie animácie prebieha na strane klienta, všetky callbacky v tomto module sú klientske a väčšinou volajú funkcie definované v skripte \texttt{visualization.js}. Mechanizmus riadenia animácie je popísaný v sekcii \ref{sec:implementacia_animacie}.
+
+Zmena rýchlosti animácie prebieha tak, že sa u videa zmení vlastnosť \texttt{playbackRate}. Tým sa zmení rýchlosť videa, a keďže vykresľovanie mračna bodov a vektorových dát je naviazané na video, zrýchli sa tým celá animácia.
+
+\subsubsection{Modul \emph{data} \newline {\normalsize \textmd{
+(súbory \texttt{data\_tab\_components.py}, \texttt{data\_tab\_callbacks.py})
+}}}
+
+Tvorí záložku \emph{Data} v bočnom paneli a riadi nahrávanie dát do aplikácie. Obsahuje komponenty dvoch typov -- \texttt{*\_upload} a \texttt{*\_uploaded\_file[s]}. Komponenty typu \texttt{*\_upload} umožňujú manuálne nahranie súborov do aplikácie. Keď také nahranie prebehne, komponent \texttt{*\_upload} je skrytý a namiesto neho sa zobrazí komponent \texttt{*\_uploaded\_file[s]}, ktorý používateľovi pre kontrolu zobrazuje názov nahraného súboru a obsahuje aj tlačítko v tvare~x, ktoré skryje komponent \texttt{*\_uploaded\_file[s]} a znova zobrazí komponent \texttt{*\_upload}, čím umožní používateľovi nahrať iný súbor.
+
+Špeciálnym typom nahrávaného súboru je projektový súbor, ktorý vyvolá automatické nahranie všetkých v ňom definovaných súborov.
+
+Niektoré typy dát nemajú komponent \texttt{*\_upload} a dajú sa nahrať iba pomocou projektového súboru. Sú to tie typy dát, ktoré sa skladajú z viacerých súborov, a to konkrétne mračno bodov typu real-time, vektorové dáta a polohy prejazdného profilu.
+
+Väčšina callbackov je napísaná v Pythone, spracúvajú nahrané súbory a spracované dáta ukladajú do skladov (komponenty \texttt{Store}).
+
+Isté špecifiká sú u nahrávania súboru s mračnom bodov a videa. Framework Dash totiž načítané súbory odovzdáva callbackom ako pole bytov, ale použitá knižnica \texttt{pypcd4} dokáže načítať súbor vo formáte \texttt{pcd} iba podľa cesty k súboru. Preto je nahraný súbor s mračnom bodov uložený ako dočasný súbor do priečinka \texttt{assets/temp}, odtiaľ nahraný a potom hneď zmazaný.
+
+Podobne je to u videa, ktoré je tiež potrebné uložiť ako dočasný súbor a potom nastaviť cestu k nemu do atribútu \texttt{src} komponentu \texttt{html.Video}. Na rozdiel od súboru s mračnom bodov ho však nie je možné zmazať hneď v tom istom callbacku, musí v priečinku \texttt{assets/temp} po istú dobu zostať, pretože jeho nahranie do aplikácie nejakú dobu trvá. Preto je definovaný špeciálny callback, ktorý sa spustí každé dve minúty a vymaže všetky dočasné súbory staršie než dve minúty. Okrem toho novému videu po nahraní musí byť nastavený rovnaký čas, ako malo to predchádzajúce, čo je zabezpečené ďalším callbackom.
+
+Ďalej sú v tomto module ešte klientske callbacky, ktoré kopírujú nové dáta zo skladov do objektu \texttt{window}, aby boli prístupné skriptu \texttt{visualization.js}.
+
+\subsubsection{Modul \emph{visualization} \newline {\normalsize \textmd{
+(súbory \texttt{visualization\_tab\_components.py}, \texttt{visualization\_tab\_callbacks.py})
+}}}
+
+Tvorí záložku \emph{Zobrazení} v bočnom paneli a obsahuje všeobecké nastavenia týkajúce sa zobrazenia. Dôležitou funkciou je voľba typu zobrazovaného mračna bodov -- postprocess alebo real-time.
+
+Najzložitejším komponentom je graf, ktorý zobrazuje rozloženie bodov podľa intenzity a zároveň aj farebnú škálu (ukážka je na obrázku \ref{fig:farebna_skala}). Ďalej táto záložka obsahuje aj posuvníky pre upresnenie polohy kamery a tlačidlá pre export a import nastavení zobrazenia. Nastavenia sa exportujú vo formáte \texttt{toml}. Táto možnosť je užitočná najmä pre uloženie nastavenia posuvníkov, ale ukladá aj všetky ostatné nastavenia zo záložiek \emph{Zobrazení} a \emph{Průjezdný profil}.
+
+Nachádza sa tu aj možnosť zapnutia a vypnutia skreslenia vizualizácie podľa parametrov skreslenia kamery.
+
+Modul obsahuje niekoľko klienskych callbackov, ktoré volajú funkcie definované v skripte \texttt{visualization.js}.
+
+Ďalej je tu viacero callbackov patriacich ku grafu zobrazujúcemu farebnú škálu. Keďže je to zložitý komponent, obsahuje štyri sklady, do ktorých sa ukladá typ farebnej škály, jej rozsah a agregácia mračna bodov oboch typov, ktoré aplikácia zobrazuje. Graf sa aktualizuje, keď sa zmení ktorýkoľvek z týchto údajov, alebo keď sa zmení typ zobrazovaného mračna bodov.
+
+V module sa ešte nachádzajú callbacky pre počítanie skreslenia, ktoré sú bližšie popísané v sekcii \ref{sec:implementacia_skreslenia}.
+
+\subsubsection{Modul \emph{profile} \newline {\normalsize \textmd{
+(súbory \texttt{profile\_tab\_components.py}, \texttt{profile\_tab\_callbacks.py})
+}}}
+
+Tvorí záložku \emph{Průjezdný profil} v bočnom paneli a obsahuje iba nastavenia týkajúce sa zobrazenia prejazdného profilu a čiary cez polohy prejazdného profilu. Umožnuje používateľovi vybrať si, ktorú predikciu chce vidieť -- na 25, 50, 75 alebo 100 metrov.
+
+Callbacky sú klienske a volajú funkcie definované v skripte \texttt{visualization.js}.
+
+\section{Rozdelenie dát do vrstiev}
+\label{sec:vrstvy}
+
+Pri vizualizácii dát pomocou frameworku deck.gl sú použité dva typy vrstiev:
+\begin{itemize}
+    \item \texttt{PointCloudLayer} pre mračno bodov,
+    \item \texttt{PathLayer} pre vektorové dáta.
+\end{itemize}
+Rozdelenie vizualizácie na vrstvy je znázornené na obrázku \ref{fig:vrstvy}.
 
 \begin{figure}[h]
     \centering
-    \includegraphics[width=0.95\linewidth]{obrazky-figures/referencny_obrazok.png}
-    \caption{Referenčný obrázok, ktorý bol dodaný na začiatku práce spolu s~mračnom bodov a údajmi o~pohybe kamery v~ňom. Obrázok je tu pre lepšiu viditeľnosť s~invertovanými farbami a zväčšeným kontrastom.}
-    \label{fig:referencny-obrazok}
+    \includegraphics[width=0.8\linewidth]{text_prace/obrazky-figures/vrstvy.pdf}
+    \caption{Schéma rozdelenia dát do vrstiev. Počet vrstiev s mračnom bodov závisí od typu zobrazovaného mračna bodov.}
+    \label{fig:vrstvy}
 \end{figure}
 
-Cieľom tejto prvotnej fázy bolo najmä oboznámenie sa s~dátami a základnými princípmi vykresľovania bodov. Výsledky, ktoré sa nakoniec podarilo dosiahnuť, boli podobné referenčným obrázkom, aj keď nie úplne identické. Ukázalo sa, že údaje o~pohybe kamery majú iný súradnicový systém ako mračno bodov (líšilo sa poradie ôs) a že je potrebné pridať isté posunutie a rotáciu, aby sa výsledky podobali referenčným obrázkom (posunutie kamery do stredu vlaku, podľa dodaných dát bola naľavo od stredu).
+Na začiatku tvorby práce bola na zobrazenie vektorových dát použitá vrstva \texttt{LineLayer}. Ukázalo sa však, že vstva \texttt{LineLayer} je prispôsobená iba pre zobrazovanie čiar na mapách a pri použití nemapového pohľadu ako \texttt{FirstPersonView} nefunguje dobre -- niektoré čiary sa otáčajú kolmo ku kamere a tým pádom sa ich šírka zmenšuje, niekedy až tak, že úplne prestanú byť viditeľné. Toto správanie u vrstvy \texttt{LineLayer} nie je možné zmeniť. Naopak u vrstvy \texttt{PathLayer} je možné nastaviť vlastnosť \texttt{billboard}, ktorá znamená otočenie čiar smerom ku kamere, preto bola nakoniec táto vrstva použitá namiesto vrstvy \texttt{LineLayer}. \texttt{PathLayer} sa od \texttt{LineLayer} líši ešte tým, že čiary majú pevnú šírku v pixeloch a nezužujú sa podľa toho, ako ďaleko sú od kamery.
 
-Ďalej už nasledovala práca s~existujúcimi knižnicami a frameworkami v~jazyku Python. Prvotným plánom bolo použiť knižnicu Pydeck (pre vizualizáciu dát) s~frameworkom Streamlit (pre tvorbu GUI). Pydeck bol zvolený preto, že je nadstavbou nad javascriptovým frameworkom deck.gl, ktorý pri vykresľovaní dát využíva hardwarovú akceleráciu (GPU) a má dobrú výkonnosť. Ukázalo sa však, že Streamlit nepodporuje Pydeck v~plnej miere, a teda sa nedá využiť. Preto bol namiesto Streamlitu použitý framework Dash, ktorý už mal podporu pre Pydeck dostatočnú.
+Vizualizácia obsahuje nasledujúce vrstvy:
+\begin{itemize}
+    \item Mračno bodov. Ak aplikácia zobrazuje \emph{rozdelené} mračno bodov, teda malé, postupne nasnímané časti s časovými razítkami, tak je vrstiev desať a zobrazujú desať z týchto častí -- jednu, ktorá zodpovedá danej pozícii, a deväť predchádzajúcich (obrázok \ref{fig:vrstvy}, časť a)). Ak aplikácia zobrazuje mračno bodov typu postprocess, tak je celé v jednej vrstve (obrázok \ref{fig:vrstvy}, časť b)).
+    \item Čiara spájajúca predikované polohy prejazdného profilu vlaku.
+    \item Prejazdný profil vlaku v predikovanej polohe. Od ostatných vektorových dát sa líši tým, že sa jeho poloha mení pri zmene polohy kamery. To je v implementácii dosiahnuté pomocou špeciálnej prístupovej funkcie \texttt{profileGetPath} (prístupové funkcie boli popísané v sekcii \ref{sec:nastavenie_polohy_kamery}, podsekcia Aplikovanie transformácií na dáta). 
+    \item Ďalšie vektorové dáta.
+\end{itemize}
 
-Pomocou tohto frameworku bola vytvorená jednoduchá webová aplikácia zobrazujúca ukážkové dáta a umožňujúca základné nastavenia vzhľadu. Do tejto aplikácie bolo zahrnuté aj zobrazovanie kamerového záznamu, pre tento účel bolo provizórne použité video z~prejazdu tej istej trate natočené v~roku 2012. Pri tom sa zistilo, že vykresľovanie dát pomocou kombinácie knižníc Pydeck a Dash Deck tak, ako je to vo vzorových príkladoch v~dokumentácii knižnice Dash Deck, je značne neefektívne. Jedno vykreslenie mračna bodov zaberalo zhruba 3 sekundy, čo bolo spôsobené transformáciami medzi rôznymi formátmi, ako to bolo popísané v~sekcii \ref{sec:deck_gl}.
+\subsubsection{Farebné škály}
 
-Tento čas sa podarilo významne zredukovať použitím knižnice Dash Deck bez knižnice Pydeck. Výsledok však stále nebol dosť dobrý na to, aby mohla hladko bežať animácia pohybu vlaku, a ani napriek rôznym pokusom sa ho už nepodarilo v~rámci tejto kombinácie technológií vo významnejšej miere vylepšiť. Čas vykreslenia mračna bodov bol pritom úmerný počtu bodov a príčina neefektivity bola v~spôsobe implementácie knižnice Dash Deck. Bolo navyše potrebné rátať s~tým, že aplikácia bude zaťažená aj zobrazovaním videa. Preto bolo rozhodnuté optimalizovať vykresľovanie dát vynechaním knižnice Dash Deck a použitím frameworku deck.gl priamo z~jazyka Javascript.
+Okrem polohy má každý bod v mračne bodov v dodanej sade dát určenú ešte jednu vlastnosť -- intenzitu v rozmedzí od 0 do 42, ktorú je vhodné farebne rozlíšiť.
+
+Boli implementované dve farebné škály, klasická modro-zeleno-červená a žlto-fialová, pričom u oboch si môže používateľ zvoliť, od akej intenzity začína a pri akej končí. Ak je napríklad nastavená žlto-fialová farebná škála od 0 do 20, tak to znamená, že body s intenzitou 0 budú mať žltú farbu, body s intenzitou 20 a vyššou fialovú farbu a body s intenzitou od 1 do 19 kombinovanú farbu.
+
+Pre prehľadnosť bol tiež implementovaný graf, ktorý používateľovi ukazuje relatívne počty bodov s jednotlivými intenzitami a aké majú nastavené farby. Ukážky možných nastavení sú na obrázku \ref{fig:farebna_skala}.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.35\linewidth]{text_prace/obrazky-figures/farebna_skala1.png}
+    \includegraphics[width=0.35\linewidth]{text_prace/obrazky-figures/farebna_skala2.png}
+    \includegraphics[width=0.35\linewidth]{text_prace/obrazky-figures/farebna_skala3.png}
+    \includegraphics[width=0.35\linewidth]{text_prace/obrazky-figures/farebna_skala4.png}
+    \caption{Nastaviteľná farebná škála pre mračno bodov. Vodorovná os predstavuje intenzitu, vertikálna os predstavuje počet bodov.}
+    \label{fig:farebna_skala}
+\end{figure}
+
+\section{Implementácia animácie pohybu vlaku}
+\label{sec:implementacia_animacie}
+
+Animácia pohybu vlaku sa vykonáva výhradne na strane klienta, bez komunikácie so serverom. Zabezpečujú ju tri javascriptové funkcie, ktorých definícia sa nachádza v súbore \texttt{visualization.js}: \texttt{runDeckAnimation}, \texttt{stopDeckAnimation} a \texttt{animationStep}.
+
+V tejto sekcii je popísaný princíp fungovania animácie, pre prehľadnosť boli vynechané niektoré menej dôležité implementačné detaily.
+
+Keď používateľ klikne na tlačítko pre prehranie animácie, spustí sa klientsky callback, ktorý vykoná nasledujúci kód:
+
+\begin{lstlisting}
+const video = document.getElementById('background-video');
+window.runDeckAnimation();
+video.play();
+video.onpause = function(){ window.stopDeckAnimation() };
+\end{lstlisting}
+
+Funkcia \texttt{runDeckAnimation} reinicializuje niektoré parametre, ak je to potrebné, a potom zavolá funkciu \texttt{animationStep}.
+
+Funkcia \texttt{animationStep} vykonáva tieto kroky:
+
+\begin{enumerate}
+    \item Najprv zabezpečí, aby sa zavolala znova pri najbližšom vykreslení nového snímku vo videu:
+    \begin{lstlisting}
+const video = document.getElementById('background-video');
+video.requestVideoFrameCallback(animationStep);
+    \end{lstlisting}
+
+    \item Potom na základe časových razítok polôh kamery v mračne bodov a aktuálneho času videa vypočíta aktualizovanú polohu kamery. Ak je to posledná poloha, zastaví video metódou \texttt{pause}.
+
+    \item Ak aplikácia zobrazuje mračno bodov typu real-time, tak následne na základe časových razítok mračna bodov zistí, či by sa nemali zobraziť nejaké nové časti. Vymieňanie častí prebieha efektívnym cyklickým spôsobom, ktorý je znázornený na obrázku \ref{fig:vrstvy_animacia}.
+
+    \item Potom prebehne samotná aktualizácia vizualizácie (v skripte funkcia \texttt{updateDeck}), kedy sa kamera posunie na novú polohu a aktualizujú sa vrstvy (v skripte funkcia \texttt{createLayers}), čím sa posunie prejazdný profil a prípadne sa vymenia časti mračna bodov.
+
+    \item Ako posledné sa aktualizujú prvky v grafickom používateľskom rozhraní, ktoré ukazujú stav animácie -- posuvník, čas a vstupné pole s číslom snímky.
+\end{enumerate}
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.4\linewidth]{text_prace/obrazky-figures/vrstvy_animacia.pdf}
+    \caption{Schéma cyklického prepisovania deck.gl vrstiev obsahujúcich mračno bodov typu real-time. Vizualizácia obsahuje vždy desať vrstiev, ktoré zobrazujú desať častí mračna bodov. Ak podľa časových razítok má byť zobrazená nejaká nová časť, tak sa prepíše vždy tá najstaršia.}
+    \label{fig:vrstvy_animacia}
+\end{figure}
+
+Animácia sa končí buď tak, že používateľ klikne na tlačítko pre zastavenie animácie, čím sa spustí klientsky callback, ktorý zastaví video metódou \texttt{pause}, alebo tak, že skončí video, alebo tak, že je dosiahnutá posledná poloha kamery. V každom prípade sa spustí funkcia \texttt{stopDeckAnimation}, pretože bola na začiatku animácie nastavená ako callback pre udalosť zastavenia videa.
+
+Funkcia \texttt{stopDeckAnimation} upovedomí framework Dash o novej hodnote posuvníka, času a vstupného poľa s číslom snímku. Toto sa nevykonáva počas animácie, pretože je to výkonovo náročné.
+
+\section{Implementácia skreslenia}
+\label{sec:implementacia_skreslenia}
+
+Pri zobrazovaní mračna bodov a vektorových dát tak, aby zobrazenie čo najpresnejšie sedelo na záznam z kamery, je potrebné vziať do úvahy aj skreslenie kamery, ktoré bolo popísané v sekcii \ref{sec:skreslenie}. 
+
+Parametre skreslenia boli súčasťou dodaných dát. Existuje niekoľko možností, ako ich použiť:
+\begin{enumerate}
+    \item Odstrániť skreslenie zo záznamu z kamery.
+    \item Aplikovať skreslenie na mračno bodov, a to:
+    \begin{enumerate}
+        \item meniť súradnice bodov v rámci niektorej transformácie vo vykresľovacom reťazci,
+        \item aplikovať skreslenie až na finálny obraz.
+    \end{enumerate}
+\end{enumerate}
+
+Možnosti 1 a 2b) sú výkonovo približne rovnako náročné a výkonnosť závisí od rozmerov vizualizácie v pixeloch.
+
+Možnosť 2a) by bola v rámci frameworku realizovateľná dvoma spôsobmi: buď výpočtom skreslenia v prístupových funkciách, alebo implementáciou vlastných vrstiev a napísaním vlastného kódu pre vertex shader. Akékoľvek výpočty v prístupových funkciách však majú výrazný vplyv na výkon, výpočet skreslenia je pomerne zložitý (oproti napríklad násobeniu maticou, ktoré sa u bežných transformácii používa) a výkonnosť by sa naviac zhoršovala s počtom vykresľovaných bodov. Druhý spôsob je implementačne náročný a realizácia by zabrala veľa času.
+
+Preto bola zvolená a implementovaná možnosť 2b).
+
+Pri hľadaní existujúcich riešenení podobných problémov bol nájdený článok od J. Balocha, ktorý sa zaoberá aplikáciou rôznych efektov na obrázky vo webových stránkach pomocou Javascriptu \cite{baloch_distortion_in_js}.
+
+Toto riešenie funguje tak, že vytvorí element \texttt{Canvas} rovnakej veľkosti ako pôvodný obrázok, cyklom prechádza všetky pixely obrázku a pre každý pixel vypočíta jeho novú polohu a vykreslí ho do elementu \texttt{Canvas}.
+
+Myšlienka tohto riešenia bola využitá aj pri implementácii skreslenia v tejto práci, ale s niekoľkými rozdielmi.
+
+Poprvé, pixely sa nečítajú z obrázku, ale z elementu \texttt{Canvas}, do ktorého vykresľuje zobrazenie framework deck.gl. Keďže je tento element naviazaný na framework deck.gl, nie je možné z neho prečítať pixel jednoducho príkazmi 
+
+\begin{lstlisting}
+ctx = canvas.getContext("2d");
+pixelData = ctx.getImageData(...);
+\end{lstlisting}
+
+Namiesto toho je nutné použiť rozhranie WebGL:
+
+\begin{lstlisting}
+const gl_ctx = canvas.getContext("webgl2");
+const pixelData = new Uint8Array(width * height * 4);
+gl_ctx.readPixels(0, 0, width, height, gl_ctx.RGBA, gl_ctx.UNSIGNED_BYTE, 
+    pixelData);
+\end{lstlisting}
+
+Podruhé, keďže vo vyvíjanej aplikácii je potrebné počítať skreslenie mnohokrát s tými istými parametrami a rozmermi obrazu, bolo by neefektívne pri každom výpočte počítať novú polohu pre každý pixel, pretože tieto hodnoty sa nemenia.
+
+Preto je skreslenie implementované dvoma klientskymi callbackmi. Ten prvý vypočíta pre každý pixel jeho novú polohu v skreslenom obraze a výsledky uloží do poľa v objekte \texttt{window}. Tento výpočet je nutné zopakovať iba vtedy, keď sa zmenia rozmery vizualizácie. Ten druhý reaguje na vypnutie a zapnutie skreslenia používateľom. Keď je skreslenie zapnuté, skryje element \texttt{visualization-canvas}, do ktorého vykresľuje zobrazenie deck.gl, zviditeľní namiesto neho element \texttt{distorted-visualization-canvas}, ktorý má rovnakú veľkosť a pozíciu, a zaregistruje javascriptový callback, ktorý po každom vykreslení zobrazenia frameworkom deck.gl prečíta hodnotu všetkých pixelov a prekreslí ich na predpočítané pozície do elementu \texttt{distorted-visualization-canvas}.
+
+\chapter{Testovanie a evaluácia}
+
+Pri vývoji aplikácie bola k dispozícii iba jedna sada dát, ktorú bolo možné použiť pre testovanie.
+
+Už pri prvých pokusoch o zobrazenie mračna bodov sa ukázalo, že údaje o~polohách kamery sú v inom súradnicovom systéme ako mračno bodov, pretože sa líši poradie ôs, čomu bola implementácia prispôsobená.
+
+Ďalej sa ukázalo, že aj pri zobrazení mračna bodov presne podľa dodanej polohy kamery a kalibračnej matice zobrazenie nesedí presne na záznam z kamery a je potrebné pridať isté posunutie a rotáciu. Preto boli do používateľského rozhrania aplikácie pridané posuvníky, ktorými si používateľ môže prispôsobiť polohu virtuálnej kamery (posunutím a otočením v istom rozsahu), a tým opraviť nepresnosti v dátach.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.9\linewidth]{text_prace/obrazky-figures/posuvniky1.png}
+    \includegraphics[width=0.9\linewidth]{text_prace/obrazky-figures/posuvniky2.png}
+    \caption{Funkcionalita posuvníkov pre prispôsobenie polohy virtuálnej kamery. Hore je zobrazenie bez prispôsobenia, dole s prispôsobením.}
+    \label{fig:posuvniky}
+\end{figure}
 
 \section{Optimalizácia vykresľovania mračna bodov}
+
+V priebehu implementácie boli vyskúšané štyri rôzne spôsoby vykresľovania mračna bodov:
+\begin{enumerate}
+    \item a
+    \item a
+    \item a
+    \item a
+\end{enumerate}
+
+ %Pri tom sa zistilo, že vykresľovanie dát pomocou kombinácie knižníc Pydeck a Dash Deck tak, ako je to vo vzorových príkladoch v~dokumentácii knižnice Dash Deck, je značne neefektívne. Jedno vykreslenie mračna bodov zaberalo zhruba 3 sekundy, čo bolo spôsobené transformáciami medzi rôznymi formátmi, ako to bolo popísané v~sekcii \ref{sec:deck_gl}.
+
+%Tento čas sa podarilo významne zredukovať použitím knižnice Dash Deck bez knižnice Pydeck. Výsledok však stále nebol dosť dobrý na to, aby mohla hladko bežať animácia pohybu vlaku, a ani napriek rôznym pokusom sa ho už nepodarilo v~rámci tejto kombinácie technológií vo významnejšej miere vylepšiť. Čas vykreslenia mračna bodov bol pritom úmerný počtu bodov a príčina neefektivity bola v~spôsobe implementácie knižnice Dash Deck. Preto bolo rozhodnuté optimalizovať vykresľovanie dát vynechaním knižnice Dash Deck a použitím frameworku deck.gl priamo z~jazyka Javascript.
 
 Počas vývoja aplikácia prešla niekoľkými zmenami spôsobu vykresľovania mračna bodov a vektorových dát z dôvodu optimalizácie výkonu, ktoré sú popísané v nasledujúcich podsekciách.
 
@@ -948,105 +1159,6 @@ Dôležitou metrikou pri posudzovaní výkonnosti animácií je snímková frekv
 
 Podľa vstavaného ukazovateľa snímkovej frekvencie v~prehliadači Google Chrome dosahovala skúmaná animácia pred optimalizáciu zhruba 28 až 34~FPS, zatiaľ čo po nej 51 až 55~FPS. Aj v~tomto ohľade teda nastalo významné zlepšenie.
 
-\section{Rozdelenie dát do vrstiev}
-
-Pri vizualizácii dát pomocou frameworku deck.gl sú použité dva typy vrstiev:
-\begin{itemize}
-    \item \texttt{PointCloudLayer} pre mračno bodov,
-    \item \texttt{PathLayer} pre vektorové dáta.
-\end{itemize}
-Rozdelenie vizualizácie na vrstvy je znázornené na obrázku \ref{fig:vrstvy}.
-
-\begin{figure}[h]
-    \centering
-    \includegraphics[width=0.8\linewidth]{text_prace/obrazky-figures/vrstvy.pdf}
-    \caption{Schéma rozdelenia dát do vrstiev. Počet vrstiev s mračnom bodov závisí od typu zobrazovaného mračna bodov.}
-    \label{fig:vrstvy}
-\end{figure}
-
-Na začiatku tvorby práce bola na zobrazenie vektorových dát použitá vrstva \texttt{LineLayer}. Ukázalo sa však, že vstva \texttt{LineLayer} je prispôsobená iba pre zobrazovanie čiar na mapách a pri použití nemapového pohľadu ako \texttt{FirstPersonView} nefunguje dobre -- niektoré čiary sa otáčajú kolmo ku kamere a tým pádom sa ich šírka zmenšuje, niekedy až tak, že úplne prestanú byť viditeľné. Toto správanie u vrstvy \texttt{LineLayer} nie je možné zmeniť. Naopak u vrstvy \texttt{PathLayer} je možné nastaviť vlastnosť \texttt{billboard}, ktorá znamená otočenie čiar smerom ku kamere, preto bola nakoniec táto vrstva použitá namiesto vrstvy \texttt{LineLayer}. \texttt{PathLayer} sa od \texttt{LineLayer} líši ešte tým, že čiary majú pevnú šírku v pixeloch a nezužujú sa podľa toho, ako ďaleko sú od kamery.
-
-Vizualizácia obsahuje nasledujúce vrstvy:
-\begin{itemize}
-    \item Mračno bodov. Ak aplikácia zobrazuje \emph{rozdelené} mračno bodov, teda malé, postupne nasnímané časti s časovými razítkami, tak je vrstiev desať a zobrazujú desať z týchto častí -- jednu, ktorá zodpovedá danej pozícii, a deväť predchádzajúcich (obrázok \ref{fig:vrstvy}, časť a)). Ak aplikácia zobrazuje mračno bodov typu postprocess, tak je celé v jednej vrstve (obrázok \ref{fig:vrstvy}, časť b)).
-    \item Čiara spájajúca predikované polohy prejazdného profilu vlaku.
-    \item Prejazdný profil vlaku v predikovanej polohe. Od ostatných vektorových dát sa líši tým, že sa jeho poloha mení pri zmene polohy kamery. To je v implementácii dosiahnuté pomocou špeciálnej prístupovej funkcie \texttt{profileGetPath} (prístupové funkcie boli popísané v sekcii \ref{sec:nastavenie_polohy_kamery}, podsekcia Aplikovanie transformácií na dáta). 
-    \item Ďalšie vektorové dáta.
-\end{itemize}
-
-\subsubsection{Farebné škály}
-
-Okrem polohy má každý bod v mračne bodov v dodanej sade dát určenú ešte jednu vlastnosť -- intenzitu v rozmedzí od 0 do 42, ktorú je vhodné farebne rozlíšiť.
-
-Boli implementované dve farebné škály, klasická modro-zeleno-červená a žlto-fialová, pričom u oboch si môže používateľ zvoliť, od akej intenzity začína a pri akej končí. Ak je napríklad nastavená žlto-fialová farebná škála od 0 do 20, tak to znamená, že body s intenzitou 0 budú mať žltú farbu, body s intenzitou 20 a vyššou fialovú farbu a body s intenzitou od 1 do 19 kombinovanú farbu.
-
-Pre prehľadnosť bol tiež implementovaný graf, ktorý používateľovi ukazuje relatívne počty bodov s jednotlivými intenzitami a aké majú nastavené farby. Ukážky možných nastavení sú na obrázku \ref{fig:farebna_skala}.
-
-\begin{figure}[h]
-    \centering
-    \includegraphics[width=0.35\linewidth]{text_prace/obrazky-figures/farebna_skala1.png}
-    \includegraphics[width=0.35\linewidth]{text_prace/obrazky-figures/farebna_skala2.png}
-    \includegraphics[width=0.35\linewidth]{text_prace/obrazky-figures/farebna_skala3.png}
-    \includegraphics[width=0.35\linewidth]{text_prace/obrazky-figures/farebna_skala4.png}
-    \caption{Nastaviteľná farebná škála pre mračno bodov. Vodorovná os predstavuje intenzitu, vertikálna os predstavuje počet bodov.}
-    \label{fig:farebna_skala}
-\end{figure}
-
-\section{Implementácia animácie pohybu vlaku}
-\label{sec:implementacia_animacie}
-
-Animácia pohybu vlaku sa vykonáva výhradne na strane klienta, bez komunikácie so serverom. Zabezpečujú ju tri javascriptové funkcie, ktorých definícia sa nachádza v súbore \texttt{visualization.js}: \texttt{runDeckAnimation}, \texttt{stopDeckAnimation} a \texttt{animationStep}.
-
-V tejto sekcii je popísaný princíp fungovania animácie, pre prehľadnosť boli vynechané niektoré menej dôležité implementačné detaily.
-
-Keď používateľ klikne na tlačítko pre prehranie animácie, spustí sa klientsky callback, ktorý vykoná nasledujúci kód:
-
-\begin{lstlisting}
-const video = document.getElementById('background-video');
-window.runDeckAnimation();
-video.play();
-video.onpause = function(){ window.stopDeckAnimation() };
-\end{lstlisting}
-
-Funkcia \texttt{runDeckAnimation} reinicializuje niektoré parametre, ak je to potrebné, a potom zavolá funkciu \texttt{animationStep}.
-
-Funkcia \texttt{animationStep} vykonáva tieto kroky:
-
-\begin{enumerate}
-    \item Najprv zabezpečí, aby sa zavolala znova pri najbližšom vykreslení nového snímku vo videu:
-    \begin{lstlisting}
-const video = document.getElementById('background-video');
-video.requestVideoFrameCallback(animationStep);
-    \end{lstlisting}
-
-    \item Potom na základe časových razítok polôh kamery v mračne bodov a aktuálneho času videa vypočíta aktualizovanú polohu kamery. Ak je to posledná poloha, zastaví video metódou \texttt{pause}.
-
-    \item Ak aplikácia zobrazuje mračno bodov typu real-time, tak následne na základe časových razítok mračna bodov zistí, či by sa nemali zobraziť nejaké nové časti. Vymieňanie častí prebieha efektívnym cyklickým spôsobom, ktorý je znázornený na obrázku \ref{fig:vrstvy_animacia}.
-
-    \item Potom prebehne samotná aktualizácia vizualizácie (v skripte funkcia \texttt{updateDeck}), kedy sa kamera posunie na novú polohu a aktualizujú sa vrstvy (v skripte funkcia \texttt{createLayers}), čím sa posunie prejazdný profil a prípadne sa vymenia časti mračna bodov.
-
-    \item Ako posledné sa aktualizujú prvky v grafickom používateľskom rozhraní, ktoré ukazujú stav animácie -- posuvník, čas a vstupné pole s číslom snímky.
-\end{enumerate}
-
-\begin{figure}[h]
-    \centering
-    \includegraphics[width=0.4\linewidth]{text_prace/obrazky-figures/vrstvy_animacia.pdf}
-    \caption{Schéma cyklického prepisovania deck.gl vrstiev obsahujúcich mračno bodov typu real-time. Vizualizácia obsahuje vždy desať vrstiev, ktoré zobrazujú desať častí mračna bodov. Ak podľa časových razítok má byť zobrazená nejaká nová časť, tak sa prepíše vždy tá najstaršia.}
-    \label{fig:vrstvy_animacia}
-\end{figure}
-
-Animácia sa končí buď tak, že používateľ klikne na tlačítko pre zastavenie animácie, čím sa spustí klientsky callback, ktorý zastaví video metódou \texttt{pause()}, alebo tak, že skončí video, alebo tak, že je dosiahnutá posledná poloha kamery. V každom prípade sa spustí funkcia \texttt{stopDeckAnimation}, pretože bola na začiatku animácie nastavená ako callback pre udalosť zastavenia videa.
-
-Funkcia \texttt{stopDeckAnimation} upovedomí framework Dash o novej hodnote posuvníka, času a vstupného poľa s číslom snímku. Toto sa nevykonáva počas animácie, pretože je to výkonovo náročné.
-
-\section{Implementácia skreslenia}
-
-
-\chapter{Testovanie a evaluácia}
-
-\section{Zobrazenie dodaných dát}
-
-% Užitočná by bola aj možnosť doladiť parametre zobrazovania mračna bodov a vektorových dát (posun aj otočenie kamery doprava/doľava, nahor/nadol, posun dopredu/dozadu), aby bolo možné toto zobrazenie prispôsobiť záznamu z~kamery. Kamera totiž môže byť na vlaku rôzne umiestnená a údaje z~nej môžu byť oproti údajom z~mračna bodov posunuté.
 
 \section{Výkonnosť}
 
