@@ -2,11 +2,11 @@
 project_path = "/home/zmiskanova/Plocha/BP/bakalarka/data"
 
 # point cloud data
-united_pcd_path = "joined/scans.pcd"            # one file with the whole point cloud
-divided_pcd_path = "joined/joined_pcd_files"    # point cloud divided into multiple files
-divided_pcd_filename_prefix = "pcd"
-divided_pcd_files_cnt = 596
-divided_pcd_timestamps_path = "joined/joined_pcl_timestamps.txt"
+postprocess_pcd_path = "joined/scans.pcd"            # one file with the whole point cloud
+realtime_pcd_path = "joined/joined_pcd_files"    # point cloud divided into multiple files
+realtime_pcd_filename_prefix = "pcd"
+realtime_pcd_files_cnt = 596
+realtime_pcd_timestamps_path = "joined/joined_pcl_timestamps.txt"
 
 # video
 video_path = "../assets/video_long_compatible.mp4"

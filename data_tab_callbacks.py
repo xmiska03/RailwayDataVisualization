@@ -96,13 +96,13 @@ def get_callbacks(app):
             data = tomllib.loads(decoded.decode("utf-8"))
 
             # load data from toml file and use them as needed
-            united_pcd_path = os.path.join(data['project_path'], data['united_pcd_path'])
+            united_pcd_path = os.path.join(data['project_path'], data['postprocess_pcd_path'])
             divided_pcd_paths = {
-                "dir_path": os.path.join(data['project_path'], data['divided_pcd_path']),
-                "filename_prefix": data['divided_pcd_filename_prefix'],
-                "files_cnt": data['divided_pcd_files_cnt']
+                "dir_path": os.path.join(data['project_path'], data['realtime_pcd_path']),
+                "filename_prefix": data['realtime_pcd_filename_prefix'],
+                "files_cnt": data['realtime_pcd_files_cnt']
             }
-            pc_timestamps_path = os.path.join(data['project_path'], data['divided_pcd_timestamps_path'])
+            pc_timestamps_path = os.path.join(data['project_path'], data['realtime_pcd_timestamps_path'])
             video_path = os.path.join(data['project_path'], data['video_path'])
             vector_data_path = os.path.join(data['project_path'], data['vector_data_path'])
             translations_path = os.path.join(data['project_path'], data['translations_path'])
