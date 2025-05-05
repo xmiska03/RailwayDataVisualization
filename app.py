@@ -28,14 +28,22 @@ pc_nparray = []
 for i in range(596):
     pc = PointCloud.from_path(f"data/joined/joined_pcd_files/pcd_{i}.pcd")
     pc_nparray.append(pc.numpy(("x", "y", "z", "intensity")))
+    #pc_nparray.append(pc.numpy(("x", "y", "z", "intensity"))[:1])    # for testing
+    #points = np.vstack((pc.numpy(("x", "y", "z", "intensity"))))    # for testing 
+    #pc_nparray.append(points[:1000])
+    
 
 # load unaggregated point cloud timestamps
 pcl_timestamps = load_pcl_timestamps("data/joined/joined_pcl_timestamps.txt")
+#pcl_timestamps = [i * 0.04 for i in range(596)]   # for testing 
 
 # load aggregated point cloud data
 #united_pc = PointCloud.from_path("data/joined/scans.pcd")
 united_pc = PointCloud.from_path("data/joined/joined_pcd_files/pcd_0.pcd")   # for development
 united_pc_nparray = united_pc.numpy(("x", "y", "z", "intensity"))
+#united_pc_nparray = np.vstack((united_pc_nparray, united_pc_nparray))    # for testing 
+#united_pc_nparray = united_pc_nparray[:8000000]    # for testing 
+#print(len(united_pc_nparray))
 
 # load camera parameters
 camera_params_dict = load_yaml_into_dict("data/camera_azd.yaml")
@@ -59,6 +67,7 @@ for rot_raw in rot_nparray_raw:
     rot_inv_nparray.append(rotation_to_inv_matrix(rotation))
 # load timestamps
 timestamps_nparray = load_timestamps_file_into_nparray("data/joined/imu_joined_timestamps.csv")
+#timestamps_nparray = pcl_timestamps    # for testing 
 
 # number of frames to generate
 frames_cnt = trans_nparray.shape[0]

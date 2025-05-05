@@ -145,7 +145,6 @@ def get_callbacks(app):
             return dash_clientside.no_update;
         }
         """,
-        Output('scale-from-input', 'id'),  # dummy output so that the initial call occurs
         Input('scale-boundaries-store', 'data')
     )
 

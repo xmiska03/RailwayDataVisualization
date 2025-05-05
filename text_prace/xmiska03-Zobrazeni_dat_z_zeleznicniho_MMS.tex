@@ -45,6 +45,13 @@
 % Basic packages are at the bottom of template file fitthesis.cls
 % zde můžeme vložit vlastní balíčky / you can place own packages here
 
+\usepackage{listings}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{rotating}
+\hyphenation{view-port}
+\hyphenation{apli-ká-cia}
+\hyphenation{funk-cio-na-li-ty}
 
 % Pro seznam zkratek lze využít balíček Glossaries - nutno odkomentovat i níže a při kompilaci z konzoly i v Makefile (plnou verzi pro Perl, nebo lite)
 % The Glossaries package can be used for the list of abbreviations - it is necessary to uncomment also below. When compiling from the console also in the Makefile (full version for Perl or lite)
@@ -112,8 +119,6 @@
 % Řešení problému, kdy klikací odkazy na obrázky vedou za obrázek
 % This solves the problems with links which leads after the picture
 \usepackage[all]{hypcap}
-\usepackage{listings}
-\hyphenation{view-port}
 
 % Informace o práci/projektu / Information about the thesis
 %---------------------------------------------------------------------------
@@ -223,13 +228,13 @@
   
   % Seznam obrazku a tabulek (pokud prace obsahuje velke mnozstvi obrazku, tak se to hodi)
   % List of figures and list of tables (if the thesis contains a lot of pictures, it is good)
-  %  \ifczech
-  %    \renewcommand\listfigurename{Seznam obrázků}
-  %  \fi
-  %  \ifslovak
-  %   \renewcommand\listfigurename{Zoznam obrázkov}
-  %\fi
-  %{\hypersetup{hidelinks}\listoffigures}
+    \ifczech
+      \renewcommand\listfigurename{Seznam obrázků}
+    \fi
+    \ifslovak
+     \renewcommand\listfigurename{Zoznam obrázkov}
+  \fi
+  {\hypersetup{hidelinks}\listoffigures}
   
   %  \ifczech
   %    \renewcommand\listtablename{Seznam tabulek}

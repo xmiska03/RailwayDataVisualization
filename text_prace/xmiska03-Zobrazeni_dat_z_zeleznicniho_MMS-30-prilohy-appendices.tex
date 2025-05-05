@@ -9,7 +9,36 @@
 
 %\chapter{Manuál}
 
-%\chapter{Konfigurační soubor}
+\chapter{Projektový súbor}
+\label{ch:project_file}
+
+Pre nahrávanie dát do implementovanej aplikácie bol navrhnutý jednoduchý jednoúrovňový projektový súbor vo formáte TOML, ktorého štruktúra je popísaná tabuľkou \ref{tab:projektovy_subor}.
+
+\begin{sidewaystable}
+%\begin{table}
+    \centering
+    \begin{tabular}{>{}p{20em}|>{}p{8em}|>{}p{28em}}
+        Názov premennej & Dátový typ & Popis \\ \hline \hline
+        \texttt{project\_path} & reťazec & Absolútna cesta k~priečinku s~projektom. Všetky ostatné cesty sú relatívne vzhľadom k~tomuto priečinku. \\ \hline
+        \texttt{postprocess\_pcd\_path} & reťazec & Relatívna cesta k~súboru s~mračnom bodov typu postprocess vo formáte \texttt{pcd}. \\ \hline
+        \texttt{realtime\_pcd\_path} & reťazec & Relatívna cesta k~priečinku so súbormi s~mračnom bodov typu realtime vo formáte \texttt{pcd}. \\ \hline
+        \texttt{realtime\_pcd\_filename\_prefix} & reťazec & Prefix názvov týchto súborov\footnote{Jednotlivé súbory musia byť pomenované \texttt{[prefix]\_0.pcd}, \texttt{[prefix]\_1.pcd}, atď.}. \\ \hline
+        \texttt{realtime\_pcd\_files\_cnt} & prirodzené číslo & Počet týchto súborov. \\ \hline
+        \texttt{realtime\_pcd\_timestamps\_path} & reťazec & Relatívna cesta k~súboru s~časovými razítkami mračna bodov typu realtime vo formáte \texttt{txt}\footnote{Každý riadok súboru musí byť vo formáte \texttt{[cislo\_riadku] [casove\_razitko]}.}. \\ \hline
+        \texttt{video\_path} & reťazec & Relatívna cesta k~súboru s~videom vo formáte \texttt{mp4}, s~kódovaním H.264. \\ \hline
+        \texttt{vector\_data\_path} & reťazec & Relatívna cesta k~priečinku so súbormi s~vektorovými dátami vo formáte \texttt{csv}. \\ \hline
+        \texttt{translations\_path} & reťazec & Relatívna cesta k~súboru s~transláciami kamery vo formáte \texttt{csv}. \\ \hline
+        \texttt{rotations\_path} & reťazec & Relatívna cesta k~súboru s~rotáciami kamery vo formáte \texttt{csv}. \\ \hline
+        \texttt{timestamps\_path} & reťazec & Relatívna cesta k~súboru s~časovými razítkami polôh kamery vo formáte \texttt{csv}. \\ \hline
+        \texttt{profile\_translations\_path} & reťazec & Relatívna cesta k~priečinku so súbormi s~transláciami prejazdného profilu vo formáte \texttt{csv}\footnote{Každý riadok súboru musí byť vo formáte \texttt{[x] [y] [z]}. Jednotlivé súbory musia byť pomenované \texttt{[prefix]\_25.csv}, \texttt{[prefix]\_50.csv}, \texttt{[prefix]\_75.csv}, \texttt{[prefix]\_100.csv}.}. \\ \hline
+        \texttt{profile\_translations\_filename\_prefix} & reťazec & Prefix názvov týchto súborov. \\ \hline
+        \texttt{profile\_rotations\_path} & reťazec & Relatívna cesta k~priečinku so súbormi s~rotáciami prejazdného profilu vo formáte \texttt{csv}\footnote{Každý riadok súboru musí byť vo formáte \texttt{[yaw] [pitch] [roll]}.}. \\ \hline
+        \texttt{profile\_rotations\_filename\_prefix} & reťazec & Prefix názvov týchto súborov. \\
+    \end{tabular}
+    \caption{Štruktúra projektového súboru.}
+    \label{tab:projektovy_subor}
+%\end{table}
+\end{sidewaystable}
 
 %\chapter{RelaxNG Schéma konfiguračního souboru}
 

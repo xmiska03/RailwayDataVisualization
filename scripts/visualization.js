@@ -298,7 +298,9 @@ function updatePCLayerProps(visible, point_size, point_color, opacity) {
 function updatePCLayer() {
   createLayers(); // TODO: maybe optimize this so that only the right layers are recreated
 
-  window.deck.setProps({layers: window.layers});
+  if (window.deck.setProps) {
+    window.deck.setProps({layers: window.layers});
+  }
 }
 
 function changePCMode(display_united) {
