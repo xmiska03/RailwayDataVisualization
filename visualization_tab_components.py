@@ -129,7 +129,7 @@ line_color_widget = [
 camera_position_x_widget = [
     dbc.Col(html.Div("Posunutí po osi x: "), width=4),
     dbc.Col(dcc.Input(
-        value=1.52,
+        value=0,
         id="camera-x-slider-input",
         type="range",
         min=-4,
@@ -140,7 +140,7 @@ camera_position_x_widget = [
 camera_position_y_widget = [
     dbc.Col(html.Div("Posunutí po osi y: "), width=4),
     dbc.Col(dcc.Input(
-        value=0.22,
+        value=0,
         id="camera-y-slider-input",
         type="range",
         min=-1,
@@ -151,7 +151,7 @@ camera_position_y_widget = [
 camera_position_z_widget = [
     dbc.Col(html.Div("Posunutí po osi z: "), width=4),
     dbc.Col(dcc.Input(
-        value=0.4,
+        value=0,
         id="camera-z-slider-input",
         type="range",
         min=-1,
@@ -162,7 +162,7 @@ camera_position_z_widget = [
 camera_position_yaw_widget = [
     dbc.Col(html.Div("Otočení doleva/doprava: "), width=4),
     dbc.Col(dcc.Input(
-        value=0.64,
+        value=0,
         id="camera-yaw-slider-input",
         type="range",
         min=-4,

@@ -38,8 +38,8 @@ pcl_timestamps = load_pcl_timestamps("data/joined/joined_pcl_timestamps.txt")
 #pcl_timestamps = [i * 0.04 for i in range(596)]   # for testing 
 
 # load aggregated point cloud data
-#united_pc = PointCloud.from_path("data/joined/scans.pcd")
-united_pc = PointCloud.from_path("data/joined/joined_pcd_files/pcd_0.pcd")   # for development
+united_pc = PointCloud.from_path("data/joined/scans.pcd")
+#united_pc = PointCloud.from_path("data/joined/joined_pcd_files/pcd_0.pcd")   # for development
 united_pc_nparray = united_pc.numpy(("x", "y", "z", "intensity"))
 #united_pc_nparray = np.vstack((united_pc_nparray, united_pc_nparray))    # for testing 
 #united_pc_nparray = united_pc_nparray[:8000000]    # for testing 
@@ -278,7 +278,7 @@ stores = [
 
     dcc.Store(
         id='point-cloud-type-store',  # decides whether the app displays united or divided point cloud data
-        data=False
+        data='divided'
     )
 ] 
 
@@ -460,4 +460,4 @@ profile_tab_callbacks.get_callbacks(app)
 animation_control_callbacks.get_callbacks(app)
 
 if __name__ == "__main__":
-    app.run(debug=True, dev_tools_hot_reload=False)
+    app.run(debug=False, dev_tools_hot_reload=False)
