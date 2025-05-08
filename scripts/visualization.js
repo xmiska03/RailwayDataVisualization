@@ -454,6 +454,22 @@ function stopDeckAnimation() {
   dash_clientside.set_props("current-time-div", {children: label});
 }
 
+// a special accomodation for Google Chrome, to make the animation continue running when
+// the user switches to another window in the browser and then switches back to this window
+// (Chrome stops the animation when the window is not visible)
+document.addEventListener("visibilitychange", () => {
+  // wait 40 ms, because this runs before Chrome makes the animation run again
+  setTimeout(() => {
+    const video = document.getElementById('background-video');
+    console.log("HERE1", document.visibilityState, video.paused, video.ended);
+    if (document.visibilityState === "visible" && !video.paused && !video.ended) {
+      console.log("HERE2");
+      runDeckAnimation();
+      
+    }
+  }, 40);
+});
+
 // make the functions global
 window.initializeDeck = initializeDeck;
 window.changeLayersData = changeLayersData;
