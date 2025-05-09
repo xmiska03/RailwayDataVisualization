@@ -279,17 +279,17 @@ Na začiatku vykresľovacieho reťazca sú body v~lokálnom súradnicovom systé
     kde $w$ a $h$ je výška a šírka obrazu v~pixeloch \cite{ahn_viewport_transform}.
 \end{enumerate}
 
-\begin{figure}[h]
+\begin{figure}[t]
     \centering
-    \includegraphics[width=1\linewidth]{text_prace/obrazky-figures/suradnicove_systemy.png}
-    \caption[Transformácie medzi rôznymi súradnicovými systémami, ktoré sú súčasťou vykresľovacieho reťazca.]{Transformácie medzi rôznymi súradnicovými systémami, ktoré sú súčasťou vykresľovacieho reťazca. Prevzaté z~\cite{de_vries_coordinate_systems}. [PREKRESLIŤ VEKTOROVO]}
+    \includegraphics[width=1\linewidth]{text_prace/obrazky-figures/suradnicove_systemy.pdf}
+    \caption[Transformácie medzi rôznymi súradnicovými systémami, ktoré sú súčasťou vykresľovacieho reťazca.]{Transformácie medzi rôznymi súradnicovými systémami, ktoré sú súčasťou vykresľovacieho reťazca. Prevzaté z~\cite{de_vries_coordinate_systems}.}
     \label{fig:suradnicove_systemy}
 \end{figure}
 
 \begin{figure}[h!]
     \centering
-    \includegraphics[width=0.5\linewidth]{text_prace/obrazky-figures/perspektivna_projekcia_frustum.png}
-    \caption[Frustum u~perspektívnej projekcie.]{\emph{Frustum} -- oblasť v~súradnicovom systéme scény, ktorá bude vo finálnom obraze viditeľná -- u~perspektívnej projekcie. Prevzaté z~\cite{de_vries_coordinate_systems}. [PREKRESLIŤ VEKTOROVO]}
+    \includegraphics[width=0.6\linewidth]{text_prace/obrazky-figures/perspektivna_projekcia_frustum.pdf}
+    \caption[Frustum u~perspektívnej projekcie.]{\emph{Frustum} -- oblasť v~súradnicovom systéme scény, ktorá bude vo finálnom obraze viditeľná -- u~perspektívnej projekcie. Prevzaté z~\cite{de_vries_coordinate_systems}.}
     \label{fig:perspektivna_projekcia_frustum}
 \end{figure}
 
@@ -846,7 +846,7 @@ Preto by mala výsledná aplikácia kombinovať oba prístupy, projektový súbo
 \chapter{Implementácia navrhnutej aplikácie}
 \label{ch:implementacia}
 
-Navrhnutá webová aplikácia je implementovaná v~jazyku Python s~využitím frameworku Dash. Pre optimalizáciu obsahuje aplikácia aj skript napísaný v~jazyku Javascript, ktorý používa pre vykresľovanie mračna bodov a vektorových dát hardvérovo akcelerovaný framework deck.gl a na rozdiel od zvyšku kódu aplikácie sa vykonáva priamo na klientovi. Táto štruktúra je schematicky znázornená na obrázku \ref{fig:schema_implementacie}.
+Navrhnutá webová aplikácia je implementovaná v~jazyku Python s~využitím frameworku Dash. Pre optimalizáciu obsahuje aplikácia aj skript napísaný v~jazyku Javascript, ktorý používa pre vykresľovanie mračna bodov a vektorových dát hardvérovo akcelerovaný framework deck.gl a na rozdiel od zvyšku kódu aplikácie sa vykonáva priamo na klientovi. Táto štruktúra je schematicky znázornená na obrázku \ref{fig:schema_implementacie}. Snímka obrazovky finálnej implementácie je na obrázku \ref{fig:screenshot}.
 
 Vizuálny štýl používateľského rozhrania čiastočne zabezpečuje knižnica Dash Bootstrap Components, čiastočne je dodefinovaný pomocou CSS.
 
@@ -860,16 +860,23 @@ Zdrojový kód je rozdelený do nasledujúcich súborov:
     \item \texttt{visualization.js} -- Vizualizácia mračna bodov a vektorových dát pomocou frameworku deck.gl, riadenie animácie pohybu vlaku. Činnosť tohto skriptu je podrobnejšie popísaná v~sekciách \ref{sec:vrstvy} a \ref{sec:implementacia_animacie}. Pre pripojenie skriptu k~aplikácii tak, aby sa pripojili aj zdrojové kódy frameworku deck.gl, bolo nutné použiť bundler. V~rámci tejto práce bol použitý bundler Webpack. K~aplikácii sa teda nepripája priamo skript \texttt{visualization.js}, ale modul \texttt{bundle.mjs}, ktorý vytvára bundler a sú v~ňom zahrnuté aj zdrojové kódy frameworku deck.gl. Je nutné použiť modul namiesto obyčajného skriptu, pretože mimo modulu nie je v~jazyku JavaScript možné použiť deklaráciu \texttt{import}, ktorá je nutná pre pripojenie zdrojových kódov frameworku deck.gl. 
 \end{itemize}
 
-\section{Popis modulov}
-
-Táto sekcia sa venuje podrobnejšiemu popisu niektorých modulov.
-
 \begin{figure}[t]
     \centering
     \includegraphics[width=0.7\linewidth]{text_prace/obrazky-figures/schema_implementacie.pdf}
     \caption{Schéma finálnej implementácie.}
     \label{fig:schema_implementacie}
 \end{figure}
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=1\linewidth]{text_prace/obrazky-figures/screenshot.png}
+    \caption{Snímka obrazovky finálnej implementácie.}
+    \label{fig:screenshot}
+\end{figure}
+
+\section{Popis modulov}
+
+Táto sekcia sa venuje podrobnejšiemu popisu niektorých modulov.
 
 \subsubsection{Hlavný modul \newline {\normalsize \textmd{(súbor \texttt{app.py})}}}
 
