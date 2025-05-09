@@ -40,14 +40,14 @@ Princíp zobrazenia je nasledovný: obrazom bodu $\mathbf{X} = (X, Y, Z)^T$ je b
 \begin{figure}[h!]
     \centering
     \includegraphics[width=0.7\linewidth]{text_prace/obrazky-figures/model_kamery1.pdf}
-    \caption[Zakladný princíp dierkového modelu kamery.]{Zakladný princíp dierkového modelu kamery \cite{multiple_view_geometry}.}
+    \caption[Zakladný princíp dierkového modelu kamery.]{Zakladný princíp dierkového modelu kamery. Prevzaté z~\cite{multiple_view_geometry}.}
     \label{fig:model_kamery1}
 \end{figure}
 
 \begin{figure}[h!]
     \centering
     \includegraphics[width=0.7\linewidth]{text_prace/obrazky-figures/model_kamery2.pdf}
-    \caption[Náčrt odvodenia súradníc zobrazovaného bodu u~dierkového modelu kamery.]{Náčrt odvodenia súradníc bodu $\mathbf{x}$ \cite{multiple_view_geometry}.}
+    \caption[Náčrt odvodenia súradníc zobrazovaného bodu u~dierkového modelu kamery.]{Náčrt odvodenia súradníc bodu $\mathbf{x}$. Prevzaté z~\cite{multiple_view_geometry}.}
     \label{fig:model_kamery2}
 \end{figure}
 
@@ -143,7 +143,7 @@ $\mathrm{P} = \begin{bmatrix} \mathrm{K} | 0 \end{bmatrix}$, kde $0$ predstavuje
 \begin{figure}[h!]
     \centering
     \includegraphics[width=0.7\linewidth]{text_prace/obrazky-figures/model_kamery3.pdf}
-    \caption[Súradnicový systém so stredom v~bode $(-p_x, -p_y, f)^T$ obrazovej roviny.]{Súradnicový systém so stredom v~bode $(-p_x, -p_y, f)^T$ obrazovej roviny \cite{multiple_view_geometry}.}
+    \caption[Súradnicový systém so stredom v~bode $(-p_x, -p_y, f)^T$ obrazovej roviny.]{Súradnicový systém so stredom v~bode $(-p_x, -p_y, f)^T$ obrazovej roviny. Prevzaté z~\cite{multiple_view_geometry}.}
     \label{fig:model_kamery3}
 \end{figure}
 
@@ -282,14 +282,14 @@ Na začiatku vykresľovacieho reťazca sú body v~lokálnom súradnicovom systé
 \begin{figure}[h]
     \centering
     \includegraphics[width=1\linewidth]{text_prace/obrazky-figures/suradnicove_systemy.png}
-    \caption[Transformácie medzi rôznymi súradnicovými systémami, ktoré sú súčasťou vykresľovacieho reťazca.]{Transformácie medzi rôznymi súradnicovými systémami, ktoré sú súčasťou vykresľovacieho reťazca \cite{de_vries_coordinate_systems}. [PREKRESLIŤ VEKTOROVO]}
+    \caption[Transformácie medzi rôznymi súradnicovými systémami, ktoré sú súčasťou vykresľovacieho reťazca.]{Transformácie medzi rôznymi súradnicovými systémami, ktoré sú súčasťou vykresľovacieho reťazca. Prevzaté z~\cite{de_vries_coordinate_systems}. [PREKRESLIŤ VEKTOROVO]}
     \label{fig:suradnicove_systemy}
 \end{figure}
 
 \begin{figure}[h!]
     \centering
     \includegraphics[width=0.5\linewidth]{text_prace/obrazky-figures/perspektivna_projekcia_frustum.png}
-    \caption[Frustum u~perspektívnej projekcie.]{\emph{Frustum} -- oblasť v~súradnicovom systéme scény, ktorá bude vo finálnom obraze viditeľná -- u~perspektívnej projekcie \cite{de_vries_coordinate_systems}. [PREKRESLIŤ VEKTOROVO]}
+    \caption[Frustum u~perspektívnej projekcie.]{\emph{Frustum} -- oblasť v~súradnicovom systéme scény, ktorá bude vo finálnom obraze viditeľná -- u~perspektívnej projekcie. Prevzaté z~\cite{de_vries_coordinate_systems}. [PREKRESLIŤ VEKTOROVO]}
     \label{fig:perspektivna_projekcia_frustum}
 \end{figure}
 
@@ -526,7 +526,7 @@ Vizualizácia dát v~deck.gl sa skladá z~dvoch základných častí:
 
 To, že sa deck.gl na vizualizáciu dát z~mobilného mapovacieho systému naozaj hodí, dokazujú ukážky na jeho webových stránkach. Použiteľnosť vrstvy \texttt{PointCloudLayer} demonštruje plynulá animácia mračna vyše 800~000 bodov.
 
-Na webových stránkach deck.gl sa nachádza aj galéria projektov vytvorených pomocou tohto frameworku. Medzi nimi je Autonomous Visualization System, toolkit pre vývoj webových aplikácií pre vizualizáciu dát z~autonómnych vozidiel \cite{avs}. Na webových stránkach tohto projektu je ukážka takej aplikácie, ktorá zobrazuje vozidlo, dáta z~lidaru, vektorové dáta, ako napríklad trasu vozidla, a záznam z~kamery. To je veľmi podobné aplikácii vyvíjanej v~rámci tejto práce, ale je tu niekoľko rozdielov. Poprvé, mračno bodov nie je agregované, a teda sa v~každom kroku animácie zobrazuje iba v~tom momente nasnímaná časť, a podruhé, kamerový záznam sa zobrazuje oddelene, a nie na pozadí mračna bodov a vektorových dát.
+Na webových stránkach deck.gl sa nachádza aj galéria projektov vytvorených pomocou tohto frameworku. Medzi nimi je Autonomous Visualization System (AVS), toolkit pre vývoj webových aplikácií pre vizualizáciu dát z~autonómnych vozidiel \cite{avs}. Na webových stránkach tohto projektu je ukážka takej aplikácie, ktorá je podobná aplikácii vyvíjanej v~rámci tejto práce. Bližší popis AVS sa nachádza v~sekcii \ref{sec:existujuce_riesenia}.
 
 Hoci je framework deck.gl primárne určený pre použitie v~Javascripte, je možné ho použiť aj v~jazyku Python, a to pomocou knižnice \textbf{Pydeck}. Tá je pomerne jednoduchá a podstatou jej činnosti je, že prevedie kód napísaný v~jazyku Python do formátu JSON. Framework deck.gl má totiž modul @deck.gl/json, ktorý prijíma reprezentáciu vizualizácie vo formáte JSON a transformuje ju do javascriptového kódu (na definície funkcií a deck.gl objektov)\footnote{Ukážka rozhrania modulu @deck.gl/json je na \url{https://deck.gl/playground}.}.
 
@@ -747,6 +747,33 @@ Existujú dva typy callbackov.
 Je zrejmé, že klientske callbacky sú efektívnejšie než tie obyčajné, pretože ich nespomaľuje réžia komunikácie so serverom. Najvýraznejšie sa to prejaví vtedy, keď vstupy alebo výstupy obsahujú veľké množstvo dát.
 
 K~aplikácii vytvorenej pomocou frameworku Dash je možné pridať vlastné štýlové predpisy a skripty alebo moduly v~jazyku JavaScript. Je potrebné uložiť ich do priečinka s~názvom \texttt{assets} v~koreňovom priečinku aplikácie. Rovnako je nutné postupovať aj pri vkladaní obrázkov a videí. Všetky štýlové predpisy, skripty a moduly z~priečinka \texttt{assets} Dash automaticky načítava a pripája k~aplikácii \cite{dash_documentation}.
+
+\section{Existujúce riešenia}
+\label{sec:existujuce_riesenia}
+
+Existujúce systémy podobné vyvíjanému systému by sa dali rozdeliť do dvoch kategórií.
+
+Prvou kategóriu sú systémy určené na vizualizáciu dát z~mobilných mapovacích systémov. Bývajú väčšinou komerčné a zobrazujú dáta agregované a spojené do väčších celkov. Príkladom môže byť napríklad robustná platforma Orbit od spoločnosti Bentley \cite{orbit}. Na jej webovej stránke sa však nachádza aj ukážka zobrazenia, ktoré má veľmi blízko k~aplikácii vyvíjanej v~rámci tejto práce, pretože zobrazuje mračno bodov ako vrstvu nad záznamom z~kamery (obr. \ref{fig:orbit}).
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.6\linewidth]{text_prace/obrazky-figures/Orbit.jpg}
+    \caption[Ukážka z~webovej stránky platformy Orbit.]{Ukážka z~webovej stránky platformy Orbit, na ktorej je mračno bodov zobrazené ako vrstva nad záznamom z~kamery. Prevzaté z~\cite{orbit}.}
+    \label{fig:orbit}
+\end{figure}
+
+Druhou kategóriou sú systémy zamerané na vizualizáciu dát z~autonómnych vozidiel a robotov, ktoré taktiež často zobrazujú mračno bodov, záznam z~kamery a vektorové dáta, ale sú zamerané skôr na zobrazenie dát v~reálnom čase. 
+
+Sem patrí napríklad Autonomous Visualization System (AVS), toolkit pre vývoj webových aplikácií pre vizualizáciu dát z~autonómnych vozidiel, ktorý sa skladá z~dvoch častí: prenosového protokolu XVIZ a toolkitu pre vizualizáciu dát streetscape.gl \cite{avs}. Ukážka aplikácie vytvorenej pomocou toolkitu AVS na webových stránkach tohto projektu je veľmi podobná ukážke na stránkach komerčnej platformy Foxglove, ktorá vizualizuje dáta z~robotov a autonómnych systémov (obr. \ref{fig:foxglove}) \cite{foxglove}. Obe zobrazujú dáta z~autonomného vozidla, ktoré sa skladajú z~neagregovaného mračna bodov, vektorových označení ostatných identifikovaných vozidiel a záznamu z~kamery v~osobitnom okne.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=1\linewidth]{text_prace/obrazky-figures/Foxglove.png}
+    \caption[Ukážka z~webovej stránky platformy Foxglove.]{Ukážka z~webovej stránky platformy Foxglove, ktorá zobrazuje lidarové a kamerové dáta z~autonómneho automobilu spoločne s~vektorovými dátami. Prevzaté z~\cite{foxglove}.}
+    \label{fig:foxglove}
+\end{figure}
+
+Okrem toho ešte existuje množstvo komerčných aj voľne dostupných nástrojov, ktoré sú zamerané na zobrazenie a prácu s~mračnami bodov, z~ktorých niektoré dokážu zobraziť aj vektorové dáta, ako napríklad program CloudCompare.
 
 \chapter{Návrh aplikácie}
 \label{ch:navrh}
@@ -1231,7 +1258,7 @@ Celkovým záverom z~tohto testovania je, že animácia má dobrú výkonnosť, 
         { }$5\times10^3$ & 25 & 48-53 & 80-110 \\
         $10\times10^3$ & 25 & 47-52 & 90-120 \\
     \end{tabular}
-    \caption{Výkonnosť vykresľovania mračna bodov typu real-time \emph{bez výpočtu skreslenia} v~závislosti od počtu bodov v~jednej časti mračna bodov a frekvencie snímania týchto častí lidarom. Frekvencia zmien polohy kamery bola pri testovaní totožná s frekvenciou snímania. V~dodaných dátach bolo v~jednej časti priemerne 2615 bodov a frekvencia snímania bola približne 10 častí za sekundu.}
+    \caption{Výkonnosť vykresľovania mračna bodov typu real-time \emph{bez výpočtu skreslenia} v~závislosti od počtu bodov v~jednej časti mračna bodov a frekvencie snímania týchto častí lidarom. Frekvencia zmien polohy kamery bola pri testovaní totožná s~frekvenciou snímania. V~dodaných dátach bolo v~jednej časti priemerne 2615 bodov a frekvencia snímania bola približne 10 častí za sekundu.}
     \label{tab:vykonnost_realtime}
 \end{table}
 
@@ -1252,11 +1279,26 @@ Závery boli nasledujúce:
 
 Prvé dva body boli vyriešené, tretí nie, pretože je implementačne náročnejší.
 
-Druhá etapa testovania mala [x] účastníkov a prebiehala pomocou dotazníka. Používatelia dostali štyri úlohy, ktoré sa mali pokúsiť pomocou aplikácie vyriešiť, a potom v~dotazníku odpovedať na otázky ohľadom toho, či sa im s~aplikáciou dobre pracovalo a či sa im podarilo splniť zadané úlohy.
-
-[...popis system usability scale, zhrnutie výsledkov, vyhodnotenie]
+Druhá etapa testovania mala jedenásť dobrovoľných účastníkov a prebiehala pomocou dotazníka. Používatelia dostali štyri úlohy, ktoré sa mali pokúsiť pomocou aplikácie vyriešiť, a potom vyplniť~dotazník. Úlohy boli zámerne jednoduché, pretože ich cieľom bolo iba to, aby si účastníci vyskúšali prácu s~aplikáciou.
 
 Nedokonalosťou testovania bola skutočnosť, že používatelia, s~ktorými bola aplikácia testovaná, neboli cieľovými používateľmi, teda ľuďmi, ktorí pracujú s~dátami z~mobilných mapovacích systémov, ale na túto skutočnosť bol braný ohľad a veci, ktoré by im mohli byť nejasné, boli vysvetlené.
+
+Prvou časťou dotazníka bolo meranie použiteľnosti metódou \emph{System Usability Scale} (SUS). Táto metóda je rýchla a jednoduchá a zakladá sa na desiatich tvrdeniach, na ktoré účastník testovania vyberá odpoveď v~rozmedzí \uv{rozhodne nesúhlasím -- skôr nesúhlasím -- neviem -- skôr súhlasím -- rozhodne súhlasím}. Tvrdenia sú usporiadané tak, že sa striedajú tie, na ktoré majú účastníci tendenciu odpovedať skôr kladne a tie, na ktoré majú tendenciu odpovedať skôr záporne, čo ich núti neodpovedať mechanicky a skutočne sa nad každým tvrdením zamyslieť. Odpovede sa následne obodujú a spočíta sa skóre od 0 do 100 \cite{brooke_sus}.
+
+Podľa článku J. Saura na stránke spoločnosti MeasuringU sa SUS stalo široko používanou metódou a systémy dosahujú priemerné SUS skóre 68 \cite{sauro_sus}. Testovaná aplikácia získala skóre 78,2, čo podľa grafu publikovaného v~tomto článku zodpovedá približne percentilu 82, a je to teda nadpriemerný výsledok.
+
+V~druhej časti dotazníka mali účastníci testovania priestor na napísanie postrehov a návrhov na vylepšenia. Podali nasledovné návrhy:
+\begin{enumerate}
+    \item panel nástrojov by mal byť implicitne otvorený akebo lepšie zviditeľnený ($3\times$),
+    \item aplikácia by mala obsahovať nápovedy ($2\times$),
+    \item pridanie ovládania pomocou klávesnice,
+    \item zobrazenie \uv{progress baru} pri načítaní,
+    \item pridanie legendy ku grafu,
+    \item skrytie nastavení farieb a hrúbok čiar, pretože to nie je dôležitá vlastnosť,
+    \item pridanie prednastavených módov.
+\end{enumerate}
+
+Jeden účastník upozornil na chybu, ktorú sa podarilo reprodukovať v~prehliadači Google Chrome a následne opraviť.
 
 \chapter{Záver}
 
@@ -1268,7 +1310,7 @@ Pre zjednodušenie nahrávania dát do aplikácie bol navrhnutý špeciálny pro
 
 Výsledná aplikácia má dobrú výkonnosť s~výnimkou výpočtu skreslenia. U~mračna bodov typu postprocess sa výkon začína zhoršovať u~nižších jednotiek miliónov bodov a aplikácia zvládne mračná bodov do maximálnej veľkosti 8 miliónov bodov. Aplikácia spĺňa v~dostatočnej miere všetky vlastnosti popísané v~návrhu.
 
-[zhrnutie výsledkov testovania]
+Aplikácia bola testovaná s~použitím metódy \emph{System Usability Scale}. Testovanie zahŕňalo jedenásť účastníkov, ktorí dali aplikácii nadpriemerné hodnotenie a navyše poskytli aj užitočné podnety na jej ďalšie zlepšenie.
 
 V~práci by bolo možné pokračovať pridaním možnosti zobrazovať dáta streamované v~reálnom čase. Existuje ešte mnoho možných zlepšení funkcionality aj používateľského rozhrania, napríklad rozšírenie možností nahrávania dát, umožnenie nastavenia farebnej škály klikaním do grafu, filtrácia mračna bodov a optimalizácia výpočtu skreslenia. Hodilo by sa pridať validáciu nahrávaných dát a upozorniť používateľa chybovou hláškou, ak nahrá dáta v~nesprávnom formáte.
 
@@ -1278,3 +1320,4 @@ V~dlhodobejšom horizonte by bolo možné prácu rozšíriť okrem vizualizácie
 
 % Pro kompilaci po částech (viz projekt.tex) nutno odkomentovat
 %\end{document}
+
