@@ -1,65 +1,133 @@
+/**
+ * @fileoverview Creates and manages the deck.gl visualization and the train movement animation.
+ * @module Visualization
+ */
 import {Deck, FirstPersonView} from '@deck.gl/core';
 import {PathLayer, PointCloudLayer} from '@deck.gl/layers';
 
+/**
+ * Whether the visualization (Deck object window.deck) is already initialized.
+ * @type {boolean}
+ */
 window.deck_initialized = false;
+/**
+ * Number of available positions.
+ * @type {number}
+ */
 window.frames_cnt = 500;
+/**
+ * Current position.
+ * @type {number}
+ */
 window.position = 0;
+/**
+ * Current position in point cloud chunks.
+ * @type {number}
+ */
 window.pcl_position = 0;
+/**
+ * Whether the animation is currently running.
+ * @type {boolean}
+ */
 window.animation_running = false;
-window.profile_distance = '25';   // 25 meters
-window.scale_from = 0;          // boundaries of the point cloud color scale
-window.scale_to = 18;
-window.scale_middle = 9;
-window.camera_offset_x = 0;     // camera offset set manually by the user
-window.camera_offset_y = 0;
-window.camera_offset_z = 0;
-window.camera_offset_yaw = 0;
-window.camera_offset_pitch = 0;
-window.camera_offset_roll = 0;
-window.display_united = false;    // diplay united point cloud data
-window.curr_pcl_layers_cnt = 10;  // how many point cloud layer are displayed currently
-window.pcl_layers_cnt = 10;       // how many point cloud layer are displayed when displaying ununited pc
-
+/**
+ * Currently picked train profile distance in meters. Either '25', '50', '75' or '100'.
+ * @type {string}
+ */
+window.profile_distance = '25';
+/**
+ * Boundaries of the color scale for the point cloud - [from, middle, to].
+ * @type {number[]}
+ */
+window.scale_boundaries = [0, 10, 20];          // boundaries of the point cloud color scale
+/**
+ * Custom camera offset set by the user - [x, y, z, yaw, pitch, roll].
+ * @type {number[]}
+ */
+window.camera_offset = [0, 0, 0, 0, 0, 0];
+/**
+ * Whether to display united (postprocess) point cloud data.
+ * @type {boolean}
+ */
+window.display_united = false;
+/**
+ * The current number of point cloud layers.
+ * @type {number}
+ */
+window.curr_pcl_layers_cnt = 10;
+/**
+ * Number of point cloud layers when displaying the divided ("real-time") point cloud.
+ * @type {number}
+ */
+window.pcl_layers_cnt = 10;
+/**
+ * Numbers of the currently displayed point cloud chunks.
+ * Used when displaying the divided ("real-time") point cloud.
+ * @type {number[]}
+ */
 let pcl_layers_positions = new Array(window.curr_pcl_layers_cnt).fill(0);
-let pcl_layers_index = 0;  // marks the oldest data which are to be replaced
+/**
+ * Index of the layer with the oldest point cloud chunk, which will be replaced next.
+ * @type {number}
+ */
+let pcl_layers_index = 0;
 
-// color scales - mapping point intensity to colors
-// red - green - blue (from greatest to lowest intensity)
+
+
+/**
+ * Maps point intensity to a color on the blue-green-red color scale.
+ * @param {number[]} d - The point data in format [x, y, z, intensity].
+ */
 function getColorBGR(d) {
-  if (d[3] < window.scale_from) {
+  if (d[3] < window.scale_boundaries[0]) {
     return [0, 0, 255]   // under the scale - blue
-  } else if (d[3] > window.scale_to) {
+  } else if (d[3] > window.scale_boundaries[2]) {
     return [255, 0, 0]   // over the scale - red
-  } else if (d[3] < window.scale_middle) {   // on the scale
+  } else if (d[3] < window.scale_boundaries[1]) {   // on the scale
     return [
       0, 
-      Math.floor((d[3] - window.scale_from) / (window.scale_middle - window.scale_from) * 255),
-      Math.floor(255 - (d[3] - window.scale_from) / (window.scale_middle - window.scale_from) * 255)
+      Math.floor(255 * (d[3] - window.scale_boundaries[0]) 
+                  / (window.scale_boundaries[1] - window.scale_boundaries[0])),
+      Math.floor(255 - 255 * (d[3] - window.scale_boundaries[0]) 
+                        / (window.scale_boundaries[1] - window.scale_boundaries[0]))
     ]
   } else {
     return [
-      Math.floor((d[3] - window.scale_middle) / (window.scale_to - window.scale_middle) * 255),
-      Math.floor(255 - (d[3] - window.scale_middle) / (window.scale_to - window.scale_middle) * 255),
+      Math.floor(255 * (d[3] - window.scale_boundaries[1]) 
+                  / (window.scale_boundaries[2] - window.scale_boundaries[1])),
+      Math.floor(255 - 255 * (d[3] - window.scale_boundaries[1])
+                        / (window.scale_boundaries[2] - window.scale_boundaries[1])),
       0
     ]
   }
 }
 
+
+/**
+ * Maps point intensity to a color on the yellow-purple color scale.
+ * @param {number[]} d - The point data in format [x, y, z, intensity].
+ */
 function getColorYP(d) {
-  if (d[3] < window.scale_from) {
+  if (d[3] < window.scale_boundaries[0]) {
     return [255, 255, 0]   // under the scale - yellow
-  } else if (d[3] > window.scale_to) {
+  } else if (d[3] > window.scale_boundaries[2]) {
     return [255, 0, 255]   // over the scale - purple
   } else {     // on the scale
     return [
       255,
-      Math.floor(255 - (d[3] - window.scale_from) / (window.scale_to - window.scale_from) * 255),
-      Math.floor((d[3] - window.scale_from) / (window.scale_to - window.scale_from) * 255)
+      Math.floor(255 - 255 * (d[3] - window.scale_boundaries[0]) 
+                        / (window.scale_boundaries[2] - window.scale_boundaries[0])),
+      Math.floor(255 * (d[3] - window.scale_boundaries[0]) 
+                  / (window.scale_boundaries[2] - window.scale_boundaries[0]))
     ]
   }
 }
 
-// converts train profile distance (in meters) to index in paths data and transformations data
+
+/**
+ * Converts train profile distance in meters to an index in the paths data and transformations data.
+ * @param {string} profile_dist - Either '25', '50', '75' or '100'.
+ */
 function profile_distance_to_index(profile_dist) {
   let i = 0;  // default is '25'
   switch (window.profile_distance) {
@@ -77,7 +145,11 @@ function profile_distance_to_index(profile_dist) {
 }
 
 
-// transformation for the train profile
+/**
+ * Applies transformations to the train profile.
+ * A data accessor for the train profile layer.
+ * @param {Array<[number, number, number]>} d - The shape of the train profile (an array of points).
+ */
 function profileGetPath(d) {
   const n = profile_distance_to_index(window.profile_distance);
   
@@ -86,7 +158,6 @@ function profileGetPath(d) {
   
   const points = new Array(d.length);
   for (let i = 0; i < d.length; i++) {
-    //window.profile_transf[0] - 25m distance
     const x = d[i][0] * window.profile_transf[n][pos][0][0] + d[i][1] * window.profile_transf[n][pos][0][1] + d[i][2] * window.profile_transf[n][pos][0][2] + window.profile_transf[n][pos][0][3];
     const y = d[i][0] * window.profile_transf[n][pos][1][0] + d[i][1] * window.profile_transf[n][pos][1][1] + d[i][2] * window.profile_transf[n][pos][1][2] + window.profile_transf[n][pos][1][3];
     const z = d[i][0] * window.profile_transf[n][pos][2][0] + d[i][1] * window.profile_transf[n][pos][2][1] + d[i][2] * window.profile_transf[n][pos][2][2] + window.profile_transf[n][pos][2][3];
@@ -96,8 +167,11 @@ function profileGetPath(d) {
   return points;
 }
 
-// definifions of the layers
 
+/**
+ * Creates a point cloud layer for the deck.gl visualization.
+ * @param {number} n - The index of the layer.
+ */
 function createPointCloudLayer(n) {
   return new PointCloudLayer({
     id: `point-cloud-layer${n}`,
@@ -112,11 +186,16 @@ function createPointCloudLayer(n) {
     pointSize: window.data_dict.layers[0].pointSize,
     visible: window.data_dict.layers[0].visible,
     updateTriggers: {      // needed when changing getPosition or getColor (data accessors)
-      getColor: [window.scale_from, window.scale_to, window.data_dict.layers[0].pointColor]
+      getColor: [window.scale_boundaries[0], window.scale_boundaries[2], 
+                 window.data_dict.layers[0].pointColor]
     }
   });
 }
 
+
+/**
+ * Creates a layer with the line through train profile positions for the deck.gl visualization.
+ */
 function createProfileLineLayer() {
   return new PathLayer({
     id: 'profile-line-layer',
@@ -132,6 +211,9 @@ function createProfileLineLayer() {
   });
 }
 
+/**
+ * Creates a layer with the train profile for the deck.gl visualization.
+ */
 function createProfileLayer() {
   return new PathLayer({
     id: 'profile-layer',
@@ -151,6 +233,9 @@ function createProfileLayer() {
   });
 }
 
+/**
+ * Creates a layer with the vector data for the deck.gl visualization.
+ */
 function createVectorLayer() {
   return new PathLayer({
     id: 'vector-layer',
@@ -166,8 +251,10 @@ function createVectorLayer() {
   });
 }
 
+/**
+ * Creates all the layers for the deck.gl visualization.
+ */
 function createLayers() {
-  // (re)create all the layers
   window.layers = new Array(window.curr_pcl_layers_cnt + 2);
 
   for (let i = 0; i < window.curr_pcl_layers_cnt; i++) {
@@ -178,8 +265,20 @@ function createLayers() {
   window.layers[window.curr_pcl_layers_cnt + 2] = createVectorLayer();
 }
 
-// used for initializing the visualization
-// and also reinitializing when new point cloud data is uploaded 
+/**
+ * Recreates all the layers and updates the visualization.
+ */
+function updateLayers() {
+  createLayers();
+
+  if (window.deck.setProps) {
+    window.deck.setProps({layers: window.layers});
+  }
+}
+
+/**
+ * Initializes the deck.gl visualization.
+ */
 function initializeDeck() {
 
   if (window.profile_transf == null) {
@@ -193,8 +292,8 @@ function initializeDeck() {
     controller: window.data_dict.views[0].controller
   });
 
-  // the context is created manually to specify "preserveDrawingBuffer: true".
-  // that is needed to enable reading the pixels of the visualisation for applying distortion.
+  // The context is created manually to specify "preserveDrawingBuffer: true".
+  // That is needed to enable reading the pixels of the visualisation for applying distortion.
   const canvas = document.getElementById("visualization-canvas");
   const context = canvas.getContext("webgl2", { preserveDrawingBuffer: true, premultipliedAlpha: false });
 
@@ -210,7 +309,7 @@ function initializeDeck() {
       // https://deviceandbrowserinfo.com/learning_zone/articles/webgl_renderer_values
       if (renderer.includes('llvmpipe') || renderer.includes('SwiftShader')) {
         window.alert(
-          'V tomto prohlížeči není aktivována hardwarová akcelerace grafiky. '
+          'V tomto prohlížeči není přístupná hardwarová akcelerace grafiky. '
           + 'Vykreslování většího množství dat bude probíhat pomalu.'
         )
       }
@@ -218,11 +317,12 @@ function initializeDeck() {
   });
 
   updateDeck();
-
   window.deck_initialized = true;
 }
 
-// in case that we are not displaying united point cloud, point cloud data needs to be changed with position
+/**
+ * Calculates which point cloud chunks should be displayed at the current position.
+ */
 function changeLayersData() {
   if (!window.display_united) {
     // find current position in point cloud timestamps
@@ -232,7 +332,7 @@ function changeLayersData() {
       window.pcl_position++;
     }
 
-    // display point cloud data corresponding to current position and 10 positions backwards (if they exist)
+    // display point cloud data corresponding to current position and 9 positions backwards (if they exist)
     // for example if window.pcl_position == 7, pcl_layers_position will be [0, 0, 0, 1, 2, 3, 4, 5, 6, 7]
     let pos = window.pcl_position;
     for (let i = window.curr_pcl_layers_cnt - 1; i >= 0; i--) {
@@ -246,19 +346,19 @@ function changeLayersData() {
   }
 }
 
-// to change camera position
+/**
+ * Changes camera position.
+ * The final position of the virtual camera is a combination of:
+   1. the current position of the train (determined by the window.position variable, data is in arrays 
+      window.translations, window.rotations_inv, window.rotations_euler),
+   2. custom camera offset set by the user (window.camera_offset).
+ */
 function updateDeck() {
-  /*
-  The final position of the virtual camera is a combination of:
-    - custom camera offset set by the user (window.camera_offset_*)
-    - current position of the train (determined by the window.position variable, data is in arrays 
-      window.translations, window.rotations_inv, window.rotations_euler)
-  */
   const pos = window.position;
 
-  const offset_x = window.camera_offset_x;
-  const offset_y = window.camera_offset_y;
-  const offset_z = window.camera_offset_z;
+  const offset_x = window.camera_offset[0];
+  const offset_y = window.camera_offset[1];
+  const offset_z = window.camera_offset[2];
   const sum_x = offset_x + window.rotations[pos][0][0] * window.translations[pos][0] + window.rotations[pos][0][1] * window.translations[pos][1] + window.rotations[pos][0][2] * window.translations[pos][2];
   const sum_y = offset_y + window.rotations[pos][1][0] * window.translations[pos][0] + window.rotations[pos][1][1] * window.translations[pos][1] + window.rotations[pos][1][2] * window.translations[pos][2];
   const sum_z = offset_z + window.rotations[pos][2][0] * window.translations[pos][0] + window.rotations[pos][2][1] * window.translations[pos][1] + window.rotations[pos][2][2] * window.translations[pos][2];
@@ -270,8 +370,8 @@ function updateDeck() {
 
   // make a new viewstate from the new position
   const INITIAL_VIEW_STATE = {
-    bearing: 90 + window.rotations_euler[pos][0] + window.camera_offset_yaw,
-    pitch: window.rotations_euler[pos][1] + window.camera_offset_pitch,
+    bearing: 90 + window.rotations_euler[pos][0] + window.camera_offset[4],
+    pitch: window.rotations_euler[pos][1] + window.camera_offset[5],
     position: [final_x, final_y, final_z]
   };
   window.deck.setProps({initialViewState: INITIAL_VIEW_STATE});
@@ -279,32 +379,34 @@ function updateDeck() {
   // add roll angle by rotating the canvas
   const canvas = document.getElementById('visualization-canvas');
   const dist_canvas = document.getElementById("distorted-visualization-canvas");
-  const transform = `rotate(${ window.window.rotations_euler[pos][2] + window.camera_offset_roll }deg)`;
+  const transform = `rotate(${ window.window.rotations_euler[pos][2] + window.camera_offset[5] }deg)`;
   canvas.style.transform = transform;
   dist_canvas.style.transform = transform;
-  createLayers();  // TODO: maybe optimize this so that only the right layers are recreated (only profile here)
+  createLayers();
 
   window.deck.setProps({layers: window.layers});
 }
 
 
-// to change point cloud visibility, point size or opacity
+/**
+ * Changes point cloud visibility, point size and opacity.
+ * @param {boolean} visible - Whether the layer should be visible.
+ * @param {number} point_size - Point size.
+ * @param {string} point_color - Color scale, either 'bgr' or 'yp'.
+ * @param {number} opacity - Opacity of the layer.
+ */
 function updatePCLayerProps(visible, point_size, point_color, opacity) {
   window.data_dict.layers[0].visible = visible;
   window.data_dict.layers[0].pointSize = parseInt(point_size, 10);
   window.data_dict.layers[0].pointColor = point_color;
   window.data_dict.layers[0].opacity = parseFloat(opacity);
-  updatePCLayer();
+  updateLayers();
 }
 
-function updatePCLayer() {
-  createLayers(); // TODO: maybe optimize this so that only the right layers are recreated
-
-  if (window.deck.setProps) {
-    window.deck.setProps({layers: window.layers});
-  }
-}
-
+/**
+ * Switches between point cloud types - united (postprocess) or divided ("real-time").
+ * @param {boolean} display_united - True if the visualization should display the united point cloud.
+ */
 function changePCMode(display_united) {
   window.display_united = display_united;
   
@@ -312,34 +414,37 @@ function changePCMode(display_united) {
     window.curr_pcl_layers_cnt = 1;
   } else {
     window.curr_pcl_layers_cnt = window.pcl_layers_cnt;
-    // when not displaying united point cloud data, we need to choose data according to position
+    // when displaying divided point cloud data, we need to change data according to the position
     changeLayersData();
     updateDeck();
   }
-
-  updatePCLayer();
+  updateLayers();
 }
 
-// to change profile line visibility, line width or color
+/**
+ * Changes the visibility, line width and color of the line through train profile positions.
+ * @param {boolean} visible - Whether the layer should be visible.
+ * @param {number} line_width - Line width.
+ * @param {string} line_color - Line color in format "#FFFFFF".
+ */
 function updateProfileLineLayerProps(visible, line_width, line_color) {
-  // convert to RGB
+  // convert color to RGB
   // the following line is taken from a piece of example code in deck.gl documentation (PathLayer section)
   const new_color = line_color.match(/[0-9a-f]{2}/g).map(x => parseInt(x, 16));
 
   window.data_dict.layers[1].visible = visible;
   window.data_dict.layers[1].width = parseInt(line_width, 10);
   window.data_dict.layers[1].color = new_color;
-  updateProfileLineLayer();
-}
-
-function updateProfileLineLayer() {
-  createLayers(); // TODO: maybe optimize this so that only the right layers are recreated
-
-  window.deck.setProps({layers: window.layers});
+  updateLayers();
 }
 
 
-// to change vector data visibility, line width or color
+/**
+ * Changes the visibility, line width and color of the vector data.
+ * @param {boolean} visible - Whether the layer should be visible.
+ * @param {number} line_width - Line width.
+ * @param {string} line_color - Line color in format "#FFFFFF".
+ */
 function updateVectorLayerProps(visible, line_width, line_color) {
   // convert to RGB
   // the following line is taken from a piece of example code in deck.gl documentation (PathLayer section)
@@ -348,17 +453,15 @@ function updateVectorLayerProps(visible, line_width, line_color) {
   window.data_dict.layers[3].visible = visible;
   window.data_dict.layers[3].width = parseInt(line_width, 10);
   window.data_dict.layers[3].color = new_color;
-  updateVectorLayer();
+  updateLayers();
 }
 
-function updateVectorLayer() {
-  createLayers(); // TODO: maybe optimize this so that only the right layers are recreated
-
-  window.deck.setProps({layers: window.layers});
-}
-
-
-// to change train profile visibility, line width or color
+/**
+ * Changes the visibility, line width and color of the train profile.
+ * @param {boolean} visible - Whether the layer should be visible.
+ * @param {number} line_width - Line width.
+ * @param {string} line_color - Line color in format "#FFFFFF".
+ */
 function updateProfileLayerProps(visible, line_width, line_color) {
   // convert to RGB
   // the following line is taken from a piece of example code in deck.gl documentation (PathLayer section)
@@ -373,6 +476,12 @@ function updateProfileLayerProps(visible, line_width, line_color) {
   window.deck.setProps({layers: window.layers});
 }
 
+/**
+ * One step in the animation of the train movement. Is tied to video frames as a callback for a new frame.
+ * Updates both the visualization and the GUI elements showing the progress.
+ * @param {DOMHighResTimeStamp } now - The time when the callback was called.
+ * @param {Object} metadata - An object defined in the documentation of requestVideoFrameCallback() method.
+ */
 function animationStep(now, metadata) {
   const video = document.getElementById('background-video');
   if (window.animation_running) video.requestVideoFrameCallback(animationStep);
@@ -415,6 +524,9 @@ function animationStep(now, metadata) {
   document.getElementById("current-time-div").innerText = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
 }
 
+/**
+ * Handles the beginning of the animation of the train movement.
+ */
 function runDeckAnimation() {
   if (window.position >= window.frames_cnt - 2) {  // it is at the end, start again from the beginning
     const video = document.getElementById('background-video');
@@ -434,6 +546,10 @@ function runDeckAnimation() {
   animationStep();
 }
 
+/**
+ * Handles the end of the animation of the train movement.
+ * Is either called from {@link playOrStop}, or is fired as a callback at the end of the animation.
+ */
 function stopDeckAnimation() {
   window.animation_running = false;
   // change pause icon back to play icon
@@ -455,7 +571,9 @@ function stopDeckAnimation() {
   dash_clientside.set_props("current-time-div", {children: label});
 }
 
-// plays/stop the visualization, handles both the video and the deck.gl visualization
+/**
+ * Starts/stops the animation of the train movement.
+ */
 function playOrStop() {
   if (!window.deck) return;
 
@@ -470,7 +588,10 @@ function playOrStop() {
   }
 }
 
-// changes the current position in the visualization
+/**
+ * Changes the current position.
+ * @param {number} new_pos - The new position.
+ */
 function jumpToPosition(new_pos) {
   // update video
   const video = document.getElementById('background-video');
@@ -478,8 +599,8 @@ function jumpToPosition(new_pos) {
   video.currentTime = videoTime;
   // update deck.gl visualization
   window.position = new_pos;
-  window.changeLayersData();  // in case that we are not displaying united point cloud
-  window.updateDeck();  // call function defined in the JavaScript file
+  changeLayersData();  // in case that we are not displaying united point cloud
+  updateDeck();  // call function defined in the JavaScript file
   // update slider and input field and time label
   dash_clientside.set_props("camera-position-slider-input", {value: new_pos});
   dash_clientside.set_props("camera-position-input", {value: new_pos});
@@ -491,22 +612,14 @@ function jumpToPosition(new_pos) {
   dash_clientside.set_props("current-time-div", {children: label});
 }
 
-// a special accomodation for Google Chrome, to make the animation continue running when
-// the user switches to another window in the browser and then switches back to this window
-// (Chrome stops the animation when the window is not visible)
-document.addEventListener("visibilitychange", () => {
-  // wait 40 ms, because this runs before Chrome makes the animation run again
-  setTimeout(() => {
-    const video = document.getElementById('background-video');
-    if (document.visibilityState === "visible" && !video.paused && !video.ended) {
-      runDeckAnimation();
-    }
-  }, 40);
-});
-
-// play/stop and jump in the animation by space and keys left/right
-document.addEventListener('keydown', (e) => {
-  if (e.key === ' ') {                   //  play or stop the animation on space press
+/**
+ * Reacts to key presses.
+ *  - space - play/stop the animation
+ *  - right arrow/left arrow - jump 3 seconds forward/backwards
+ * @param {KeyboardEvent} e - The keypress event. 
+ */
+function reactToKeyPress(e) {
+  if (e.key === ' ') {                   //  play/stop the animation on space press
     playOrStop();
 
   } else if (e.key === 'ArrowLeft') {    // move the animation 3 seconds backwards on arrow left press
@@ -540,19 +653,33 @@ document.addEventListener('keydown', (e) => {
       || document.activeElement.id === 'camera-pitch-slider-input'
       || document.activeElement.id === 'camera-roll-slider-input') e.preventDefault();
   }
+}
+
+// set the callback to the key press event
+document.addEventListener('keydown', reactToKeyPress);
+
+// a special accomodation for Google Chrome, to make the animation continue running when
+// the user switches to another window in the browser and then switches back to this window
+// (Chrome stops the animation when the window is not visible)
+document.addEventListener("visibilitychange", () => {
+  // wait 40 ms, because this runs before Chrome makes the animation run again
+  setTimeout(() => {
+    const video = document.getElementById('background-video');
+    if (document.visibilityState === "visible" && !video.paused && !video.ended) {
+      runDeckAnimation();
+    }
+  }, 40);
 });
 
 // make the functions global
 window.initializeDeck = initializeDeck;
 window.changeLayersData = changeLayersData;
 window.updateDeck = updateDeck;
+window.updateLayers = updateLayers;
 window.updatePCLayerProps = updatePCLayerProps;
-window.updatePCLayer = updatePCLayer;
 window.changePCMode = changePCMode;
 window.updateVectorLayerProps = updateVectorLayerProps;
-window.updateVectorLayer = updateVectorLayer;
 window.updateProfileLineLayerProps = updateProfileLineLayerProps;
-window.updatevLineLayer = updateProfileLineLayer;
 window.updateProfileLayerProps = updateProfileLayerProps;
 window.playOrStop = playOrStop;
 window.jumpToPosition = jumpToPosition;

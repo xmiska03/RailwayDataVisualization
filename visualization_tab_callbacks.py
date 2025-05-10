@@ -136,11 +136,12 @@ def get_callbacks(app):
     app.clientside_callback(
         """
         function(scale_boundaries) { 
-            if (window.updatePCLayer) {
-                window.scale_from = scale_boundaries[0];
-                window.scale_to = scale_boundaries[1];
-                window.scale_middle = (scale_boundaries[0] + scale_boundaries[1]) / 2;
-                window.updatePCLayer();
+            if (window.updateLayers) {
+                const scale_from = scale_boundaries[0];
+                const scale_to = scale_boundaries[1];
+                const scale_middle = (scale_boundaries[0] + scale_boundaries[1]) / 2;
+                window.scale_boundaries = [scale_from, scale_middle, scale_to];
+                window.updateLayers();
             }
             return dash_clientside.no_update;
         }
@@ -182,13 +183,8 @@ def get_callbacks(app):
         """
         function(x, y, z, yaw, pitch, roll) {
             if (window.updateDeck) {
-                window.camera_offset_x = parseFloat(x);
-                window.camera_offset_y = parseFloat(y);
-                window.camera_offset_z = parseFloat(z);
-                window.camera_offset_yaw = parseFloat(yaw);
-                window.camera_offset_pitch = parseFloat(pitch);
-                window.camera_offset_roll = parseFloat(roll);
-
+                window.camera_offset = [parseFloat(x), parseFloat(y), parseFloat(z),
+                                        parseFloat(yaw), parseFloat(pitch), parseFloat(roll)];
                 // call function defined in the JavaScript file
                 window.updateDeck();
             }
