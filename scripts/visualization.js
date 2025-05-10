@@ -233,6 +233,7 @@ function createProfileLayer() {
   });
 }
 
+
 /**
  * Creates a layer with the vector data for the deck.gl visualization.
  */
@@ -251,6 +252,7 @@ function createVectorLayer() {
   });
 }
 
+
 /**
  * Creates all the layers for the deck.gl visualization.
  */
@@ -265,6 +267,7 @@ function createLayers() {
   window.layers[window.curr_pcl_layers_cnt + 2] = createVectorLayer();
 }
 
+
 /**
  * Recreates all the layers and updates the visualization.
  */
@@ -275,6 +278,7 @@ function updateLayers() {
     window.deck.setProps({layers: window.layers});
   }
 }
+
 
 /**
  * Initializes the deck.gl visualization.
@@ -318,7 +322,8 @@ function initializeDeck() {
 
   updateDeck();
   window.deck_initialized = true;
-}
+} // end of function initializeDeck()
+
 
 /**
  * Calculates which point cloud chunks should be displayed at the current position.
@@ -345,6 +350,7 @@ function changeLayersData() {
     pcl_layers_index = 0;
   }
 }
+
 
 /**
  * Changes camera position.
@@ -385,7 +391,7 @@ function updateDeck() {
   createLayers();
 
   window.deck.setProps({layers: window.layers});
-}
+} // end of function updateDeck()
 
 
 /**
@@ -402,6 +408,7 @@ function updatePCLayerProps(visible, point_size, point_color, opacity) {
   window.data_dict.layers[0].opacity = parseFloat(opacity);
   updateLayers();
 }
+
 
 /**
  * Switches between point cloud types - united (postprocess) or divided ("real-time").
@@ -420,6 +427,7 @@ function changePCMode(display_united) {
   }
   updateLayers();
 }
+
 
 /**
  * Changes the visibility, line width and color of the line through train profile positions.
@@ -456,6 +464,7 @@ function updateVectorLayerProps(visible, line_width, line_color) {
   updateLayers();
 }
 
+
 /**
  * Changes the visibility, line width and color of the train profile.
  * @param {boolean} visible - Whether the layer should be visible.
@@ -475,6 +484,7 @@ function updateProfileLayerProps(visible, line_width, line_color) {
 
   window.deck.setProps({layers: window.layers});
 }
+
 
 /**
  * One step in the animation of the train movement. Is tied to video frames as a callback for a new frame.
@@ -522,7 +532,8 @@ function animationStep(now, metadata) {
   const minutes = Math.floor(time_sec / 60);
   const seconds = time_sec % 60;                                                    // update time label
   document.getElementById("current-time-div").innerText = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
-}
+} // end of function animationStep()
+
 
 /**
  * Handles the beginning of the animation of the train movement.
@@ -545,6 +556,7 @@ function runDeckAnimation() {
   window.animation_running = true;
   animationStep();
 }
+
 
 /**
  * Handles the end of the animation of the train movement.
@@ -571,6 +583,7 @@ function stopDeckAnimation() {
   dash_clientside.set_props("current-time-div", {children: label});
 }
 
+
 /**
  * Starts/stops the animation of the train movement.
  */
@@ -587,6 +600,7 @@ function playOrStop() {
     video.pause();
   }
 }
+
 
 /**
  * Changes the current position.
@@ -611,6 +625,7 @@ function jumpToPosition(new_pos) {
   const label = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`
   dash_clientside.set_props("current-time-div", {children: label});
 }
+
 
 /**
  * Reacts to key presses.
@@ -654,6 +669,7 @@ function reactToKeyPress(e) {
       || document.activeElement.id === 'camera-roll-slider-input') e.preventDefault();
   }
 }
+
 
 // set the callback to the key press event
 document.addEventListener('keydown', reactToKeyPress);
