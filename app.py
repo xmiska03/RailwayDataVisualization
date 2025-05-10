@@ -38,8 +38,8 @@ pcl_timestamps = load_pcl_timestamps("data/joined/joined_pcl_timestamps.txt")
 #pcl_timestamps = [i * 0.04 for i in range(596)]   # for testing 
 
 # load aggregated point cloud data
-united_pc = PointCloud.from_path("data/joined/scans.pcd")
-#united_pc = PointCloud.from_path("data/joined/joined_pcd_files/pcd_0.pcd")   # for development
+#united_pc = PointCloud.from_path("data/joined/scans.pcd")
+united_pc = PointCloud.from_path("data/joined/joined_pcd_files/pcd_0.pcd")   # for development
 united_pc_nparray = united_pc.numpy(("x", "y", "z", "intensity"))
 #united_pc_nparray = np.vstack((united_pc_nparray, united_pc_nparray))    # for testing 
 #united_pc_nparray = united_pc_nparray[:8000000]    # for testing 
@@ -157,9 +157,10 @@ visualization = html.Div(
     style = {
         'height': '100%',
         'aspectRatio': '2048/1536',
-        'margin': 'auto',
-        'position': 'relative',
-        'overflow': 'hidden'
+        'overflow': 'hidden',
+        'position': 'absolute',
+        'left': '50%',
+        'transform': 'translateX(-50%)'
     }
 )
     
@@ -188,7 +189,8 @@ tabs = dbc.Tabs(
             profile_tab_components.profile_tab, 
             tab_id="profile", 
             label="Průjezdný profil", 
-            label_style={"padding": "10px"}
+            label_style={"padding": "10px"},
+            style={"overflowX":"hidden"}
         )
     ],
     active_tab="data"
@@ -290,15 +292,18 @@ main_part = [    # visualization + animation controls, takes full screen
 
 side_panel = [ 
     html.Div(
-        tabs,
-        style={
-            'overflow': 'hidden',
-            'padding': '10px 0 20px 12px',
-            'height': '100vh',
-        }
+        html.Div(
+            tabs,
+            style={
+                'boxSizing': 'border-box',
+                'padding': '10px 10px 20px 10px',
+                'height': '100vh',
+            }
+        ),
+        style={'overflow': 'hidden'}
     ),
     dbc.Button(
-        html.I(className="bi bi-list"),
+        html.I(className="bi bi-chevron-left"),
         id="roll-out-button",
         style={
             'position': 'absolute', 
@@ -309,7 +314,7 @@ side_panel = [
             'borderRadius': 30,
             'border': '1px solid white',
             'fontSize': '1.8rem',
-            'padding': '2px 15px'
+            'padding': '2px 12px'
         }
     )
 ]
@@ -319,7 +324,7 @@ app_layout = [
         side_panel,
         id='side-panel-div', 
         style={
-            'width': 0,    # hidden at the beginning
+            'width': '500px',    # open at the beginning
             'boxSizing': 'border-box',
             'transition': 'width 0.5s',
             'height': '100vh',
@@ -328,7 +333,7 @@ app_layout = [
             'flexShrink': 0
         }
     ),
-    html.Div(main_part, style={'height': '100vh', 'flexGrow': 1, 'position': 'relative'}),
+    html.Div(main_part, style={'height': '100vh', 'flexGrow': 1, 'position': 'relative', 'overflow': 'hidden'}),
 ]
 
 # create a Dash app
@@ -351,7 +356,7 @@ app.layout = html.Div(
         html.Div(
             app_layout,
             style={
-                'width': '98vw',
+                'width': '100vw',
                 'fontSize': '16px',
                 'display': 'flex'
             }
@@ -365,13 +370,19 @@ app.layout = html.Div(
 # initialize the deck visualization
 app.clientside_callback(
     """
-    function(data_dict, united_pc_data, profile_line_data, vector_data, camera_timestamps, pcl_timestamps) {
+    function(data_dict, united_pc_data, pcl_timestamps, profile_line_data, vector_data, 
+             translations, rotations, rotations_inv, rotations_euler, camera_timestamps) {
         if (window.initializeDeck) {
             window.data_dict = data_dict;  // make the data accessible to visualization.js
             window.united_pc_data = united_pc_data;
+            window.pcl_timestamps = pcl_timestamps;
             window.profile_line_data = profile_line_data;
             window.vector_data = vector_data;
-            window.pcl_timestamps = pcl_timestamps;
+            
+            window.translations = translations;
+            window.rotations = rotations;
+            window.rotations_inv = rotations_inv;
+            window.rotations_euler = rotations_euler;
             window.camera_timestamps = camera_timestamps;
             window.initializeDeck();       // call function defined in the JavaScript file
         }
@@ -386,10 +397,15 @@ app.clientside_callback(
     Output('visualization-data', 'id'),  # dummy output needed so that the initial call occurs
     Input('visualization-data', 'data'),
     State('united-pc-data', 'data'),
+    State('pcl-timestamps-data', 'data'),
     State('profile-line-data', 'data'),
     State('vector-data', 'data'),
+    State('translations-data', 'data'),
+    State('rotations-data', 'data'),
+    State('rotations-inv-data', 'data'),
+    State('rotations-euler-data', 'data'),
     State('camera-timestamps-data', 'data'),
-    State('pcl-timestamps-data', 'data')
+    
 )
 
 # roll out the side panel on button click
@@ -400,20 +416,20 @@ app.clientside_callback(
         const bottom_panel = document.getElementById('bottom-panel-div');
         const icon = document.getElementById("roll-out-button").querySelector("i");
         
-        if (n_clicks % 2 == 1) {
+        if (n_clicks % 2 == 0) {
             // roll out side panel
             bottom_panel.style.width = 'calc(100% - 500px)';
             side_panel.style.width = '500px';
             // change the icon
-            icon.classList.remove("bi-list");
-            icon.classList.add("bi-caret-left");
+            icon.classList.remove("bi-chevron-right");
+            icon.classList.add("bi-chevron-left");
         } else {
             // pack side panel
             bottom_panel.style.width = '100%'
             side_panel.style.width = 0;
             // change the icon
-            icon.classList.add("bi-list");
-            icon.classList.remove("bi-caret-left");
+            icon.classList.add("bi-chevron-right");
+            icon.classList.remove("bi-chevron-left");
         }
     }
     """,
@@ -460,4 +476,4 @@ profile_tab_callbacks.get_callbacks(app)
 animation_control_callbacks.get_callbacks(app)
 
 if __name__ == "__main__":
-    app.run(debug=False, dev_tools_hot_reload=False)
+    app.run(debug=True, dev_tools_hot_reload=False)

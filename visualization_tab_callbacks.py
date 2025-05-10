@@ -188,7 +188,6 @@ def get_callbacks(app):
                 window.camera_offset_yaw = parseFloat(yaw);
                 window.camera_offset_pitch = parseFloat(pitch);
                 window.camera_offset_roll = parseFloat(roll);
-                console.log("new virtual camera settings: ", x, y, z, yaw, pitch, roll)
 
                 // call function defined in the JavaScript file
                 window.updateDeck();

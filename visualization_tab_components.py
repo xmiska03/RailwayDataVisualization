@@ -127,7 +127,7 @@ line_color_widget = [
 ]
 
 camera_position_x_widget = [
-    dbc.Col(html.Div("Posunutí po osi x: "), width=4),
+    dbc.Col(html.Div("Posunutí po ose x: "), width=4),
     dbc.Col(dcc.Input(
         value=0,
         id="camera-x-slider-input",
@@ -138,7 +138,7 @@ camera_position_x_widget = [
     ), width=7)
 ]
 camera_position_y_widget = [
-    dbc.Col(html.Div("Posunutí po osi y: "), width=4),
+    dbc.Col(html.Div("Posunutí po ose y: "), width=4),
     dbc.Col(dcc.Input(
         value=0,
         id="camera-y-slider-input",
@@ -149,7 +149,7 @@ camera_position_y_widget = [
     ), width=7)
 ]
 camera_position_z_widget = [
-    dbc.Col(html.Div("Posunutí po osi z: "), width=4),
+    dbc.Col(html.Div("Posunutí po ose z: "), width=4),
     dbc.Col(dcc.Input(
         value=0,
         id="camera-z-slider-input",
@@ -253,7 +253,7 @@ visualization_tab = [
     dbc.Row(line_color_widget, style={'marginTop': '15px'}),
     dbc.Row(html.Hr(), style={'marginTop': '15px'}),
     
-    dbc.Row(html.Div("Dopřesnění polohy virtuální kamery", style={"fontWeight": "bold", "textAlign": "center", "paddingBottom": "0.5em",})),
+    dbc.Row(html.Div("Posunutí virtuální kamery", style={"fontWeight": "bold", "textAlign": "center", "paddingBottom": "0.5em",})),
     dbc.Row(camera_position_x_widget),
     dbc.Row(camera_position_y_widget),
     dbc.Row(camera_position_z_widget),

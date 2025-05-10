@@ -98,7 +98,7 @@ bottom_panel = html.Div(
         'position': 'fixed',
         'bottom': 0,
         'right': 0,
-        'width': '100%',
+        'width': 'calc(100% - 500px)',  # side panel is open at the beginning
         'transition': 'width 0.5s',
         'display': 'flex',
         'alignItems': 'flex-end',

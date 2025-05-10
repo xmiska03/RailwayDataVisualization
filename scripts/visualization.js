@@ -180,7 +180,7 @@ function createLayers() {
 // and also reinitializing when new point cloud data is uploaded 
 function initializeDeck() {
 
-  if (window.translations == null) {
+  if (window.profile_transf == null) {
     // transformation data was not yet defined by the callback, wait until it is
     setTimeout(initializeDeck, 40);  // try again in 40 ms
     return;
@@ -378,7 +378,6 @@ function animationStep(now, metadata) {
   // determine new position from video time and camera timestamps
   if (metadata) {
     while (window.camera_timestamps[window.position] < metadata.mediaTime) {
-      console.log("mediaTime is:", metadata.mediaTime, "on position", window.position, "timestamp", window.camera_timestamps[window.position]);
       window.position += 1;
     }
   }
@@ -454,6 +453,42 @@ function stopDeckAnimation() {
   dash_clientside.set_props("current-time-div", {children: label});
 }
 
+// plays/stop the visualization, handles both the video and the deck.gl visualization
+function playOrStop() {
+  if (!window.deck) return;
+
+  const video = document.getElementById('background-video');
+  if (!window.animation_running) {
+    runDeckAnimation();        // run both deck animation and the video
+    video.play();
+    // define a callback that will run at the end of the animation
+    video.onpause = function(){ stopDeckAnimation() };
+  } else {
+    video.pause();
+  }
+}
+
+// changes the current position in the visualization
+function jumpToPosition(new_pos) {
+  // update video
+  const video = document.getElementById('background-video');
+  const videoTime = window.camera_timestamps[new_pos];
+  video.currentTime = videoTime;
+  // update deck.gl visualization
+  window.position = new_pos;
+  window.changeLayersData();  // in case that we are not displaying united point cloud
+  window.updateDeck();  // call function defined in the JavaScript file
+  // update slider and input field and time label
+  dash_clientside.set_props("camera-position-slider-input", {value: new_pos});
+  dash_clientside.set_props("camera-position-input", {value: new_pos});
+  // update time label
+  const time_sec = Math.floor(videoTime);
+  const minutes = Math.floor(time_sec / 60);
+  const seconds = time_sec % 60;
+  const label = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`
+  dash_clientside.set_props("current-time-div", {children: label});
+}
+
 // a special accomodation for Google Chrome, to make the animation continue running when
 // the user switches to another window in the browser and then switches back to this window
 // (Chrome stops the animation when the window is not visible)
@@ -461,13 +496,48 @@ document.addEventListener("visibilitychange", () => {
   // wait 40 ms, because this runs before Chrome makes the animation run again
   setTimeout(() => {
     const video = document.getElementById('background-video');
-    console.log("HERE1", document.visibilityState, video.paused, video.ended);
     if (document.visibilityState === "visible" && !video.paused && !video.ended) {
-      console.log("HERE2");
       runDeckAnimation();
-      
     }
   }, 40);
+});
+
+// play/stop and jump in the animation by space and keys left/right
+document.addEventListener('keydown', (e) => {
+  if (e.key === ' ') {                   //  play or stop the animation on space press
+    playOrStop();
+
+  } else if (e.key === 'ArrowLeft') {    // move the animation 3 seconds backwards on arrow left press
+    e.preventDefault();  // do not move other things 
+    // calculate the new time
+    var new_time = window.camera_timestamps[window.position] - 3;
+    if (new_time < 0) new_time = 0;
+    // find the position corresponding to the new time and jump to it
+    var new_pos = window.position;
+    while (window.camera_timestamps[new_pos] > new_time) {
+      new_pos -= 1;
+    }
+    jumpToPosition(new_pos);
+  } else if (e.key === 'ArrowRight') {    // move the animation 3 seconds forward on arrow right press
+    e.preventDefault();
+    // calculate the new time
+    var new_time = window.camera_timestamps[window.position] + 3;
+    const max_time = window.camera_timestamps[window.frames_cnt - 1];
+    if (new_time > max_time) new_time = max_time;
+    // find the position corresponding to the new time and jump to it
+    var new_pos = window.position;
+    while (window.camera_timestamps[new_pos] < new_time) {
+      new_pos += 1;
+    }
+    jumpToPosition(new_pos);
+  } else if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {   // do not move camera sliders by arrows
+    if (document.activeElement.id === 'camera-x-slider-input' 
+      || document.activeElement.id === 'camera-y-slider-input'
+      || document.activeElement.id === 'camera-z-slider-input'
+      || document.activeElement.id === 'camera-yaw-slider-input'
+      || document.activeElement.id === 'camera-pitch-slider-input'
+      || document.activeElement.id === 'camera-roll-slider-input') e.preventDefault();
+  }
 });
 
 // make the functions global
@@ -482,5 +552,5 @@ window.updateVectorLayer = updateVectorLayer;
 window.updateProfileLineLayerProps = updateProfileLineLayerProps;
 window.updatevLineLayer = updateProfileLineLayer;
 window.updateProfileLayerProps = updateProfileLayerProps;
-window.runDeckAnimation = runDeckAnimation;
-window.stopDeckAnimation = stopDeckAnimation;
+window.playOrStop = playOrStop;
+window.jumpToPosition = jumpToPosition;

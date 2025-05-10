@@ -6,19 +6,10 @@ import base64
 
 def get_callbacks(app):
     # play/pause the animation
-    # this function handles the video, deck.gl visualization and play button icon
     app.clientside_callback(
         """
         function(btn) {
-            const video = document.getElementById('background-video');
-            if (!window.animation_running) {
-                window.runDeckAnimation();        // run both deck animation and the video
-                video.play();
-                // define a callback that will run at the end of the animation
-                video.onpause = function(){ window.stopDeckAnimation() };
-            } else {
-                video.pause();
-            }
+            window.playOrStop();
         }
         """,
         Input("play-button", "n_clicks"),
@@ -37,26 +28,7 @@ def get_callbacks(app):
                 const new_pos = (triggered_id == 'camera-position-input') ? parseInt(input_val) : slider_val;
                 
                 if (new_pos != window.position) {
-                    // update video
-                    const video = document.getElementById('background-video');
-                    const videoTime = window.camera_timestamps[new_pos];
-                    video.currentTime = videoTime;
-
-                    // update deck.gl visualization
-                    window.position = new_pos;
-                    window.changeLayersData();  // in case that we are not displaying united point cloud
-                    window.updateDeck();  // call function defined in the JavaScript file
-
-                    // update slider and input field and time label
-                    dash_clientside.set_props("camera-position-slider-input", {value: new_pos});
-                    dash_clientside.set_props("camera-position-input", {value: new_pos});
-
-                    // update time label
-                    const time_sec = Math.floor(videoTime);
-                    const minutes = Math.floor(time_sec / 60);
-                    const seconds = time_sec % 60;
-                    const label = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`
-                    dash_clientside.set_props("current-time-div", {children: label});
+                    window.jumpToPosition(new_pos);
                 }
             }
         }
