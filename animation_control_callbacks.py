@@ -9,7 +9,7 @@ def get_callbacks(app):
     app.clientside_callback(
         """
         function(btn) {
-            window.playOrStop();
+            window.vis.togglePlay();
         }
         """,
         Input("play-button", "n_clicks"),
@@ -27,8 +27,8 @@ def get_callbacks(app):
                 const triggered_id = dash_clientside.callback_context.triggered_id;
                 const new_pos = (triggered_id == 'camera-position-input') ? parseInt(input_val) : slider_val;
                 
-                if (new_pos != window.position) {
-                    window.jumpToPosition(new_pos);
+                if (new_pos != window.vis.position) {
+                    window.vis.jumpToPosition(new_pos);
                 }
             }
         }

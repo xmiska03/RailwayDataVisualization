@@ -372,19 +372,19 @@ app.clientside_callback(
     """
     function(data_dict, united_pc_data, pcl_timestamps, profile_line_data, vector_data, 
              translations, rotations, rotations_inv, rotations_euler, camera_timestamps) {
-        if (window.initializeDeck) {
-            window.data_dict = data_dict;  // make the data accessible to visualization.js
-            window.united_pc_data = united_pc_data;
-            window.pcl_timestamps = pcl_timestamps;
-            window.profile_line_data = profile_line_data;
-            window.vector_data = vector_data;
+        if (window.vis) {
+            window.vis.data_dict = data_dict;  // make the data accessible to visualization.js
+            window.vis.united_pc_data = united_pc_data;
+            window.vis.pcl_timestamps = pcl_timestamps;
+            window.vis.profile_line_data = profile_line_data;
+            window.vis.vector_data = vector_data;
             
-            window.translations = translations;
-            window.rotations = rotations;
-            window.rotations_inv = rotations_inv;
-            window.rotations_euler = rotations_euler;
-            window.camera_timestamps = camera_timestamps;
-            window.initializeDeck();       // call function defined in the JavaScript file
+            window.vis.translations = translations;
+            window.vis.rotations = rotations;
+            window.vis.rotations_inv = rotations_inv;
+            window.vis.rotations_euler = rotations_euler;
+            window.vis.camera_timestamps = camera_timestamps;
+            window.vis.initializeDeck();       // call function defined in the JavaScript file
         }
 
         // disable picture-in-picture in mozilla

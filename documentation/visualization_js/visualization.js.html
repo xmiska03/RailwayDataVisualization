@@ -1,4 +1,32 @@
-/**
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: visualization.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: visualization.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/**
  * @fileoverview Creates and manages the deck.gl visualization and the train movement animation.
  */
 import {Deck, FirstPersonView} from '@deck.gl/core';
@@ -155,11 +183,11 @@ class Visualization {
  * @returns {number[]} The color.
  */
 Visualization.prototype.getColorBGR = function (d) {
-  if (d[3] < window.vis.scale_boundaries[0]) {
+  if (d[3] &lt; window.vis.scale_boundaries[0]) {
     return [0, 0, 255]   // under the scale - blue
   } else if (d[3] > window.vis.scale_boundaries[2]) {
     return [255, 0, 0]   // over the scale - red
-  } else if (d[3] < window.vis.scale_boundaries[1]) {   // on the scale
+  } else if (d[3] &lt; window.vis.scale_boundaries[1]) {   // on the scale
     return [
       0, 
       Math.floor(255 * (d[3] - window.vis.scale_boundaries[0]) 
@@ -187,7 +215,7 @@ Visualization.prototype.getColorBGR = function (d) {
  * @returns {number[]} The color.
  */
 Visualization.prototype.getColorYP = function (d) {
-  if (d[3] < window.vis.scale_boundaries[0]) {
+  if (d[3] &lt; window.vis.scale_boundaries[0]) {
     return [255, 255, 0]   // under the scale - yellow
   } else if (d[3] > window.vis.scale_boundaries[2]) {
     return [255, 0, 255]   // over the scale - purple
@@ -240,7 +268,7 @@ Visualization.prototype.profileGetPath = function (d) {
   if (pos > window.vis.profile_transf[n].length - 1) pos = window.vis.profile_transf[n].length - 1;
   
   const points = new Array(d.length);
-  for (let i = 0; i < d.length; i++) {
+  for (let i = 0; i &lt; d.length; i++) {
     const x = d[i][0] * window.vis.profile_transf[n][pos][0][0] + d[i][1] * window.vis.profile_transf[n][pos][0][1] + d[i][2] * window.vis.profile_transf[n][pos][0][2] + window.vis.profile_transf[n][pos][0][3];
     const y = d[i][0] * window.vis.profile_transf[n][pos][1][0] + d[i][1] * window.vis.profile_transf[n][pos][1][1] + d[i][2] * window.vis.profile_transf[n][pos][1][2] + window.vis.profile_transf[n][pos][1][3];
     const z = d[i][0] * window.vis.profile_transf[n][pos][2][0] + d[i][1] * window.vis.profile_transf[n][pos][2][1] + d[i][2] * window.vis.profile_transf[n][pos][2][2] + window.vis.profile_transf[n][pos][2][3];
@@ -352,7 +380,7 @@ Visualization.prototype.createVectorLayer = function () {
 Visualization.prototype.createLayers = function () {
   window.vis.layers = new Array(window.vis.curr_pcl_layers_cnt + 2);
 
-  for (let i = 0; i < window.vis.curr_pcl_layers_cnt; i++) {
+  for (let i = 0; i &lt; window.vis.curr_pcl_layers_cnt; i++) {
     window.vis.layers[i] = window.vis.createPointCloudLayer(i);
   }
   window.vis.layers[window.vis.curr_pcl_layers_cnt] = window.vis.createProfileLineLayer();
@@ -433,7 +461,7 @@ Visualization.prototype.changeLayersData = function () {
     // find current position in point cloud timestamps
     window.vis.pcl_position = 0;
     const video = document.getElementById('background-video'); 
-    while(window.vis.pcl_timestamps[window.vis.pcl_position] < video.currentTime) {
+    while(window.vis.pcl_timestamps[window.vis.pcl_position] &lt; video.currentTime) {
       window.vis.pcl_position++;
     }
 
@@ -602,7 +630,7 @@ Visualization.prototype.animationStep = function (now, metadata) {
   
   // determine new position from video time and camera timestamps
   if (metadata) {
-    while (window.vis.camera_timestamps[window.vis.position] < metadata.mediaTime) {
+    while (window.vis.camera_timestamps[window.vis.position] &lt; metadata.mediaTime) {
       window.vis.position += 1;
     }
   }
@@ -615,9 +643,9 @@ Visualization.prototype.animationStep = function (now, metadata) {
   }
 
   // change point cloud data if we are not displaying the united point cloud
-  if (metadata && !window.vis.display_united) {
+  if (metadata &amp;&amp; !window.vis.display_united) {
     // window.vis.pcl_layers_positions is a circular buffer when the animation is running
-    while(window.vis.pcl_timestamps[window.vis.pcl_position] < metadata.mediaTime) {
+    while(window.vis.pcl_timestamps[window.vis.pcl_position] &lt; metadata.mediaTime) {
       // move to new position
       window.vis.pcl_position++;
       // rewrite old data with new data
@@ -751,7 +779,7 @@ Visualization.prototype.reactToKeyPress = function (e) {
     e.preventDefault();  // do not move other things 
     // calculate the new time
     let new_time = window.vis.camera_timestamps[window.vis.position] - 3;
-    if (new_time < 0) new_time = 0;
+    if (new_time &lt; 0) new_time = 0;
     // find the position corresponding to the new time and jump to it
     let new_pos = window.vis.position;
     while (window.vis.camera_timestamps[new_pos] > new_time) {
@@ -766,7 +794,7 @@ Visualization.prototype.reactToKeyPress = function (e) {
     if (new_time > max_time) new_time = max_time;
     // find the position corresponding to the new time and jump to it
     let new_pos = window.vis.position;
-    while (window.vis.camera_timestamps[new_pos] < new_time) {
+    while (window.vis.camera_timestamps[new_pos] &lt; new_time) {
       new_pos += 1;
     }
     window.vis.jumpToPosition(new_pos);
@@ -799,8 +827,31 @@ document.addEventListener("visibilitychange", () => {
   // wait 40 ms, because this runs before Chrome makes the animation run again
   setTimeout(() => {
     const video = document.getElementById('background-video');
-    if (document.visibilityState === "visible" && !video.paused && !video.ended) {
+    if (document.visibilityState === "visible" &amp;&amp; !video.paused &amp;&amp; !video.ended) {
       window.vis.runDeckAnimation();
     }
   }, 40);
 });
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="Visualization.html">Visualization</a></li></ul><h3>Global</h3><ul><li><a href="global.html#vis">vis</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.4</a> on Sun May 11 2025 01:14:22 GMT+0200 (středoevropský letní čas)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

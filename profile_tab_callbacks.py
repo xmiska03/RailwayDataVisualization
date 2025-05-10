@@ -5,8 +5,8 @@ def get_callbacks(app):
     app.clientside_callback(
         """
         function(distance) {
-            window.profile_distance = distance;
-            window.updateDeck();
+            window.vis.profile_distance = distance;
+            window.vis.updateDeck();
         }
         """,
         Input('profile-distance-dropdown', 'value'),
@@ -17,10 +17,8 @@ def get_callbacks(app):
     app.clientside_callback(
         """
         function(layers, line_width, line_color) {
-            if (window.updateProfileLayerProps) {
-                // call function defined in the JavaScript file
-                window.updateProfileLayerProps(layers.includes('profile'), line_width, line_color);
-            }
+            // call function defined in the JavaScript file
+            window.vis.updateProfileLayerProps(layers.includes('profile'), line_width, line_color);
         }
         """,
         Input('train-profile-checkbox', 'value'),
@@ -33,10 +31,8 @@ def get_callbacks(app):
     app.clientside_callback(
         """
         function(layers, line_width, line_color) {
-            if (window.updateProfileLineLayerProps) {
-                // call function defined in the JavaScript file
-                window.updateProfileLineLayerProps(layers.includes('line'), line_width, line_color);
-            }
+            // call function defined in the JavaScript file
+            window.vis.updateProfileLineLayerProps(layers.includes('line'), line_width, line_color);
         }
         """,
         Input('profile-line-checkbox', 'value'),

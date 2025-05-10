@@ -23,14 +23,15 @@ def get_callbacks(app):
         """
         function(profile_transf_data, translations_data, rotations_data, rotations_inv_data, rot_euler_data) {
             // make the data accessible for the visualization.js script
-            window.profile_transf = profile_transf_data;
-            window.translations = translations_data;
-            window.rotations = rotations_data;
-            window.rotations_inv = rotations_inv_data;
-            window.rotations_euler = rot_euler_data;
+            window.vis.profile_transf = profile_transf_data;
+            console.log(profile_transf_data);
+            window.vis.translations = translations_data;
+            window.vis.rotations = rotations_data;
+            window.vis.rotations_inv = rotations_inv_data;
+            window.vis.rotations_euler = rot_euler_data;
             // update the visualization if it is already created
-            if (window.deck_initialized) {
-                window.updateDeck();  // call function defined in the JavaScript file
+            if (window.vis.deck_initialized) {
+                window.vis.updateDeck();  // call function defined in the JavaScript file
             }
             return dash_clientside.no_update;
         }
@@ -453,7 +454,7 @@ def get_callbacks(app):
         """
         function(update_number, camera_pos) {
             const video = document.getElementById('background-video');
-            const videoTime = window.camera_timestamps[camera_pos];
+            const videoTime = window.vis.camera_timestamps[camera_pos];
             video.currentTime = videoTime;
         }
         """,
@@ -524,12 +525,12 @@ def get_callbacks(app):
     def delete_timestamps(btn):
         return None
 
-    # update window.frames_cnt, the total time label as well as the range of the slider & input 
+    # update window.vis.frames_cnt, the total time label as well as the range of the slider & input 
     # which control train position when new timestamps data is uploaded
     app.clientside_callback(
         """
         function(camera_timestamps) {
-            window.frames_cnt = camera_timestamps.length;
+            window.vis.frames_cnt = camera_timestamps.length;
             
             // we get the total time by reading the last timestamp
             const time_sec = Math.floor(camera_timestamps[camera_timestamps.length - 1]); 
@@ -553,7 +554,7 @@ def get_callbacks(app):
     app.clientside_callback(
         """
         function(data_dict) {
-            window.data_dict = data_dict;
+            window.vis.data_dict = data_dict;
         }
         """,
         Input('visualization-data', 'data')
@@ -561,7 +562,7 @@ def get_callbacks(app):
     app.clientside_callback(
         """
         function(united_pc_data) {
-            window.united_pc_data = united_pc_data;
+            window.vis.united_pc_data = united_pc_data;
         }
         """,
         Input('united-pc-data', 'data')
@@ -569,7 +570,7 @@ def get_callbacks(app):
     app.clientside_callback(
         """
         function(profile_line_data) {
-            window.profile_line_data = profile_line_data;
+            window.vis.profile_line_data = profile_line_data;
         }
         """,
         Input('profile-line-data', 'data')
@@ -577,7 +578,7 @@ def get_callbacks(app):
     app.clientside_callback(
         """
         function(vector_data) {
-            window.vector_data = vector_data;
+            window.vis.vector_data = vector_data;
         }
         """,
         Input('vector-data', 'data')
@@ -585,7 +586,7 @@ def get_callbacks(app):
     app.clientside_callback(
         """
         function(camera_timestamps_data) {
-            window.camera_timestamps_data = camera_timestamps_data;
+            window.vis.camera_timestamps = camera_timestamps_data;
         }
         """,
         Input('camera-timestamps-data', 'data')
@@ -593,7 +594,7 @@ def get_callbacks(app):
     app.clientside_callback(
         """
         function(pcl_timestamps_data) {
-            window.pcl_timestamps_data = pcl_timestamps_data;
+            window.vis.pcl_timestamps = pcl_timestamps_data;
         }
         """,
         Input('pcl-timestamps-data', 'data')

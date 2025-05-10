@@ -11,11 +11,9 @@ def get_callbacks(app):
     # change point cloud visibility, point size, color scale or opacity
     app.clientside_callback(
         """
-        function(layers, point_size, color_scale, opacity) {  
-            if (window.updatePCLayerProps) {
-                // call function defined in the JavaScript file
-                window.updatePCLayerProps(layers.includes('pcl'), point_size, color_scale, opacity);
-            }
+        function(layers, point_size, color_scale, opacity) {
+            // call function defined in the JavaScript file
+            window.vis.updatePCLayerProps(layers.includes('pcl'), point_size, color_scale, opacity);
             return color_scale;
         }
         """,
@@ -32,9 +30,9 @@ def get_callbacks(app):
         """
         function(dropdown_value) {
             if (dropdown_value == 'united') {
-                window.changePCMode(true);
+                window.vis.changePCMode(true);
             } else {
-                window.changePCMode(false);
+                window.vis.changePCMode(false);
             }
             return dropdown_value;
         }
@@ -136,12 +134,12 @@ def get_callbacks(app):
     app.clientside_callback(
         """
         function(scale_boundaries) { 
-            if (window.updateLayers) {
+            if (window.vis) {
                 const scale_from = scale_boundaries[0];
                 const scale_to = scale_boundaries[1];
                 const scale_middle = (scale_boundaries[0] + scale_boundaries[1]) / 2;
-                window.scale_boundaries = [scale_from, scale_middle, scale_to];
-                window.updateLayers();
+                window.vis.scale_boundaries = [scale_from, scale_middle, scale_to];
+                window.vis.updateLayers();
             }
             return dash_clientside.no_update;
         }
@@ -166,10 +164,8 @@ def get_callbacks(app):
     app.clientside_callback(
         """
         function(layers, line_width, line_color) {
-            if (window.updateVectorLayerProps) {
-                // call function defined in the JavaScript file
-                window.updateVectorLayerProps(layers.includes('vec'), line_width, line_color);
-            }
+            // call function defined in the JavaScript file
+            window.vis.updateVectorLayerProps(layers.includes('vec'), line_width, line_color);
         }
         """,
         Input('vector-data-checkbox', 'value'),
@@ -182,11 +178,11 @@ def get_callbacks(app):
     app.clientside_callback(
         """
         function(x, y, z, yaw, pitch, roll) {
-            if (window.updateDeck) {
-                window.camera_offset = [parseFloat(x), parseFloat(y), parseFloat(z),
+            if (window.vis) {
+                window.vis.camera_offset = [parseFloat(x), parseFloat(y), parseFloat(z),
                                         parseFloat(yaw), parseFloat(pitch), parseFloat(roll)];
                 // call function defined in the JavaScript file
-                window.updateDeck();
+                window.vis.updateDeck();
             }
         }
         """,
