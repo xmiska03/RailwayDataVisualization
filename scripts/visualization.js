@@ -79,10 +79,12 @@ function profile_distance_to_index(profile_dist) {
 
 // transformation for the train profile
 function profileGetPath(d) {
-  const pos = window.position;
   const n = profile_distance_to_index(window.profile_distance);
-  const points = new Array(d.length);
   
+  let pos = window.position;
+  if (pos > window.profile_transf[n].length - 1) pos = window.profile_transf[n].length - 1;
+  
+  const points = new Array(d.length);
   for (let i = 0; i < d.length; i++) {
     //window.profile_transf[0] - 25m distance
     const x = d[i][0] * window.profile_transf[n][pos][0][0] + d[i][1] * window.profile_transf[n][pos][0][1] + d[i][2] * window.profile_transf[n][pos][0][2] + window.profile_transf[n][pos][0][3];
@@ -510,10 +512,10 @@ document.addEventListener('keydown', (e) => {
   } else if (e.key === 'ArrowLeft') {    // move the animation 3 seconds backwards on arrow left press
     e.preventDefault();  // do not move other things 
     // calculate the new time
-    var new_time = window.camera_timestamps[window.position] - 3;
+    let new_time = window.camera_timestamps[window.position] - 3;
     if (new_time < 0) new_time = 0;
     // find the position corresponding to the new time and jump to it
-    var new_pos = window.position;
+    let new_pos = window.position;
     while (window.camera_timestamps[new_pos] > new_time) {
       new_pos -= 1;
     }
@@ -521,11 +523,11 @@ document.addEventListener('keydown', (e) => {
   } else if (e.key === 'ArrowRight') {    // move the animation 3 seconds forward on arrow right press
     e.preventDefault();
     // calculate the new time
-    var new_time = window.camera_timestamps[window.position] + 3;
+    let new_time = window.camera_timestamps[window.position] + 3;
     const max_time = window.camera_timestamps[window.frames_cnt - 1];
     if (new_time > max_time) new_time = max_time;
     // find the position corresponding to the new time and jump to it
-    var new_pos = window.position;
+    let new_pos = window.position;
     while (window.camera_timestamps[new_pos] < new_time) {
       new_pos += 1;
     }
