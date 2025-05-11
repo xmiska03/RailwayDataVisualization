@@ -3,14 +3,12 @@ import dash_bootstrap_components as dbc
 from pypcd4 import PointCloud
 import os
 
-import data_tab_components
+import layout_components
 import data_tab_callbacks
-import visualization_tab_components
 import visualization_tab_callbacks
-import profile_tab_components
 import profile_tab_callbacks
-import animation_control_components
 import animation_control_callbacks
+import layout_callbacks
 import params
 from general_functions import calculate_projection_matrix, calculate_translation_from_extr_mat, \
                               load_rotation, rotation_to_euler, rotation_to_matrix, rotation_to_inv_matrix
@@ -126,101 +124,6 @@ deck_dict = {
     "layers": [point_cloud_layer, profile_line_layer, profile_layer, vector_layer],
 }
 
-# a part of the Dash app which visualizes the data
-visualization = html.Div(
-    [
-        html.Video(
-            src="/assets/video_long_compatible.mp4",
-            id="background-video",
-            style={
-                'height': '100%',
-                'display': 'block'
-            }
-        ),
-        html.Canvas(
-            id='visualization-canvas',
-            style={
-                'position': 'absolute',
-                'top': 0,
-                'left': 0
-            }
-        ),
-        html.Canvas(
-            id='distorted-visualization-canvas',
-            style={
-                'position': 'absolute',
-                'top': 0,
-                'left': 0
-            }
-        )
-    ],
-    style = {
-        'height': '100%',
-        'aspectRatio': '2048/1536',
-        'overflow': 'hidden',
-        'position': 'absolute',
-        'left': '50%',
-        'transform': 'translateX(-50%)'
-    }
-)
-    
-# the right side of the screen with tabs
-tabs = dbc.Tabs(
-    [
-        dbc.Tab(
-            dcc.Loading(        # display a circle over the data tab when the app is loading something
-                type="circle",
-                overlay_style={"visibility": "visible"},
-                children=data_tab_components.data_tab
-            ),
-            tab_id="data", 
-            label="Data", 
-            label_style={"padding": "10px"},
-            style={"height": "calc(100vh - 100px)", "overflowY": "auto", "overflowX":"hidden"}
-        ),
-        dbc.Tab(
-            visualization_tab_components.visualization_tab,
-            tab_id="vis",
-            label="Zobrazení",
-            label_style={"padding": "10px"},
-            style={"height": "calc(100vh - 100px)", "overflowY": "auto", "overflowX":"hidden"}
-        ),
-        dbc.Tab(
-            profile_tab_components.profile_tab, 
-            tab_id="profile", 
-            label="Průjezdný profil", 
-            label_style={"padding": "10px"},
-            style={"overflowX":"hidden"}
-        )
-    ],
-    active_tab="data"
-)
-
-# the right margin of the page, almost empty, contains only a color mode switch
-color_mode_switch = html.Div(
-    [
-        html.I(className="bi bi-moon"),
-        dbc.Switch(
-            id="color-mode-switch",
-            value=False,
-            className="d-inline-block ms-1",
-            persistence=True,
-            style={"marginRight": "-3px"}),
-        html.I(className="bi bi-sun")
-    ],
-    id = 'color-mode-div',
-    style={
-        'position': 'fixed', 
-        'top': 0, 
-        'right': 0,
-        'backgroundColor': '#212529',
-        'opacity': 0.95,
-        'borderRadius': 30,
-        'padding': '10px 15px',
-        'fontSize': '1.1rem'
-    }
-)
-
 # stores used for storing data on the clients side
 stores = [
     dcc.Store(
@@ -282,58 +185,6 @@ stores = [
         id='point-cloud-type-store',  # decides whether the app displays united or divided point cloud data
         data='divided'
     )
-] 
-
-main_part = [    # visualization + animation controls, takes full screen
-    visualization,
-    color_mode_switch,
-    animation_control_components.bottom_panel,
-]
-
-side_panel = [ 
-    html.Div(
-        html.Div(
-            tabs,
-            style={
-                'boxSizing': 'border-box',
-                'padding': '10px 10px 20px 10px',
-                'height': '100vh',
-            }
-        ),
-        style={'overflow': 'hidden'}
-    ),
-    dbc.Button(
-        html.I(className="bi bi-chevron-left"),
-        id="roll-out-button",
-        style={
-            'position': 'absolute', 
-            'top': 0, 
-            'left': '100%',
-            'backgroundColor': '#212529',
-            'opacity': 0.95,
-            'borderRadius': 30,
-            'border': '1px solid white',
-            'fontSize': '1.8rem',
-            'padding': '2px 12px'
-        }
-    )
-]
-
-app_layout = [
-    html.Div(
-        side_panel,
-        id='side-panel-div', 
-        style={
-            'width': '500px',    # open at the beginning
-            'boxSizing': 'border-box',
-            'transition': 'width 0.5s',
-            'height': '100vh',
-            'position': 'relative',
-            'zIndex': 1,
-            'flexShrink': 0
-        }
-    ),
-    html.Div(main_part, style={'height': '100vh', 'flexGrow': 1, 'position': 'relative', 'overflow': 'hidden'}),
 ]
 
 # create a Dash app
@@ -354,7 +205,7 @@ app.layout = html.Div(
     [
         html.Div(stores),
         html.Div(
-            app_layout,
+            layout_components.app_layout,
             style={
                 'width': '100vw',
                 'fontSize': '16px',
@@ -408,72 +259,12 @@ app.clientside_callback(
     
 )
 
-# roll out the side panel on button click
-app.clientside_callback(
-    """
-    function(n_clicks) {
-        const side_panel = document.getElementById('side-panel-div');
-        const bottom_panel = document.getElementById('bottom-panel-div');
-        const icon = document.getElementById("roll-out-button").querySelector("i");
-        
-        if (n_clicks % 2 == 0) {
-            // roll out side panel
-            bottom_panel.style.width = 'calc(100% - 500px)';
-            side_panel.style.width = '500px';
-            // change the icon
-            icon.classList.remove("bi-chevron-right");
-            icon.classList.add("bi-chevron-left");
-        } else {
-            // pack side panel
-            bottom_panel.style.width = '100%'
-            side_panel.style.width = 0;
-            // change the icon
-            icon.classList.add("bi-chevron-right");
-            icon.classList.remove("bi-chevron-left");
-        }
-    }
-    """,
-    Input("roll-out-button", "n_clicks")
-)
-
-# change color mode by switch
-app.clientside_callback(
-    """
-    function(switch_on) {
-        let color = '';
-        let opposite_color = '';
-
-        if (switch_on) {
-            // light mode
-            color = 'white';
-            opposite_color = '#212529';
-            document.documentElement.setAttribute('data-bs-theme', 'light');
-        } else {
-            // dark mode
-            color = '#212529';
-            opposite_color = 'white'
-            document.documentElement.setAttribute('data-bs-theme', 'dark');
-        }
-
-        document.getElementById("roll-out-button").style.backgroundColor = color;
-        document.getElementById("roll-out-button").style.borderColor = opposite_color;
-        document.getElementById("roll-out-button").querySelector("i").style.color = opposite_color;      
-        document.getElementById("color-mode-div").style.backgroundColor = color;
-        document.getElementById("camera-position-div").style.backgroundColor = color;
-        document.getElementById("play-controls-div").style.backgroundColor = color;
-        document.getElementById("play-button").querySelector("i").style.color = opposite_color;  
-        return dash_clientside.no_update;
-    }
-    """,
-    Output("color-mode-switch", "id"),  # dummy output needed so that the initial call occurs
-    Input("color-mode-switch", "value"),
-)
-
 # add callbacks defined in other files
 visualization_tab_callbacks.get_callbacks(app)
 data_tab_callbacks.get_callbacks(app)
 profile_tab_callbacks.get_callbacks(app)
 animation_control_callbacks.get_callbacks(app)
+layout_callbacks.get_callbacks(app)
 
 if __name__ == "__main__":
     app.run(debug=True, dev_tools_hot_reload=False)
