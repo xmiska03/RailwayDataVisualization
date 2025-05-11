@@ -51,6 +51,12 @@ tabs = dbc.Tabs(
             dcc.Loading(        # display a circle over the data tab when the app is loading something
                 type="circle",
                 overlay_style={"visibility": "visible"},
+                style={
+                    "position": "fixed",         # put it into the middle of the data tab
+                    "left": "230px",
+                    "top": "calc(50% - 30px)",
+                    "transform": "scale(1.4)"
+                },
                 children=data_tab_components.data_tab
             ),
             tab_id="data", 

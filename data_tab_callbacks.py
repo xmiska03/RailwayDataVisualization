@@ -83,6 +83,10 @@ def get_callbacks(app):
 
         Output('profile-trans-paths-store', 'data'),
         Output('profile-rot-paths-store', 'data'),
+
+        Output('calibration-matrix-textarea', 'value'),
+        Output('far-plane-input', 'value'),
+        Output('distortion-params-textarea', 'value'),
         
         Input('project-file-upload', 'contents'),
         State('project-file-upload', 'filename'),
@@ -117,15 +121,25 @@ def get_callbacks(app):
                 "filename_prefix": data['profile_rotations_filename_prefix']
             }
 
+            calibm = data['calibration_matrix']
+            calib_matrix_str = f"{calibm[0]}, {calibm[1]}, {calibm[2]},\n" \
+                             + f"{calibm[3]}, {calibm[4]}, {calibm[5]},\n" \
+                             + f"{calibm[6]}, {calibm[7]}, {calibm[8]}"
+            far_plane = data['far_plane']
+            distp = data['distortion_parameters']
+            dist_params_str = f"{distp[0]}, {distp[1]}, {distp[2]}, {distp[3]}, {distp[4]}"
+
             return {"display": "none"}, {"display": "block"}, filename, \
                 united_pcd_path, divided_pcd_paths, pc_timestamps_path, \
                 video_path, vector_data_path, \
                 translations_path, rotations_path, timestamps_path, \
-                profile_trans_paths, profile_rot_paths
+                profile_trans_paths, profile_rot_paths, \
+                calib_matrix_str, far_plane, dist_params_str
         else:
             # file deleted (or it is the initial call)
             return {"display": "block"}, {"display": "none"}, "", \
-                no_update, "", "", no_update, "", no_update, no_update, no_update, "", ""
+                no_update, "", "", no_update, "", no_update, no_update, no_update, "", "", \
+                no_update, no_update, no_update
 
 
     # upload/delete file with united point cloud
