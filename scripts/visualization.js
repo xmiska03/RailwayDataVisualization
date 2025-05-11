@@ -379,16 +379,12 @@ Visualization.prototype.updateLayers = function () {
  * @function
  */
 Visualization.prototype.initializeDeck = function () {
-  console.log("strating");
-  console.log(JSON.stringify(window.vis.profile_transf));
 
   if (window.vis.profile_transf === undefined || window.vis.profile_transf.length === 0) {
     // transformation data was not yet defined by the callback, wait until it is
     setTimeout(window.vis.initializeDeck, 3000);  // try again in 40 ms
-    console.log("setting timeout");
     return;
   }
-  console.log("running");
   
   const VIEW = new FirstPersonView({
     projectionMatrix: window.vis.data_dict.views[0].projectionMatrix,
@@ -588,6 +584,20 @@ Visualization.prototype.updateProfileLayerProps = function (visible, line_width,
   window.vis.updateLayers();
 };
 
+/**
+ * Sets the projection matrix.
+ * @function
+ * @param {number[]} proj_matrix - The new projection matrix.
+ */
+Visualization.prototype.setProjectionMatrix = function (proj_matrix) {
+  window.vis.data_dict.views[0].projectionMatrix = proj_matrix;
+  const VIEW = new FirstPersonView({
+    projectionMatrix: window.vis.data_dict.views[0].projectionMatrix,
+    controller: window.vis.data_dict.views[0].controller
+  });
+  window.deck.setProps({views: [VIEW]});
+};
+
 
 /**
  * One step in the animation of the train movement. Is tied to video frames as a callback for a new frame.
@@ -743,12 +753,21 @@ Visualization.prototype.jumpToPosition = function (new_pos) {
  * @param {KeyboardEvent} e - The keypress event. 
  */
 Visualization.prototype.reactToKeyPress = function (e) {
+  if (e.key === ' ' || e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+    // prevent moving other elements, except when focus is on an input or text area
+    if (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA') {
+      // focus is on an input or textarea, do nothing
+      return;
+    } else {
+      // focus is elsewhere
+      e.preventDefault();
+    }
+  }
+
   if (e.key === ' ') {                   //  play/stop the animation on space press
-    e.preventDefault();  // do not move other things
     window.vis.togglePlay();
 
   } else if (e.key === 'ArrowLeft') {    // move the animation 3 seconds backwards on arrow left press
-    e.preventDefault();  // do not move other things 
     // calculate the new time
     let new_time = window.vis.camera_timestamps[window.vis.position] - 3;
     if (new_time < 0) new_time = 0;
@@ -759,7 +778,6 @@ Visualization.prototype.reactToKeyPress = function (e) {
     }
     window.vis.jumpToPosition(new_pos);
   } else if (e.key === 'ArrowRight') {    // move the animation 3 seconds forward on arrow right press
-    e.preventDefault();
     // calculate the new time
     let new_time = window.vis.camera_timestamps[window.vis.position] + 3;
     const max_time = window.vis.camera_timestamps[window.vis.frames_cnt - 1];

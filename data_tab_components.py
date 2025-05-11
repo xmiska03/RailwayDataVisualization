@@ -3,6 +3,7 @@
 from dash import html, dcc
 import dash_bootstrap_components as dbc
 
+from params import FAR_PLANE
 
 upload_box_style = {
     'width': '95%',
@@ -159,6 +160,17 @@ profile_rot_uploaded_files = dbc.Stack(
     ], direction="horizontal", gap=2, style={'margin': '10px'}
 )
 
+far_plane_widget = [
+    dbc.Col(html.Div("Maximální vzdálenost (m): "), width=5),
+    dbc.Col(dbc.Input(
+        value=f"{FAR_PLANE}",
+        id="far-plane-input",
+        type="number",
+        min=1,
+        max=500,
+        step=1
+    ), width=6)
+]
 
 
 data_tab = [
@@ -211,6 +223,29 @@ data_tab = [
     dbc.Row(html.Div(profile_trans_uploaded_files, id="profile-trans-uploaded-file-div")),
     dbc.Row(html.Div("Rotace (.csv soubory):")),
     dbc.Row(html.Div(profile_rot_uploaded_files, id="profile-rot-uploaded-file-div")),
+    dbc.Row(html.Hr(style={'marginTop':'15px'})),
 
+    dbc.Row(html.Div("Parametry kamery"), style={"fontWeight": "bold", "textAlign": "center"}), 
+    dbc.Row(html.Div("Kalibrační matice:")),
+    dbc.Row(dcc.Textarea(
+        value="2437.045995, 0, 1030.357277,\n0, 2442.940956, 729.596405,\n0, 0, 1",
+        id="calibration-matrix-textarea",
+        style={'margin': '10px 16px', 'width': '90%', 'height': '85px'}
+    )),
+    dbc.Row(far_plane_widget, style={'marginTop': '15px'}),
+    dcc.Store(id="projection-matrix-store"),
+    dbc.Row(
+        html.Div([
+            "Parametry zkreslení (k", html.Sub("1"), ", ", "k", html.Sub("2"), ", ",
+            "p", html.Sub("1"), ", ", "p", html.Sub("2"), ", ", "k", html.Sub("3"), "):"
+        ]),
+        style={'marginTop': '10px'}
+    ),
+    dbc.Row(dcc.Textarea(
+        value="-0.183217, 0.026917, -0.001191, 0.000804, 0.335446",
+        id="distortion-params-textarea",
+        style={'margin': '10px 16px', 'width': '90%', 'height': '40px'}
+    )),
+    dcc.Store(id="distortion-params-store", data=[-0.183217, 0.026917, -0.001191, 0.000804, 0.335446])
 ]
 

@@ -215,17 +215,17 @@ def get_callbacks(app):
     # pre-calculate coordinates for distortion
     app.clientside_callback(
         """
-        function(dummy) {
+        function(dist_params) {
             
             // define a function to precalculate distortion
             function precalculateDistortion() { 
                 const beg_time = Date.now();
 
-                const K1 = -0.1832170424487164 
-                const K2 = 0.02691675026209955
-                const P1 = -0.001191374354805736
-                const P2 = 0.000804309339521888
-                const K3 = 0.3354456739081583
+                const K1 = dist_params[0]
+                const K2 = dist_params[1]
+                const P1 = dist_params[2]
+                const P2 = dist_params[3]
+                const K3 = dist_params[4]
 
                 const canvas = document.getElementById("visualization-canvas");
                 const height = window.innerHeight;   // canvas does not have initialized size yet
@@ -271,18 +271,23 @@ def get_callbacks(app):
                 precalculateDistortion();
             };
 
+            // redraw so that the new values of parameters show if distortion is on
+            if (window.vis.deck_initialized) {
+                window.deck.redraw(true);
+            }
+
             return dash_clientside.no_update;
         }
         """,
-        Output('distortion-checkbox', 'id'),  # dummy input and output
-        Input('distortion-checkbox', 'id')
+        Output('distortion-checkbox', 'id'),  # dummy output
+        Input('distortion-params-store', 'data')
     )
 
     # distort the point cloud
     app.clientside_callback(
         """
-        function(layers) {
-            if (layers.includes('dist')) {              // turn distortion on
+        function(dist_checkbox_val) {
+            if (dist_checkbox_val.includes('dist')) {              // turn distortion on
 
                 // register a distortion-calculating callback which will be called after every render
                 window.deck.setProps({

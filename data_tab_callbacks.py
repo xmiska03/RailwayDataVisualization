@@ -6,11 +6,11 @@ import numpy as np
 from pypcd4 import PointCloud
 import time
 import os
-from scipy.spatial.transform import Rotation
 import tomllib
 
 from general_functions import calculate_train_profile_transformation_matrix, load_rotation, \
-                              rotation_to_euler, rotation_to_matrix, rotation_to_inv_matrix
+                              rotation_to_euler, rotation_to_matrix, rotation_to_inv_matrix, \
+                              calculate_projection_matrix
 from loading_functions import load_pcl_timestamps, load_csv_file_into_nparray, load_csv_into_nparray, \
                               load_timestamps_file_into_nparray, load_timestamps_into_nparray, \
                               load_profile_translations, load_profile_rotations
@@ -24,7 +24,6 @@ def get_callbacks(app):
         function(profile_transf_data, translations_data, rotations_data, rotations_inv_data, rot_euler_data) {
             // make the data accessible for the visualization.js script
             window.vis.profile_transf = profile_transf_data;
-            console.log(profile_transf_data);
             window.vis.translations = translations_data;
             window.vis.rotations = rotations_data;
             window.vis.rotations_inv = rotations_inv_data;
@@ -549,6 +548,69 @@ def get_callbacks(app):
         Output('camera-timestamps-data', 'id'),  # dummy output needed so that the initial call occurs
         Input('camera-timestamps-data', 'data')
     )
+
+    # redefines the projection matrix according to the calibration matrix put in by the user
+    @app.callback(
+        Output('projection-matrix-store', 'data'),
+        Input('calibration-matrix-textarea', 'value'),
+        Input('far-plane-input', 'value'),
+        prevent_initial_call=True
+    )
+    def redefine_projection_matrix(value, far_plane_raw):
+        # parse the far plane value
+        if (far_plane_raw == None):
+            return no_update
+        far_plane = int(far_plane_raw)
+
+        # parse the calibration matrix
+        rows = value.strip().split('\n')
+        if len(rows) != 3:
+            return no_update
+        matrix = []
+        for row in rows:
+            if row[len(row) - 1] == ',':   # strip ',' at the ends of rows
+                row = row[:-1]
+            parsed_row_str = row.strip().split(',')
+            if len(parsed_row_str) != 3:
+                return no_update
+            matrix.append([float(parsed_row_str[0]), float(parsed_row_str[1]), float(parsed_row_str[2])])
+        calib_matrix = np.array(matrix)
+        proj_matrix = calculate_projection_matrix(
+            camera_params_dict={'Camera.width': 2048, 'Camera.height':1536},
+            K=calib_matrix,
+            far_plane=far_plane
+        )
+        return proj_matrix 
+    
+    # apply the new projection matrix
+    app.clientside_callback(
+        """
+        function(proj_matrix) {
+            window.vis.setProjectionMatrix(proj_matrix);
+        }
+        """,
+        Input('projection-matrix-store', 'data'),
+        prevent_initial_call=True
+    )
+
+    # parses the distortion parameters and saves them to a store
+    @app.callback(
+        Output('distortion-params-store', 'data'),
+        Input('distortion-params-textarea', 'value'),
+        prevent_initial_call=True
+    )
+    def parse_distortion_params(value):
+        rows = value.strip().split('\n')
+        params = []
+        for row in rows:
+            if row[len(row) - 1] == ',':   # strip ',' at the ends of rows
+                row = row[:-1]
+            parsed_row_str = row.strip().split(',')
+            for param_str in parsed_row_str:
+                params.append(float(param_str))
+        if len(params) != 5:
+            return no_update
+        return params
 
     # pass new data from stores to visualization in deck.gl
     app.clientside_callback(

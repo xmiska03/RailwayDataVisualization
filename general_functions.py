@@ -4,21 +4,25 @@ from scipy.spatial.transform import Rotation
 from params import NEAR_PLANE, FAR_PLANE
 
 # creates a deck.gl-style projection matrix according to camera parameters
-def calculate_projection_matrix(camera_params_dict, K=np.array([])):
+def calculate_projection_matrix(camera_params_dict, K=np.array([]), far_plane=None):
     w = camera_params_dict['Camera.width']
     h = camera_params_dict['Camera.height']
-    f_x = camera_params_dict['CameraMat']['data'][0]
-    f_y = camera_params_dict['CameraMat']['data'][4]
-    c_x = camera_params_dict['CameraMat']['data'][2]
-    c_y = camera_params_dict['CameraMat']['data'][5]
 
     if K.any():  # a special calibration matrix is given
         f_x = K[0][0]
         f_y = K[1][1]
         c_x = K[0][2]
         c_y = K[1][2]
+    else:
+        f_x = camera_params_dict['CameraMat']['data'][0]
+        f_y = camera_params_dict['CameraMat']['data'][4]
+        c_x = camera_params_dict['CameraMat']['data'][2]
+        c_y = camera_params_dict['CameraMat']['data'][5]
 
-    f = FAR_PLANE
+    if far_plane != None:
+       f = far_plane
+    else:
+        f = FAR_PLANE
     n = NEAR_PLANE
 
     proj_mat = np.array([
