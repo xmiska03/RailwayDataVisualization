@@ -11,9 +11,11 @@ import tomllib
 from general_functions import calculate_train_profile_transformation_matrix, load_rotation, \
                               rotation_to_euler, rotation_to_matrix, rotation_to_inv_matrix, \
                               calculate_projection_matrix
-from loading_functions import load_pcl_timestamps, load_csv_file_into_nparray, load_csv_into_nparray, \
+from loading_functions import load_pcl_timestamps_file, load_pcl_timestamps, \
+                              load_csv_file_into_nparray, load_csv_into_nparray, \
                               load_timestamps_file_into_nparray, load_timestamps_into_nparray, \
-                              load_profile_translations, load_profile_rotations
+                              load_profile_translations, load_profile_rotations, \
+                              load_space_separated_into_nparray
 
 
 def get_callbacks(app):
@@ -47,7 +49,7 @@ def get_callbacks(app):
     @app.callback(
         Output('profile-transf-data', 'data'),
         Input('profile-trans-data', 'data'),
-        State('profile-rot-data', 'data')
+        Input('profile-rot-data', 'data')
     )
     def create_train_profile_transformations(trans_data, rot_data):
         transf_matrices = [[] for _ in range(4)]
@@ -187,14 +189,17 @@ def get_callbacks(app):
     
     # upload/delete files with divided point cloud
     @app.callback(
+        Output('divided-pc-upload-div', 'style'),
         Output('divided-pc-uploaded-file-div', 'style'),
         Output('divided-pc-filename-div', 'children'),
         Output('visualization-data', 'data'),
         Input('divided-pcd-paths-store', 'data'),
+        Input('divided-pc-upload', 'contents'),
+        State('divided-pc-upload', 'filename'),
         prevent_initial_call = True
     )
-    def upload_divided_pc(pcd_paths):
-        if pcd_paths != "":
+    def upload_divided_pc(pcd_paths, file_content, filenames):
+        if ctx.triggered_id == 'divided-pcd-paths-store' and pcd_paths != "":
             # the file path was set by the project file
             # create quasi-filename
             dirname = os.path.basename(pcd_paths['dir_path'])
@@ -208,31 +213,67 @@ def get_callbacks(app):
             # create a patch for the visualization data store
             patched_data = Patch()
             patched_data["layers"][0]["data"] = data
-            return {"display": "block"}, quasi_filename, patched_data
+            return {"display": "none"}, {"display": "block"}, quasi_filename, patched_data
+        elif file_content is not None:
+            # new files uploaded
+            # create quasi-filename
+            quasi_filename = filenames[0]
+            if len(filenames) > 1: quasi_filename += ", ..."   # suggest that there are more files
+            # read the files one by one
+            data = [[] for i in range(len(filenames))]
+            for i in range(len(filenames)):
+                # decide which file is it - name must always be "pcd_*.pcd"
+                index = int(filenames[i][4:-4])
+                # read the file
+                content_type, content_string = file_content[i].split(',')
+                decoded = base64.b64decode(content_string)
+                # write the point cloud to a temporary file
+                server_filename = f"assets/temp/uploaded_pcd_{int(time.time())}.pcd" # filename with a timestamp
+                with open(server_filename, "wb") as f:
+                    f.write(decoded)
+                # read the temporary file
+                pc = PointCloud.from_path(server_filename)
+                data[index] = pc.numpy(("x", "y", "z", "intensity"))
+                # delete the temporary file
+                os.remove(server_filename)
+            # create a patch for the visualization data store
+            patched_data = Patch()
+            patched_data["layers"][0]["data"] = data
+            return {"display": "none"}, {"display": "block"}, quasi_filename, patched_data
         else:
             # it is the initial call
-            return {"display": "none"}, "", no_update
+            return {"display": "block"}, {"display": "none"}, "", no_update
 
 
     # upload/delete file with divided point cloud timestamps
     @app.callback(
+        Output('pc-timestamps-upload-div', 'style'),
         Output('pc-timestamps-uploaded-file-div', 'style'),
         Output('pc-timestamps-filename-div', 'children'),
         Output('pcl-timestamps-data', 'data'),
         Input('pc-timestamps-path-store', 'data'),
+        Input('pc-timestamps-upload', 'contents'),
+        State('pc-timestamps-upload', 'filename'),
         prevent_initial_call = True
     )
-    def upload_pc_timestamps(pc_timestamps_path):
+    def upload_pc_timestamps(pc_timestamps_path, file_content, filename):
         if ctx.triggered_id == 'pc-timestamps-path-store' and pc_timestamps_path != "":
             # the file path was set by the project file
             # get filename
             new_filename = os.path.basename(pc_timestamps_path)
             # read the file
-            data = load_pcl_timestamps(pc_timestamps_path)
-            return {"display": "block"}, new_filename, data
+            data = load_pcl_timestamps_file(pc_timestamps_path)
+            return {"display": "none"}, {"display": "block"}, new_filename, data
+        elif file_content is not None:
+            # new file uploaded
+            content_type, content_string = file_content.split(',')
+            decoded = base64.b64decode(content_string).decode("utf-8").split('\n')
+            # read the file
+            data = load_pcl_timestamps(decoded)
+            return {"display": "none"}, {"display": "block"}, filename, data
         else:
             # it is the initial call
-            return {"display": "none"}, "", no_update
+            return {"display": "block"}, {"display": "none"}, "", no_update
 
 
     # upload/delete file with video
@@ -278,14 +319,17 @@ def get_callbacks(app):
 
     # upload/delete file with vector data
     @app.callback(
+        Output('vector-data-upload-div', 'style'),
         Output('vector-data-uploaded-file-div', 'style'),
         Output('vector-data-filename-div', 'children'),
         Output('vector-data', 'data'),
         Input('vector-data-path-store', 'data'),
+        Input('vector-data-upload', 'contents'),
+        State('vector-data-upload', 'filename'),
         prevent_initial_call = True
     )
-    def upload_vector_data(vector_data_path):
-        if vector_data_path != "":
+    def upload_vector_data(vector_data_path, file_content, filenames):
+        if ctx.triggered_id == 'vector-data-path-store' and vector_data_path != "":
             # the file path was set by the project file
             # create quasi-filename
             dirname = os.path.basename(vector_data_path)
@@ -297,10 +341,22 @@ def get_callbacks(app):
             for filename in files:
                 file_path = os.path.join(vector_data_path, filename)
                 data.append(load_csv_file_into_nparray(file_path))
-            return {"display": "block"}, quasi_filename, data
+            return {"display": "none"}, {"display": "block"}, quasi_filename, data
+        elif file_content is not None:
+            # new files uploaded
+            # create quasi-filename
+            quasi_filename = filenames[0]
+            if len(filenames) > 1: quasi_filename += ", ..."   # suggest that there are more files
+            # read the files one by one
+            data = []
+            for i in range(len(filenames)):
+                content_type, content_string = file_content[i].split(',')
+                decoded = base64.b64decode(content_string).decode("utf-8").split('\n')
+                data.append(load_csv_into_nparray(decoded))
+            return {"display": "none"}, {"display": "block"}, quasi_filename, data
         else:
             # it is the initial call
-            return {"display": "none"}, "", no_update
+            return {"display": "block"}, {"display": "none"}, "", no_update
 
 
     # upload/delete file with translations
@@ -416,14 +472,17 @@ def get_callbacks(app):
     
     # upload/delete file with train profile translations
     @app.callback(
+        Output('profile-trans-upload-div', 'style'),
         Output('profile-trans-uploaded-file-div', 'style'),
         Output('profile-trans-filename-div', 'children'),
         Output('profile-trans-data', 'data'),
         Output('profile-line-data', 'data'),
         Input('profile-trans-paths-store', 'data'),
+        Input('profile-trans-upload', 'contents'),
+        State('profile-trans-upload', 'filename'),
         prevent_initial_call = True
     )
-    def upload_vector_data(profile_trans_paths):
+    def upload_profile_translations(profile_trans_paths, file_content, filenames):
         if ctx.triggered_id == 'profile-trans-paths-store' and profile_trans_paths != "":
             # the file path was set by the project file
             # create quasi-filename
@@ -432,23 +491,51 @@ def get_callbacks(app):
             # load data from the files
             profile_translations = load_profile_translations(profile_trans_paths['dir_path'], 
                                                            profile_trans_paths['filename_prefix'])
-            profile_line_data = [[profile_translations[0]], [profile_translations[1]], [profile_translations[2]],
-                                [profile_translations[3]]]
+            profile_line_data = [[profile_translations[0]], [profile_translations[1]], 
+                                 [profile_translations[2]], [profile_translations[3]]]
             
-            return {"display": "block"}, quasi_filename, profile_translations, profile_line_data
+            return {"display": "none"}, {"display": "block"}, quasi_filename, profile_translations, \
+                   profile_line_data
+        elif file_content is not None:
+            # new files uploaded
+            # create quasi-filename
+            quasi_filename = filenames[0]
+            if len(filenames) > 1: quasi_filename += ", ..."   # suggest that there are more files
+            # load the data from files
+            profile_translations = [[] for i in range(4)]
+            for i in range(len(filenames)):
+                # decide which file is it
+                index = 0
+                if filenames[i][-6:] == "50.csv":
+                    index = 1
+                elif filenames[i][-6:] == "75.csv":
+                    index = 2
+                elif filenames[i][-7:] == "100.csv":
+                    index = 3
+                # read the file
+                content_type, content_string = file_content[i].split(',')
+                decoded = base64.b64decode(content_string).decode("utf-8").split('\n')
+                profile_translations[index] = load_space_separated_into_nparray(decoded)[:, [2, 0, 1]]
+            profile_line_data = [[profile_translations[0]], [profile_translations[1]], 
+                                 [profile_translations[2]], [profile_translations[3]]]
+            return {"display": "none"}, {"display": "block"}, quasi_filename, profile_translations, \
+                   profile_line_data
         else:
             # it is the initial call
-            return {"display": "none"}, "", no_update, no_update
+            return {"display": "block"}, {"display": "none"}, "", no_update, no_update
         
     # upload/delete file with train profile rotations
     @app.callback(
+        Output('profile-rot-upload-div', 'style'),
         Output('profile-rot-uploaded-file-div', 'style'),
         Output('profile-rot-filename-div', 'children'),
         Output('profile-rot-data', 'data'),
         Input('profile-rot-paths-store', 'data'),
+        Input('profile-rot-upload', 'contents'),
+        State('profile-rot-upload', 'filename'),
         prevent_initial_call = True
     )
-    def upload_vector_data(profile_rot_paths):
+    def upload_profile_rotations(profile_rot_paths, file_content, filenames):
         if ctx.triggered_id == 'profile-rot-paths-store' and profile_rot_paths != "":
             # the file path was set by the project file
             # create quasi-filename
@@ -456,10 +543,34 @@ def get_callbacks(app):
             quasi_filename = os.path.join(dirname, profile_rot_paths['filename_prefix']) + "_*.csv"
             # load data from the files
             data = load_profile_rotations(profile_rot_paths['dir_path'], profile_rot_paths['filename_prefix'])
-            return {"display": "block"}, quasi_filename, data
+            return {"display": "none"}, {"display": "block"}, quasi_filename, data
+        elif file_content is not None:
+            # new files uploaded
+            # create quasi-filename
+            quasi_filename = filenames[0]
+            if len(filenames) > 1: quasi_filename += ", ..."   # suggest that there are more files
+            # load the data from files
+            profile_rotations = [[] for i in range(4)]
+            for i in range(len(filenames)):
+                # decide which file is it
+                index = 0
+                if filenames[i][-6:] == "50.csv":
+                    index = 1
+                elif filenames[i][-6:] == "75.csv":
+                    index = 2
+                elif filenames[i][-7:] == "100.csv":
+                    index = 3
+                # read the file
+                content_type, content_string = file_content[i].split(',')
+                decoded = base64.b64decode(content_string).decode("utf-8").split('\n')
+                rotations_raw = load_space_separated_into_nparray(decoded)
+                for rotation_raw in rotations_raw:
+                    rotation = load_rotation(rotation_raw)
+                    profile_rotations[index].append(rotation_to_inv_matrix(rotation))
+            return {"display": "none"}, {"display": "block"}, quasi_filename, profile_rotations
         else:
             # it is the initial call
-            return {"display": "none"}, "", no_update
+            return {"display": "block"}, {"display": "none"}, "", no_update
     
 
     # set a new video to the same time as the old video
@@ -498,20 +609,44 @@ def get_callbacks(app):
     def delete_project_file(btn):
         return None
     
-    # delete file with point cloud
+    # delete file with united point cloud
     @app.callback(
         Output('united-pc-upload', 'contents'),
         Input('united-pc-delete-button', 'n_clicks')
     )
-    def delete_point_cloud(btn):
+    def delete_united_pc(btn):
         return None
     
+    # delete files with divided point cloud
+    @app.callback(
+        Output('divided-pc-upload', 'contents'),
+        Input('divided-pc-delete-button', 'n_clicks')
+    )
+    def delete_divided_pc(btn):
+        return None
+
+    # delete files with point cloud timestamps
+    @app.callback(
+        Output('pc-timestamps-upload', 'contents'),
+        Input('pc-timestamps-delete-button', 'n_clicks')
+    )
+    def delete_pc_timestamps(btn):
+        return None
+
     # delete file with video
     @app.callback(
         Output('video-upload', 'contents'),
         Input('video-delete-button', 'n_clicks')
     )
     def delete_video(btn):
+        return None
+    
+    # delete files with vector data
+    @app.callback(
+        Output('vector-data-upload', 'contents'),
+        Input('vector-data-delete-button', 'n_clicks')
+    )
+    def delete_vector_data(btn):
         return None
 
     # delete file with translations
@@ -536,6 +671,22 @@ def get_callbacks(app):
         Input('timestamps-delete-button', 'n_clicks')
     )
     def delete_timestamps(btn):
+        return None
+    
+    # delete files with train profile translations
+    @app.callback(
+        Output('profile-trans-upload', 'contents'),
+        Input('profile-trans-delete-button', 'n_clicks')
+    )
+    def delete_profile_trans(btn):
+        return None
+
+    # delete files with train profile translations
+    @app.callback(
+        Output('profile-rot-upload', 'contents'),
+        Input('profile-rot-delete-button', 'n_clicks')
+    )
+    def delete_profile_rot(btn):
         return None
 
     # update window.vis.frames_cnt, the total time label as well as the range of the slider & input 
@@ -631,6 +782,7 @@ def get_callbacks(app):
         """
         function(data_dict) {
             window.vis.data_dict = data_dict;
+            window.vis.updateDeck();
         }
         """,
         Input('visualization-data', 'data')
@@ -639,6 +791,7 @@ def get_callbacks(app):
         """
         function(united_pc_data) {
             window.vis.united_pc_data = united_pc_data;
+            window.vis.updateDeck();
         }
         """,
         Input('united-pc-data', 'data')
@@ -647,6 +800,7 @@ def get_callbacks(app):
         """
         function(profile_line_data) {
             window.vis.profile_line_data = profile_line_data;
+            window.vis.updateDeck();
         }
         """,
         Input('profile-line-data', 'data')
@@ -655,6 +809,7 @@ def get_callbacks(app):
         """
         function(vector_data) {
             window.vis.vector_data = vector_data;
+            window.vis.updateDeck();
         }
         """,
         Input('vector-data', 'data')
@@ -663,6 +818,7 @@ def get_callbacks(app):
         """
         function(camera_timestamps_data) {
             window.vis.camera_timestamps = camera_timestamps_data;
+            window.vis.updateDeck();
         }
         """,
         Input('camera-timestamps-data', 'data')
@@ -671,6 +827,7 @@ def get_callbacks(app):
         """
         function(pcl_timestamps_data) {
             window.vis.pcl_timestamps = pcl_timestamps_data;
+            window.vis.updateDeck();
         }
         """,
         Input('pcl-timestamps-data', 'data')

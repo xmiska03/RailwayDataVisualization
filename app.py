@@ -14,7 +14,7 @@ from general_functions import calculate_projection_matrix, calculate_translation
                               load_rotation, rotation_to_euler, rotation_to_matrix, rotation_to_inv_matrix
 from loading_functions import load_csv_file_into_nparray, load_yaml_into_dict, \
                               load_timestamps_file_into_nparray, \
-                              load_pcl_timestamps, load_profile_translations, load_profile_rotations
+                              load_pcl_timestamps_file, load_profile_translations, load_profile_rotations
 
 
 # create directory for temporary files
@@ -32,7 +32,7 @@ for i in range(596):
     
 
 # load unaggregated point cloud timestamps
-pcl_timestamps = load_pcl_timestamps("data/joined/joined_pcl_timestamps.txt")
+pcl_timestamps = load_pcl_timestamps_file("data/joined/joined_pcl_timestamps.txt")
 #pcl_timestamps = [i * 0.04 for i in range(596)]   # for testing 
 
 # load aggregated point cloud data

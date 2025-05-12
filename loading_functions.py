@@ -23,12 +23,21 @@ def load_csv_into_nparray(iterable):
     return np.array(data, dtype=float)
     
 # loads a space separated file into a numpy array
-def load_space_separated_into_nparray(file_address):
-    data = []
+def load_space_separated_file_into_nparray(file_address):
     with open(file_address, 'r') as f:
-        for line in f:
-            data.append(line.split())
-        return np.array(data, dtype=float)
+        return load_space_separated_into_nparray(f)
+    
+# loads an iterable of strings with space separated values into a numpy array
+def load_space_separated_into_nparray(iterable):
+    data = []
+    for line in iterable:
+        data.append(line.split())
+    
+    if data[-1] == []:
+        # get rid of empty last line if reading an uploaded file
+        data = data[:-1]
+
+    return np.array(data, dtype=float)
 
 # loads timestamps from file
 def load_timestamps_file_into_nparray(file_address):
@@ -59,14 +68,20 @@ def load_yaml_into_dict(file_address):
         data = yaml.safe_load(f)
         return data
     
-# load a pcl timestamps file (2 columns, space separated, in the second column a timestamp in seconds)
-def load_pcl_timestamps(file_address):
-    pcl_timestamps = []
+# load a pcl timestamps file
+def load_pcl_timestamps_file(file_address):
     with open(file_address, "r") as f:
-        for line in f:
-            split_line = line.split()
-            if len(split_line) >= 2:
-                pcl_timestamps.append(float(split_line[1]))
+        return load_pcl_timestamps(f)
+
+# loads an iterable of strings with pcl timestamps 
+# (2 columns, space separated, in the second column a timestamp in seconds)
+def load_pcl_timestamps(iterable):
+    pcl_timestamps = []
+
+    for line in iterable:
+        split_line = line.split()
+        if len(split_line) >= 2:
+            pcl_timestamps.append(float(split_line[1]))
     return pcl_timestamps
 
 # load predicted translations in distances 25m, 50m, 75m, 100m
@@ -75,7 +90,7 @@ def load_profile_translations(directory_path, filename_prefix):
     for distance in [25, 50, 75, 100]:
         filename = f"{filename_prefix}_{distance}.csv"
         file_path = os.path.join(directory_path, filename)
-        translations.append(load_space_separated_into_nparray(file_path)[:, [2, 0, 1]])
+        translations.append(load_space_separated_file_into_nparray(file_path)[:, [2, 0, 1]])
     return translations
 
 
@@ -85,7 +100,7 @@ def load_profile_rotations(directory_path, filename_prefix):
     for i in range(4):   # for eveery distance
         filename = f"{filename_prefix}_{25 + i*25}.csv"
         file_path = os.path.join(directory_path, filename)
-        rotations_raw = load_space_separated_into_nparray(file_path)
+        rotations_raw = load_space_separated_file_into_nparray(file_path)
         for rotation_raw in rotations_raw:
             rotation = load_rotation(rotation_raw)
             rotations[i].append(rotation_to_inv_matrix(rotation))
