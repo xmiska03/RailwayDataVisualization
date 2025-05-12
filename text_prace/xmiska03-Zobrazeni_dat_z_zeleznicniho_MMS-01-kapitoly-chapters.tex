@@ -4,7 +4,7 @@
 
 \chapter{Úvod}
 
-Pre technológie dnešnej doby je typické, že produkujú veľké možstvo dát. Pri analýze a~spracovávaní týchto dát hrajú veľmi dôležitú úlohu systémy pre ich zobrazenie. Rôzne typy dát si pritom vyžadujú špecializované zobrazovacie systémy. U~týchto systémov je dôležitá prehľadnosť, presnosť a intuitívnosť, aby mohli byť efektívne využité.
+Pre technológie dnešnej doby je typické, že produkujú veľké množstvo dát. Pri analýze a~spracúvaní týchto dát hrajú veľmi dôležitú úlohu systémy pre ich zobrazenie. Rôzne typy dát si pritom vyžadujú špecializované zobrazovacie systémy. U~týchto systémov je dôležitá prehľadnosť, presnosť a intuitívnosť, aby mohli byť efektívne využité.
 
 Táto práca sa zaoberá tvorbou webovej aplikácie, ktorá zobrazuje dáta z~železničného mobilného mapovacieho systému, teda zo senzorov umiestnených na čele vlaku, z~pohľadu strojvedúceho. Dáta zachytávajú železničnú trať a jej okolie a skladajú sa z~kamerového záznamu a mračna bodov nasnímaného lidarom, čo je systém pre diaľkové meranie vzdialenosti podobný radaru. Aplikácia má okrem toho schopnosť zobrazovať aj ľubovoľné vektorové dáta, ktoré môžu byť odvodené z~máp alebo byť výsledkom spracovania mračna bodov.
 
@@ -12,20 +12,20 @@ Toto zadanie som si vybrala preto, že zahŕňa tvorbu jedinečného systému, k
 
 Sadu dát pre vývoj a testovanie aplikácie poskytla spoločnosť AŽD Praha s.r.o. a pochádza z~autonómneho vlaku, ktorý premáva na súkromnej experimentálnej železničnej trati Kopidlno~--~Dolní Bousov.
 
-Kapitola \ref{ch:teoria} sa zaoberá popisom teoretických základov snímania obrazu kamerou a vykresľovania trojrozmerných dát v~počítačovej grafike, ktorých znalosť bola pri tvorbe práce nutná. Ďalej sa v~nej nachádza analýza niektorých technológií, ktoré je možné použiť k~tvorbe webovej aplikácie spĺňajúcej požadované vlastnosti.
+Kapitola \ref{ch:teoria} sa zaoberá popisom teoretických základov snímania obrazu kamerou a vykresľovania trojrozmerných dát v~počítačovej grafike, ktorých znalosť bola pri tvorbe práce nutná. Je v nej opísaný dierkový model kamery, modely skreslenia reálnych kamier a vykresľovací reťazec. Ďalej sa v~nej nachádza analýza technológií, ktoré je možné použiť k~tvorbe webovej aplikácie spĺňajúcej požadované vlastnosti, a to najmä aplikačných rámcov Dash a Deck.gl.
 
 Nasledujúca kapitola \ref{ch:navrh} obsahuje návrh aplikácie, ktorý sa zaoberá nielen návrhom funkcionality a používateľského rozhrania, ale aj problémom nahrávania dát.
 
-Predmetom kapitoly \ref{ch:implementacia} je popis implementácie navrhnutej aplikácie v~programovacom jazyku Python s~pomocným skriptom v~jazyku JavaScript, ktorý slúži na optimalizáciu vykresľovania mračna bodov, čo bolo pri tvorbe práce najväčšou výzvou, pretože práve mračno bodov tvorí najväčšiu časť zobrazovaných dát.
+Predmetom kapitoly \ref{ch:implementacia} je popis implementácie navrhnutej aplikácie v~programovacom jazyku Python s~pomocným skriptom v~jazyku JavaScript, ktorý slúži na optimalizáciu vykresľovania mračna bodov, čo bolo pri tvorbe práce najväčšou výzvou, pretože práve mračno bodov tvorí najväčšiu časť zobrazovaných dát. Je uvedený prehľad funkcionality jednotlivých modulov a bližší popis najdôležitejších častí kódu.
 
 Na záver je v~kapitole \ref{ch:vyhodnotenie} vyhodnotená výkonnosť a používateľská prívetivosť aplikácie. 
 
 \chapter{Vizualizácia dát z~mobilných mapovacích systémov}
 \label{ch:teoria}
 
-Výstupom mobilného mapovacieho systému je množstvo dát z~rôznych senzorov. Dáta, ktoré boli poskytnuté k~tvorbe tejto práce, obsahovali v~prvom rade mračná bodov získané z~lidaru. Aby bolo možné s~týmito mračnami bodov pracovať a vhodne ich zobrazovať, je potrebné, aby mobilný mapovací systém zaznamenával údaje o~svojej polohe. V~tomto prípade boli k~dispozícii údaje o~transláciách a rotáciách kamery s~časovými razítkami. Ďalej býva súčasťou mobilného mapovacieho systému klasická kamera. Pre zobrazenie mračna bodov takým spôsobom, aby sa zobrazenie čo najviac zhodovalo s~kamerovým záznamom, je nutné poznať parametre kamery -- kalibračnú maticu a prípadne aj parametre skreslenia.
+Výstupom mobilného mapovacieho systému je množstvo dát z~rôznych senzorov. Dáta, ktoré boli poskytnuté k~tvorbe tejto práce, obsahovali v~prvom rade mračná bodov získané z~lidaru. Aby bolo možné s~týmito mračnami bodov pracovať a vhodne ich zobrazovať, je potrebné, aby mobilný mapovací systém zaznamenával údaje o~svojej polohe. V~tomto prípade boli k~dispozícii údaje o~transláciách a rotáciách kamery s~časovými pečiatkami. Ďalej býva súčasťou mobilného mapovacieho systému klasická kamera. Pre zobrazenie mračna bodov takým spôsobom, aby sa zobrazenie čo najviac zhodovalo s~kamerovým záznamom, je nutné poznať parametre kamery -- kalibračnú maticu a prípadne aj parametre skreslenia.
 
-Pri vývoji aplikácie, ktorá má umožniť vizualizáciu týchto dát a navyše aj ďalších vektorových dát, je nutné poznať základné princípy zobrazovania 3D dát v~počítačovej grafike. Ďalej je potrebné vybrať si a naštudovať technológie, pomocou ktorých bude aplikácia vytvorená, a to konkrétne niektorý z~frameworkov pre tvorbu aplikácií v~jazyku Python a vhodný framework pre zobrazenie grafických dát. Všetko toto je predmetom tejto kapitoly.
+Pri vývoji aplikácie, ktorá má umožniť vizualizáciu týchto dát a navyše aj ďalších vektorových dát, je nutné poznať základné princípy zobrazovania 3D dát v~počítačovej grafike. Ďalej je potrebné vybrať si a naštudovať technológie, pomocou ktorých bude aplikácia vytvorená, a to konkrétne niektorý z~frameworkov (aplikačných rámcov) pre tvorbu aplikácií v~jazyku Python a vhodný framework pre zobrazenie grafických dát. Všetko toto je predmetom tejto kapitoly.
 
 \section{Dierkový model kamery}
 
@@ -40,7 +40,7 @@ Princíp zobrazenia je nasledovný: obrazom bodu $\mathbf{X} = (X, Y, Z)^T$ je b
 \begin{figure}[h!]
     \centering
     \includegraphics[width=0.7\linewidth]{text_prace/obrazky-figures/model_kamery1.pdf}
-    \caption[Zakladný princíp dierkového modelu kamery.]{Zakladný princíp dierkového modelu kamery. Prevzaté z~\cite{multiple_view_geometry}.}
+    \caption[Základný princíp dierkového modelu kamery.]{Základný princíp dierkového modelu kamery. Prevzaté z~\cite{multiple_view_geometry}.}
     \label{fig:model_kamery1}
 \end{figure}
 
@@ -53,9 +53,10 @@ Princíp zobrazenia je nasledovný: obrazom bodu $\mathbf{X} = (X, Y, Z)^T$ je b
 
 Keďže všetky obrazy bodov ležia v~obrazovej rovine $z = f$, je možné poslednú súradnicu zanedbať a zapisovať súradnice bodu $\mathbf{x}$ v~súradnicovom systéme obrazovej roviny ako $(fX/Z, fY/Z)^T$.
 
-Túto projekciu môžeme v~homogénnych súradniciach zapísať pomocou násobenia matíc nasledovným spôsobom:
+Túto projekciu môžeme v~homogénnych súradniciach zapísať pomocou násobenia matíc (rovnica \ref{eq:projekcna_matica}).
 
-$$ \mathbf{x} 
+\begin{equation}
+\mathbf{x} 
 =
 \begin{pmatrix}
 fX \\
@@ -83,23 +84,17 @@ f &   &   & 0 \\
 \mathbf{X}
 =
 \mathrm{P} \mathbf{X}
-$$
+\label{eq:projekcna_matica}
+\end{equation}
 
 Maticu $\mathrm{P}$ nazývame projekčnou maticou kamery (\emph{camera projection matrix}).
 
 \subsubsection{Rozšírenia základného dierkového modelu kamery}
 
-V~praxi väčšinou chceme vyjadriť body na obrazovej rovine v~súradnicovom systéme, ktorý nemá stred v~bode $(0, 0, f)^T$, ale v~ľubovoľnom bode $(-p_x, -p_y, f)^T$ (obrázok \ref{fig:model_kamery3}). Obrazom bodu $\mathbf{X} = (X, Y, Z)^T$ (v~súradnicovom systéme kamery) potom bude bod $\mathbf{x} = (fX/Z + p_x, fY/Z + p_y, f)^T$ (v~súradnicovom systéme obrazovej roviny). To je možné zahrnúť do projekčnej matice nasledovným spôsobom:
-
-$$ \mathrm{P} =
-\begin{bmatrix}
-f &   & p_x & 0 \\
-  & f & p_y & 0 \\
-  &   &  1  & 0
-\end{bmatrix}
-$$
-
-$$ \mathbf{x} 
+V~praxi väčšinou chceme vyjadriť body na obrazovej rovine v~súradnicovom systéme, ktorý nemá stred v~bode $(0, 0, f)^T$, ale v~ľubovoľnom bode $(-p_x, -p_y, f)^T$ (obrázok \ref{fig:model_kamery3}). Obrazom bodu $\mathbf{X} = (X, Y, Z)^T$ (v~súradnicovom systéme kamery) potom bude bod $\mathbf{x} = (fX/Z + p_x, fY/Z + p_y, f)^T$ (v~súradnicovom systéme obrazovej roviny). To je možné zahrnúť do projekčnej matice (rovnice \ref{eq:projekcna_matica2} a \ref{eq:projekcna_matica3}).
+ 
+\begin{equation}
+\mathbf{x} 
 =
 \begin{pmatrix}
 fX/Z + p_x \\
@@ -124,18 +119,31 @@ Y \\
 Z \\
 1
 \end{pmatrix}
-$$
+\label{eq:projekcna_matica2}
+\end{equation}
+
+\begin{equation}
+\mathrm{P} =
+\begin{bmatrix}
+f &   & p_x & 0 \\
+  & f & p_y & 0 \\
+  &   &  1  & 0
+\end{bmatrix}
+\label{eq:projekcna_matica3}
+\end{equation}
 
 Maticu
 
-$$ \mathrm{K} 
+\begin{equation}
+\mathrm{K} 
 =
 \begin{bmatrix}
 f &   &  p_x \\
   & f &  p_y \\
   &   &   1  
 \end{bmatrix}
-$$
+\label{eq:kalibracna_matica1}
+\end{equation}
 
 nazývame kalibračnou maticou kamery (\emph{camera calibration matrix}) a medzi ňou a projekčnou maticou platí vzťah
 $\mathrm{P} = \begin{bmatrix} \mathrm{K} | 0 \end{bmatrix}$, kde $0$ predstavuje nulový stĺpcový vektor.
@@ -147,24 +155,31 @@ $\mathrm{P} = \begin{bmatrix} \mathrm{K} | 0 \end{bmatrix}$, kde $0$ predstavuje
     \label{fig:model_kamery3}
 \end{figure}
 
-U~niektorých kamier je možné, že súradnicový systém obrazovej roviny nemá rovnakú mierku na oboch osiach. Vtedy sú v~kalibračnej matici namiesto parametra $f$ parametre $f_x$, $f_y$ a matica má podobu
+U~niektorých kamier je možné, že súradnicový systém obrazovej roviny nemá rovnakú mierku na oboch osiach. Vtedy sú v~kalibračnej matici namiesto parametra $f$ parametre $f_x$, $f_y$ (rovnica \ref{eq:kalibracna_matica2}).
 
-$$ \mathrm{K'} 
+\begin{equation}
+\mathrm{K'} 
 =
 \begin{bmatrix}
 f_x &     &  p_x \\
     & f_y &  p_y \\
     &     &   1  
-\end{bmatrix} \mathrm{.}
-$$
+\end{bmatrix}
+\label{eq:kalibracna_matica2}
+\end{equation}
 
 Parametre $p_x$, $p_y$ a $f$, prípadne $f_x$ a $f_y$ označujeme ako \textbf{vnútorné parametre kamery}.
 
 Až doteraz sme predpokladali, že kamera má stred v~počiatku súradnicovej sústavy a je \uv{otočená} v~smere osi $z$, t. j. že obrazová rovina je rovnobežná s~rovinou $xy$. V~praxi to tak však nebýva a kamera má v~súradnicovom systéme, v~ktorom sú definované zobrazované body, istú rotáciu a transláciu. V~takom prípade rozlišujeme všeobecný súradnicový systém a súradnicový systém kamery (\emph{world coordinate frame} a \emph{camera coordinate frame}).
 
-Ak $\widetilde{\mathbf{X}}$ je vektor súradníc bodu $\mathbf{X}$ vo všeobecnom súradnicovom systéme a vektor $\widetilde{\mathbf{X}}_{\mathrm{cam}}$ reprezentuje ten istý bod v~súradnicovom systéme kamery, tak platí vzťah 
-$$\widetilde{\mathbf{X}}_{\mathrm{cam}} = \mathrm{R} (\widetilde{\mathbf{X}} - \widetilde{\mathbf{C}}),$$ 
-kde $\widetilde{\mathbf{C}}$ sú súradnice stredu kamery vo všeobecnom súradnicovom systéme a $\mathrm{R}$ je rotačná matica $3 \times 3$ reprezentujúca orientáciu súradnicového systému kamery. To vedie k~novému vyjadreniu projekčnej matice ako $\mathrm{P} = \mathrm{K} \mathrm{R} \bigl[ \mathrm{I} | - \widetilde{\mathbf{C}} \bigr]$, kde $\mathrm{I}$ je jednotková matica $3 \times 3$.
+Ak $\widetilde{\mathbf{X}}$ je vektor súradníc bodu $\mathbf{X}$ vo všeobecnom súradnicovom systéme a vektor $\widetilde{\mathbf{X}}_{\mathrm{cam}}$ reprezentuje ten istý bod v~súradnicovom systéme kamery, tak platí vzťah \ref{eq:vonkajsie_parametre}.
+
+\begin{equation}
+\widetilde{\mathbf{X}}_{\mathrm{cam}} = \mathrm{R} (\widetilde{\mathbf{X}} - \widetilde{\mathbf{C}})
+\label{eq:vonkajsie_parametre}
+\end{equation}
+
+$\widetilde{\mathbf{C}}$ sú súradnice stredu kamery vo všeobecnom súradnicovom systéme a $\mathrm{R}$ je rotačná matica s rozmermi $3 \times 3$ reprezentujúca orientáciu súradnicového systému kamery. To vedie k~novému vyjadreniu projekčnej matice ako $\mathrm{P} = \mathrm{K} \mathrm{R} \bigl[ \mathrm{I} | - \widetilde{\mathbf{C}} \bigr]$, kde $\mathrm{I}$ je jednotková matica s~rozmermi $3 \times 3$.
 
 Parametre $\mathrm{R}$ a $\widetilde{\mathbf{C}}$ označujeme ako \textbf{vonkajšie parametre kamery}.
 
@@ -177,20 +192,32 @@ Existujú rôzne modely skreslenia, z~ktorých najčastejšie používané sú r
 
 Radiálne skreslenie vzniká v~dôsledku rozdielneho lomu lúčov v~strede a na okraji šošovky a je tým väčšie, čím menšia je šošovka. Príklad radiálneho skreslenia je na obrázku \ref{fig:radialne_skreslenie}. Tangenciálne skreslenie vzniká vtedy, keď šošovka nie je rovnobežná s~obrazovou rovinou~\cite{matlab_camera_calibration}. Reálne kamery zvyčajne majú radiálne skreslenie väčšie než tangenciálne \cite{opencv_camera_calibration_older}.
 
-Radiálne skreslenie sa počíta vzťahmi
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=0.6\linewidth]{text_prace/obrazky-figures/radialne_skreslenie.png}
+    \caption[Radiálne skreslenie kamery ilustrované na mriežke.]{Radiálne skreslenie ilustrované na mriežke. Bledomodrá mriežka je pôvodná, čierna skreslená. Pri tvorbe obrázku boli použité skutočné parametre radiálneho skreslenia kamery mobilného mapovacieho systému, ktoré boli súčasťou dát dodaných k~tvorbe tejto práce: $k_1 = -0.183217$, $k_2 = 0.026917$, $k_3 = 0.335446$}.
+    \label{fig:radialne_skreslenie}
+\end{figure}
 
-$$x_{distorted} = x(1 + k_1 r^2 + k_2 r^4 + k_3 r^6)$$
-$$y_{distorted} = y(1 + k_1 r^2 + k_2 r^4 + k_3 r^6)$$
+Radiálne skreslenie sa počíta vzťahmi \ref{eq:radialne} \cite{opencv_camera_calibration}.
 
-kde
+\begin{equation}
+\begin{aligned}
+x_{distorted} = x(1 + k_1 r^2 + k_2 r^4 + k_3 r^6) \\
+y_{distorted} = y(1 + k_1 r^2 + k_2 r^4 + k_3 r^6)
+\label{eq:radialne}
+\end{aligned}
+\end{equation}
+
+Význam premenných je nasledovný:
 
 \begin{itemize}
     \item $x, y$ sú normalizované obrazové súradnice (\emph{normalized image coordinates}) bodu pred skreslením,
     \item $k_1, k_2, k_3$ sú koeficienty radiálneho skreslenia,
-    \item $r^2 = x^2 + y^2$ \cite{opencv_camera_calibration}.
+    \item $r^2 = x^2 + y^2$.
 \end{itemize}
 
-Normalizovaný obrazový súradnicový systém je súradnicový systém, ktorý má tieto vlastnosti:
+Normalizovaný obrazový súradnicový systém je karteziánsky súradnicový systém, ktorý má tieto vlastnosti:
 \begin{itemize}
     \item Jeho stred je v~strede obrazu,
     \item Väčšia dimenzia obrazu má veľkosť 1.
@@ -198,44 +225,49 @@ Normalizovaný obrazový súradnicový systém je súradnicový systém, ktorý 
 
 Teda napríklad obraz s~pomerom strán 4:3 bude v~normalizovanom obrazovom súradnicovom systéme obdĺžnik s~ľavým dolným rohom v~bode $[-0.5, 3/4 \times (-0.5)]$ a pravým horným rohom v~bode $[0.5, 3/4 \times 0.5]$.
 
-Prevod zo súradníc pixelu v~obraze s~rozlíšením $w \times h$ pixelov do normalizovaných obrazových súradníc je nasledovný \cite{opensfm_coordinate_systems}:
+Prevod zo súradníc pixelu v~obraze s~rozlíšením $w \times h$ pixelov do normalizovaných obrazových súradníc je popísaný vzťahmi \ref{eq:normalizovane_suradnice} \cite{opensfm_coordinate_systems}.
 
-$$
+\begin{equation}
 x_{norm} = \frac{x_{pix} - \frac{w-1}{2}}{max(w, h)}
 \mathrm{,} \quad
 y_{norm} = \frac{y_{pix} - \frac{h-1}{2}}{max(w, h)}
-\mathrm{.}
-$$
+\label{eq:normalizovane_suradnice}
+\end{equation}
 
-Tangenciálne skreslenie sa počíta vzťahmi
+Tangenciálne skreslenie sa počíta vzťahmi \ref{eq:tangencialne} \cite{opencv_camera_calibration}.
 
-$$x_{distorted} = x + [2 p_1 x y + p_2(r^2 + 2 x^2)]$$
-$$y_{distorted} = y + [ p_1(r^2 + 2 y^2) + 2 p_2 x y]$$
+\begin{equation}
+\begin{aligned}
+x_{distorted} = x + [2 p_1 x y + p_2(r^2 + 2 x^2)] \\
+y_{distorted} = y + [ p_1(r^2 + 2 y^2) + 2 p_2 x y]
+\label{eq:tangencialne}
+\end{aligned}
+\end{equation}
 
-kde
+Význam premenných je nasledovný:
 
 \begin{itemize}
     \item $x, y, r^2$ sú rovnaké ako u~radiálneho skreslenia,
-    \item $p_1, p_2$ sú koeficienty tangenciálneho skreslenia \cite{opencv_camera_calibration}.
+    \item $p_1, p_2$ sú koeficienty tangenciálneho skreslenia.
 \end{itemize}
 
-Vzťahy pre výpočet radiálneho a tangenciálneho skreslenia zároveň sú nasledovné \cite{sun_cooperstock_camera_calibration}:
+Pre výpočet radiálneho a tangenciálneho skreslenia zároveň platia vzťahy \ref{eq:radialne_a_tangencialne} \cite{sun_cooperstock_camera_calibration}.
 
-$$x_{distorted} = x(1 + k_1 r^2 + k_2 r^4 + k_3 r^6) + [2 p_1 x y + p_2(r^2 + 2 x^2)]$$
-$$y_{distorted} = y(1 + k_1 r^2 + k_2 r^4 + k_3 r^6) + [ p_1(r^2 + 2 y^2) + 2 p_2 x y]$$
+\begin{equation}
+\begin{aligned}
+x_{distorted} &= x(1 + k_1 r^2 + k_2 r^4 + k_3 r^6) + [2 p_1 x y + p_2(r^2 + 2 x^2)] \\
+y_{distorted} &= y(1 + k_1 r^2 + k_2 r^4 + k_3 r^6) + [ p_1(r^2 + 2 y^2) + 2 p_2 x y]
+\label{eq:radialne_a_tangencialne}
+\end{aligned}
+\end{equation}
+Koeficienty skreslenia sa zvyčajne udávajú ako pätica \ref{eq:koeficienty_skreslenia_patica} \cite{opencv_camera_calibration}.
 
-Koeficienty skreslenia sa zvyčajne udávajú ako pätica \cite{opencv_camera_calibration}
-
-$$(k_1, k_2, p_1, p_2, k_3)\mathrm{.}$$
+\begin{equation}
+(k_1, k_2, p_1, p_2, k_3)
+\label{eq:koeficienty_skreslenia_patica}
+\end{equation}
 
 Proces zisťovania parametrov kamery, vrátane koeficientov skreslenia, sa nazýva kalibrácia kamery (\emph{camera calibration}) \cite{matlab_camera_calibration}.
-
-\begin{figure}[t]
-    \centering
-    \includegraphics[width=0.6\linewidth]{text_prace/obrazky-figures/radialne_skreslenie.png}
-    \caption[Radiálne skreslenie kamery ilustrované na mriežke.]{Radiálne skreslenie ilustrované na mriežke. Bledomodrá mriežka je pôvodná, čierna skreslená. Pri tvorbe obrázku boli použité skutočné parametre radiálneho skreslenia kamery mobilného mapovacieho systému, ktoré boli súčasťou dát dodaných k~tvorbe tejto práce: $k_1 = -0.183217$, $k_2 = 0.026917$, $k_3 = 0.335446$}.
-    \label{fig:radialne_skreslenie}
-\end{figure}
 
 \section{Vykresľovací reťazec}
 
@@ -252,8 +284,11 @@ Na začiatku vykresľovacieho reťazca sú body v~lokálnom súradnicovom systé
 \begin{enumerate}
     \item Modelová transformácia (\emph{model transformation}). Každý objekt vo vykresľovanej scéne má vlastnú modelovú maticu $M_{model}$ (\emph{model matrix}), ktorá popisuje jeho pozíciu, orientáciu a veľkosť v~scéne. Po modelovej transformácii sú súradnice bodov v~súradnicovom systéme scény (\emph{world space}) \cite{de_vries_coordinate_systems, stemkoski_graphics}.
     \item Pohľadová transformácia (\emph{view transformation}). Prevádza body zo súradnicového systému scény do súradnicového systému kamery (\emph{view/camera/eye space}). Zodpovedá jej pohľadová matica $M_{view}$ (\emph{view matrix}), ktorá popisuje polohu a orientáciu kamery v~súradnicovom systéme scény \cite{de_vries_coordinate_systems, stemkoski_graphics}. 
-    \item Projekcia (\emph{projection transformation}). Je buď ortografická, alebo perspektívna. Prevádza body zo súradnicového systému kamery do orezávacieho súradnicového systému (\emph{clip space}). Určuje, ktoré body scény budú viditeľné a ktoré nie, pretože sa zobrazia iba body, ktoré budú mať v~orezávacom súradnicovom systéme všetky súradnice v~intervale $(-1, 1)$ \cite{stemkoski_graphics}. Týmto súradniciam sa hovorí aj \emph{normalized device coordinates} (NDC). Oblasť v~súradnicovom systéme scény, ktorá bude vo finálnom obraze viditeľná, sa nazýva \emph{frustum}. U~ortografickej projekcie má tvar kvádra a u~perspektívnej projekcie má tvar zrezaného ihlana \cite{de_vries_coordinate_systems}, čo ilustruje obrázok \ref{fig:perspektivna_projekcia_frustum}. Zodpovedá jej projekčná matica (\emph{projection matrix}), ktorá má tvar 
-    $$
+    \item Projekcia (\emph{projection transformation}). Je buď ortografická, alebo perspektívna. Prevádza body zo súradnicového systému kamery do orezávacieho súradnicového systému (\emph{clip space}). Určuje, ktoré body scény budú viditeľné a ktoré nie, pretože sa zobrazia iba body, ktoré budú mať v~orezávacom súradnicovom systéme všetky súradnice v~intervale $(-1, 1)$ \cite{stemkoski_graphics}. Týmto súradniciam sa hovorí aj \emph{normalized device coordinates} (NDC). Oblasť v~súradnicovom systéme scény, ktorá bude vo finálnom obraze viditeľná, sa nazýva \emph{frustum}. U~ortografickej projekcie má tvar kvádra a u~perspektívnej projekcie má tvar zrezaného ihlana \cite{de_vries_coordinate_systems}, čo ilustruje obrázok \ref{fig:perspektivna_projekcia_frustum}. Zodpovedá jej projekčná matica (\emph{projection matrix}), pre ktorú platí vzťah \ref{eq:projekcna_matica_retazec} \cite{ahn_projection_matrix}.
+
+    \label{eq:koeficienty_skreslenia}
+
+    \begin{equation}
     M_{projection} = 
     \begin{pmatrix}
     k_1 & 0 & k_2 & 0 \\
@@ -261,12 +296,14 @@ Na začiatku vykresľovacieho reťazca sú body v~lokálnom súradnicovom systé
     0 & 0 & \frac{-(f+n)}{f-n} & \frac{-2fn}{f-n} \\
     0 & 0 & -1 & 0
     \end{pmatrix}
-    \mathrm{,}
-    $$
-    kde $n$ a $f$ sú vzdialenosti prednej a zadnej orezávacej rovniny (\emph{near plane} a \emph{far plane}, znázornené na obrázku \ref{fig:perspektivna_projekcia_frustum}) \cite{ahn_projection_matrix}. \\ 
-    Po vynásobení súradníc bodov projekčnou maticou je potrebné ešte vydeliť ich súradnice v~tvare $(x, y, z, w)^T$ homogénnou zložkou, čím vznikne tvar $(x/w, y/w, z/w, 1)^T$ aby bolo možné zistiť, či sú všetky súradnice v~intervale $(-1, 1)$, a teda či bude bod súčasťou výsledného obrazu. Táto operácia sa nazýva perspektívne delenie (\emph{perspective division}) \cite{de_vries_coordinate_systems}.  
-    \item Transformácia do súradnicového systému obrazu (\emph{viewport transform}). Prevádza body z~orezávacieho súradnicového systému do súradnicového systému finálneho obrazu (\emph{\mbox{screen} space}) \cite{de_vries_coordinate_systems}. Matica, ktorá vykonáva túto transformáciu, sa nazýva \emph{viewport transform matrix} a má tvar
-    $$
+    \label{eq:projekcna_matica_retazec}
+    \end{equation}
+
+    Premenné $n$ a $f$ zodpovedajú vzdialenostiam prednej a zadnej orezávacej rovniny od kamery (\emph{near plane} a \emph{far plane}, znázornené na obrázku \ref{fig:perspektivna_projekcia_frustum}). \\ 
+    Po vynásobení projekčnou maticou budú súradnice bodov v tvare $(x, y, z, w)^T$. V tejto fáze je potrebné vydeliť ich homogénnou zložkou, čím vznikne tvar $(x/w, y/w, z/w, 1)^T$, aby bolo možné zistiť, či sú všetky súradnice v~intervale $(-1, 1)$, a teda či bude bod súčasťou výsledného obrazu. Táto operácia sa nazýva perspektívne delenie (\emph{perspective division}) \cite{de_vries_coordinate_systems}.  
+    \item Transformácia do súradnicového systému obrazu (\emph{viewport transform}). Prevádza body z~orezávacieho súradnicového systému do súradnicového systému finálneho obrazu (\emph{\mbox{screen} space}) \cite{de_vries_coordinate_systems}. Matica, ktorá vykonáva túto transformáciu, sa nazýva \emph{viewport transform matrix} a platí pre ňu vzťah \ref{eq:pohladova_matica_retazec} \cite{ahn_viewport_transform}.
+
+    \begin{equation}
     M_{viewport} = 
     \begin{pmatrix}
     \frac{w}{2} & 0 & 0 & \frac{w}{2} \\
@@ -274,9 +311,10 @@ Na začiatku vykresľovacieho reťazca sú body v~lokálnom súradnicovom systé
     0 & 0 & \frac{f-n}{2} & \frac{f+n}{2} \\
     0 & 0 & 0 & 1
     \end{pmatrix}
-    \mathrm{,}
-    $$
-    kde $w$ a $h$ je výška a šírka obrazu v~pixeloch \cite{ahn_viewport_transform}.
+    \label{eq:pohladova_matica_retazec}
+    \end{equation}
+    
+    Premenné $w$ a $h$ predstavujú výšku a šírku obrazu v~pixeloch.
 \end{enumerate}
 
 \begin{figure}[t]
@@ -293,9 +331,12 @@ Na začiatku vykresľovacieho reťazca sú body v~lokálnom súradnicovom systé
     \label{fig:perspektivna_projekcia_frustum}
 \end{figure}
 
-Pozíciu bodu $V_{local}$ vo finálnom vykreslenom obraze scény je teda možné matematicky vyjadriť ako súčin
+Pozíciu bodu $V_{local}$ vo finálnom vykreslenom obraze scény je teda možné matematicky vyjadriť ako súčin \ref{eq:sucin_matic_retazec} \cite{de_vries_coordinate_systems}.
 
-$$ M_{viewport} \cdot M_{projection} \cdot M_{view} \cdot M_{model} \cdot V_{local} \mathrm{.}$$
+\begin{equation}
+M_{viewport} \cdot M_{projection} \cdot M_{view} \cdot M_{model} \cdot V_{local}
+\label{eq:sucin_matic_retazec}
+\end{equation}
 
 Transformácia z~lokálneho súradnicového systému do NDC prebieha na programovateľnej časti grafickej karty, ktorá sa nazýva \emph{vertex shader} \cite{de_vries_coordinate_systems}.
 
@@ -317,23 +358,28 @@ V~rámci tejto práce bolo potrebné skombinovať znalosti z~oboch oblastí, pre
 
 Problém sa dá formulovať nasledovne: je známa projekčná matica (tá z~dierkového modelu kamery), ktorá prevádza body zo súradnicového systému kamery priamo do súradnicového systému obrazu, pričom nepočíta hodnotu hĺbky. Je potrebné vypočítať projekčnú maticu, ktorá bude prevádzať body zo súradnicového systému kamery do orezávacieho súradnicového systému tak, aby následne po automatickom prevode do súradnicového systému obrazu výsledný obraz zodpovedal zadanej projekčnej matici. Rozmery $w \times h$ výsledného obrazu sú známe.
 
-Riešenie je možné matematicky odvodiť. Známa projekčná matica, ktorá prevádza body priamo do súradnicového systému obrazu, má tvar
+Riešenie je možné matematicky odvodiť. Známa projekčná matica, ktorá prevádza body priamo do súradnicového systému obrazu, má tvar \ref{eq:projekcna_matica_znova}.
 
-$$ \mathrm{P} =
+\begin{equation}
+\mathrm{P} =
 \begin{pmatrix}
 f_x & 0 & p_x & 0 \\
 0 & f_y & p_y & 0 \\
 0 & 0 &  1  & 0
-\end{pmatrix} \mathrm{.}
-$$
+\end{pmatrix}
+\label{eq:projekcna_matica_znova}
+\end{equation}
 
-Potrebujeme nájsť maticu $M_{projection}$ takú, aby platila rovnosť
+Potrebujeme nájsť maticu $M_{projection}$ takú, aby platila rovnosť \ref{eq:rovnost_matic}.
 
-$$M_{viewport} \cdot M_{projection} \cdot V_{view} = P \cdot V_{view} \mathrm{,}$$
+\begin{equation}
+M_{viewport} \cdot M_{projection} \cdot V_{view} = P \cdot V_{view}
+\label{eq:rovnost_matic}
+\end{equation}
 
-teda parametre $k_1$, $k_2$, $k_3$ a $k_4$ také, aby platila rovnosť
+Teda potrebujeme nájsť také parametre $k_1$, $k_2$, $k_3$ a $k_4$ také, aby platila rovnosť \ref{eq:rovnost_matic2}.
 
-$$
+\begin{equation}
 \begin{pmatrix}
 \frac{w}{2} & 0 & 0 & \frac{w}{2} \\
 0 & \frac{h}{2} & 0 & \frac{h}{2} \\
@@ -367,13 +413,15 @@ x \\
 y \\
 z \\
 1
-\end{pmatrix} \mathrm{.}
-$$
+\end{pmatrix}
+\label{eq:rovnost_matic2}
+\end{equation}
 
-Otázniky pridané do matice $P$ zastupujú výpočet súradnice $z$, ktorý pôvodná matica neobsahovala, ale pri vykresľovaní trojrozmenej scény v~počítačovej grafike je nutný.
+Otázniky pridané do matice $P$ v rovnosti \ref{eq:rovnost_matic2} zastupujú výpočet súradnice $z$, ktorý pôvodná matica neobsahovala, ale pri vykresľovaní trojrozmernej scény v~počítačovej grafike je nutný.
 
-Rovnosť zjednodušíme
-$$
+Rovnosť \ref{eq:rovnost_matic2} je možné zjednodušiť na rovnosť \ref{eq:rovnost_matic3}. Tá po vydelení súradníc bodov homogénnou súradnicou (perspektívne delenie) nadobudne tvar \ref{eq:rovnost_matic4}, ktorý napokon zjednodušíme na tvar \ref{eq:rovnost_matic5}.
+
+\begin{equation}
 \begin{pmatrix}
 \frac{w}{2} & 0 & 0 & \frac{w}{2} \\
 0 & \frac{h}{2} & 0 & \frac{h}{2} \\
@@ -393,12 +441,11 @@ f_x x + p_x z \\
 f_y y + p_y z \\
 ? z + ? \\
 z
-\end{pmatrix} \mathrm{,}
-$$
+\end{pmatrix}
+\label{eq:rovnost_matic3}
+\end{equation}
 
-vykonáme delenie homogénnou súradnicou
-
-$$
+\begin{equation}
 \begin{pmatrix}
 \frac{w}{2} & 0 & 0 & \frac{w}{2} \\
 0 & \frac{h}{2} & 0 & \frac{h}{2} \\
@@ -419,43 +466,10 @@ f_y \frac{y}{z} + p_y \\
 ? + \frac{?}{z} \\
 1
 \end{pmatrix}
-$$
+\label{eq:rovnost_matic4}
+\end{equation}
 
-a znova zjednodušíme
-
-$$
-\begin{pmatrix}
-\frac{w}{2} (- k_1 \frac{x}{z} - k_2) + \frac{w}{2} \\
-\frac{h}{2} (- k_3 \frac{y}{z} - k_4) + \frac{h}{2} \\
-\frac{f-n}{2} (\frac{(f+n)}{f-n} + \frac{2fn}{z(f-n)}) + \frac{f+n}{2} \\
-1
-\end{pmatrix}
-=
-\begin{pmatrix}
-f_x \frac{x}{z} + p_x \\
-f_y \frac{y}{z} + p_y \\
-? + \frac{?}{z} \\
-1
-\end{pmatrix}
-$$
-
-$$
-\begin{pmatrix}
-- k_1 \frac{w}{2} \frac{x}{z} - k_2 \frac{w}{2} + \frac{w}{2} \\
-- k_3 \frac{h}{2} \frac{y}{z} - k_4 \frac{h}{2} + \frac{h}{2} \\
-f + n + \frac{fn}{z} \\
-1
-\end{pmatrix}
-=
-\begin{pmatrix}
-f_x \frac{x}{z} + p_x \\
-f_y \frac{y}{z} + p_y \\
-? + \frac{?}{z} \\
-1
-\end{pmatrix}
-$$
-
-$$
+\begin{equation}
 \begin{pmatrix}
 - k_1 \frac{w}{2} \frac{x}{z} + \frac{w}{2} (1 - k_2)\\
 - k_3 \frac{h}{2} \frac{y}{z} + \frac{h}{2} (1 - k_4)\\
@@ -468,38 +482,42 @@ f_x \frac{x}{z} + p_x \\
 f_y \frac{y}{z} + p_y \\
 ? + \frac{?}{z} \\
 1
-\end{pmatrix} \mathrm{.}
-$$
+\end{pmatrix}
+\label{eq:rovnost_matic5}
+\end{equation}
 
-Z~toho vyplýva, že parametre $n$ a $f$ je možné si zvoliť ľubovoľne, pretože ich zadaná matica nedefinuje, a že musí platiť
+Z~rovnosti \ref{eq:rovnost_matic5} vyplýva, že parametre $n$ a $f$ je možné zvoliť ľubovoľne, pretože ich zadaná matica nedefinuje, a že musia platiť vzťahy \ref{eq:vztahy_pre_parametre}.
 
-$$
--k_1 \frac{w}{2} = f_x 
+\begin{equation}
+\begin{aligned}
+-k_1 \frac{w}{2} &= f_x 
 \mathrm{,} \quad
 \frac{w}{2} (1 - k_2) = p_x \mathrm{,}
-$$
-$$
--k_3 \frac{h}{2} = f_y
+\\
+-k_3 \frac{h}{2} &= f_y
 \mathrm{,} \quad
-\frac{h}{2} (1 - k_4) = p_y \mathrm{,}
-$$
+\frac{h}{2} (1 - k_4) = p_y
+\label{eq:vztahy_pre_parametre}
+\end{aligned}
+\end{equation}
 
-a teda sme dospeli k~hľadanému vyjadreniu parametrov $k_1$, $k_2$, $k_3$ a $k_4$
+Tým sme dospeli k~hľadanému vyjadreniu parametrov $k_1$, $k_2$, $k_3$ a $k_4$ vzťahmi \ref{eq:vyjadrenie_parametrov}.
 
-$$
-k_1 = - \frac{2 f_x}{w}
+\begin{equation}
+\begin{aligned}
+k_1 &= - \frac{2 f_x}{w}
 \mathrm{,} \quad
-k_2 = 1 - \frac{2 p_x}{w} \mathrm{,}
-$$
-$$
-k_3 = - \frac{2 f_y}{h}
+k_2 = 1 - \frac{2 p_x}{w} \mathrm{,} \\
+k_3 &= - \frac{2 f_y}{h}
 \mathrm{,} \quad
-k_4 = 1 - \frac{2 p_x}{w} \mathrm{.}
-$$
+k_4 = 1 - \frac{2 p_x}{w}
+\label{eq:vyjadrenie_parametrov}
+\end{aligned}
+\end{equation}
 
-Hľadaná projekčná matica má teda tvar
+Hľadaná projekčná matica má teda tvar \ref{eq:projekcna_matica_riesenie}.
 
-$$
+\begin{equation}
 M_{projection}
 =
 \begin{pmatrix}
@@ -507,42 +525,43 @@ M_{projection}
 0 & - \frac{2 f_y}{h} & 1 - \frac{2 p_x}{w} & 0 \\
 0 & 0 & \frac{-(f+n)}{f-n} & \frac{-2fn}{f-n} \\
 0 & 0 & -1 & 0
-\end{pmatrix} \mathrm{.}
-$$
+\end{pmatrix}
+\label{eq:projekcna_matica_riesenie}
+\end{equation}
 
-\section{Framework deck.gl a jeho nadstavba Pydeck}
+\section{Framework Deck.gl a jeho nadstavba Pydeck}
 \label{sec:deck_gl}
 
 Pri vývoji webovej aplikácie pre vizualizáciu väčšieho množstva dát, u~ktorej má vykresľovanie prebiehať na strane klienta, teda vo webovom prehliadači, sa hodí priamo či nepriamo použiť niektorý z~frameworkov pre zobrazovanie dát v~jazyku JavaScript.
 
-Takým vhodným frameworkom je napríklad deck.gl, ktorý je určený na zobrazovanie veľkých sád dát. Je zameraný najmä na zobrazovanie geografických dát mapových podkladoch, ale hodí sa aj na iné typy dát. Vyznačuje sa vysokou presnosťou a výkonnosťou. Pre akceleráciu využíva rozhrania WebGPU a WebGL2 \cite{deck.gl_documentation}.
+Takým vhodným frameworkom je napríklad Deck.gl, ktorý je určený na zobrazovanie veľkých sád dát. Je zameraný najmä na zobrazovanie geografických dát na mapových podkladoch, ale hodí sa aj na iné typy dát. Vyznačuje sa vysokou presnosťou a výkonnosťou. Pre akceleráciu využíva rozhrania WebGPU a WebGL2 \cite{deck.gl_documentation}.
 
-Vizualizácia dát v~deck.gl sa skladá z~dvoch základných častí:
+Vizualizácia dát sa vo frameworku Deck.gl skladá z~dvoch základných častí:
 \begin{itemize}
-    \item Vrstvy (\texttt{Layers}). Do vrstiev sa ukladajú zobrazované dáta. Framework deck.gl ponúka vyše 30 preddefinovaných typov vrstiev, ktoré zodpovedajú rôznym často sa vyskytujúcim typom dát. Pre túto prácu je významná najmä vrstva \texttt{PointCloudLayer}, ktorá je určená na zobrazenie mračna bodov, a vrstva \texttt{PathLayer}, ktorá je určená na zobrazenie trás.
+    \item Vrstvy (\texttt{Layers}). Do vrstiev sa ukladajú zobrazované dáta. Framework Deck.gl ponúka vyše 30 preddefinovaných typov vrstiev, ktoré zodpovedajú rôznym často sa vyskytujúcim typom dát. Pre túto prácu je významná najmä vrstva \texttt{PointCloudLayer}, ktorá je určená na zobrazenie mračna bodov, a vrstva \texttt{PathLayer}, ktorá je určená na zobrazenie trás.
     \item Pohľad (\texttt{View}). Definuje vlastnosti kamery, napríklad zorné pole a prednú a zadnú orezávaciu rovinu (\emph{near plane} a \emph{far plane}). Je možné buď určiť všetky tieto vlastnosti osobitne, alebo rovno zadať vypočítanú projekčnú maticu.
     Časť \texttt{ViewState} určuje polohu a orientáciu kamery, pričom u~orientácie je možné určiť iba dva uhly (\emph{bearing} a \emph{pitch}). Typ pohľadu definuje spôsob interakcie vizualizácie s~používateľom, napríklad pre zobrazenie trate z~pohľadu strojvedúceho je ideálny typ \texttt{FirstPersonView}.
 \end{itemize}
 
-To, že sa deck.gl na vizualizáciu dát z~mobilného mapovacieho systému naozaj hodí, dokazujú ukážky na jeho webových stránkach. Použiteľnosť vrstvy \texttt{PointCloudLayer} demonštruje plynulá animácia mračna vyše 800~000 bodov.
+To, že sa framework Deck.gl na vizualizáciu dát z~mobilného mapovacieho systému hodí, dokazujú ukážky na jeho webových stránkach. Použiteľnosť vrstvy \texttt{PointCloudLayer} demonštruje plynulá animácia mračna vyše 800~000 bodov.
 
-Na webových stránkach deck.gl sa nachádza aj galéria projektov vytvorených pomocou tohto frameworku. Medzi nimi je Autonomous Visualization System (AVS), toolkit pre vývoj webových aplikácií pre vizualizáciu dát z~autonómnych vozidiel \cite{avs}. Na webových stránkach tohto projektu je ukážka takej aplikácie, ktorá je podobná aplikácii vyvíjanej v~rámci tejto práce. Bližší popis AVS sa nachádza v~sekcii \ref{sec:existujuce_riesenia}.
+Na webových stránkach frameworku Deck.gl sa tiež nachádza galéria pomocou neho vytvorených projektov. Medzi nimi je aj Autonomous Visualization System (AVS), toolkit pre vývoj webových aplikácií pre vizualizáciu dát z~autonómnych vozidiel \cite{avs}. Na webových stránkach tohto projektu je ukážka takej aplikácie, ktorá je podobná aplikácii vyvíjanej v~rámci tejto práce. Bližší popis AVS sa nachádza v~sekcii \ref{sec:existujuce_riesenia}.
 
-Hoci je framework deck.gl primárne určený pre použitie v~Javascripte, je možné ho použiť aj v~jazyku Python, a to pomocou knižnice \textbf{Pydeck}. Tá je pomerne jednoduchá a podstatou jej činnosti je, že prevedie kód napísaný v~jazyku Python do formátu JSON. Framework deck.gl má totiž modul @deck.gl/json, ktorý prijíma reprezentáciu vizualizácie vo formáte JSON a transformuje ju do javascriptového kódu (na definície funkcií a deck.gl objektov)\footnote{Ukážka rozhrania modulu @deck.gl/json je na \url{https://deck.gl/playground}.}.
+Hoci je framework Deck.gl primárne určený pre použitie v~jazyku JavaScript, je možné použiť ho aj v~jazyku Python, a to pomocou knižnice \textbf{Pydeck}. Tá je pomerne jednoduchá a podstatou jej činnosti je, že prevedie kód napísaný v~jazyku Python do formátu JSON. Framework Deck.gl má totiž modul @Deck.gl/json, ktorý prijíma reprezentáciu vizualizácie vo formáte JSON a transformuje ju do kódu v jazyku JavaScript (na definície funkcií a~objektov)\footnote{Ukážka rozhrania modulu @Deck.gl/json je na \url{https://Deck.gl/playground}.}.
 
-Knižnica Pydeck je dobrým prostriedkom na vytvorenie jednoduchých vizualizácií, s~ktorými môže používateľ interagovať pohybmi myši. Jej možnosti sú však oproti pôvodnému frameworku deck.gl veľmi obmedzené. Nie je vhodná na vytváranie zložitejších animácií s~veľkým množstvom dát, pretože sa aj po tej najmenšej zmene musia dáta a definícia vizualizácie nanovo prevádzať do formátu JSON a následne na javascriptový kód (obrázok \ref{fig:pydeck_dashdeck_schema}), čo je veľmi časovo náročné.
+Knižnica Pydeck je dobrým prostriedkom na vytvorenie jednoduchých vizualizácií, s~ktorými môže používateľ interagovať pohybmi myši. Jej možnosti sú však oproti pôvodnému frameworku Deck.gl veľmi obmedzené. Nie je vhodná na vytváranie zložitejších animácií s~veľkým množstvom dát, pretože sa aj po tej najmenšej zmene musia dáta a definícia vizualizácie nanovo prevádzať do formátu JSON a následne na kód v jazyku JavaScript (obrázok \ref{fig:pydeck_dashdeck_schema}), čo je veľmi časovo náročné.
 
 \begin{figure}[h]
     \centering
     \includegraphics[width=1\linewidth]{text_prace/obrazky-figures/pydeck_dashdeck_transformacie.pdf}
-    \caption[Schéma vzťahov medzi technológiami Pydeck, Dash Deck a deck.gl.]{Schéma vzťahov medzi technológiami Pydeck, Dash Deck a deck.gl a transformácií, ktorými prechádza definícia zobrazenia.}
+    \caption[Schéma vzťahov medzi technológiami Pydeck, Dash Deck a Deck.gl.]{Schéma vzťahov medzi technológiami Pydeck, Dash Deck a Deck.gl a transformácií, ktorými prechádza definícia zobrazenia.}
     \label{fig:pydeck_dashdeck_schema}
 \end{figure}
 
-\section{Nastavenie polohy kamery vo frameworku deck.gl}
+\section{Nastavenie polohy kamery vo frameworku Deck.gl}
 \label{sec:nastavenie_polohy_kamery}
 
-Súčasťou dodaných dát z~mobilného mapovacieho systému boli rotácie a translácie kamery. Pre nastavenie polohy vo frameworku deck.gl existujú dve možnosti:
+Súčasťou dodaných dát z~mobilného mapovacieho systému boli rotácie a translácie kamery. Pre nastavenie polohy kamery vo frameworku Deck.gl existujú dve možnosti:
 
 \begin{enumerate}
     \item Aplikovať transformáciu na dáta a nechať kameru v~počiatku súradnicového systému, prípadne v~nejakom inom pevnom bode.
@@ -555,7 +574,7 @@ Bližším popisom a zhodnotením výhod a nevýhod týchto dvoch metód sa zaob
 
 \subsubsection{Aplikovanie transformácií na dáta}
 
-Ako bolo zmienené v~sekcii \ref{sec:deck_gl}, dáta sa vo frameworku deck.gl členia do vrstiev. Každej vrstve je potom potrebné priradiť pole s~dátami a definovať pre ňu takzvané prístupové funkcie (\emph{data accessors}), ktoré určujú, akým spôsobom sa z~poľa s~dátami získa poloha a farba prvku. Napríklad u~vrstvy \texttt{PointCloudLayer} je potrebné definovať funkciu \texttt{getPosition} pre získanie polohy bodu a \texttt{getColor} pre výpočet farby bodu \cite{deck.gl_documentation}.
+Ako bolo zmienené v~sekcii \ref{sec:deck_gl}, dáta sa vo frameworku Deck.gl členia do vrstiev. Každej vrstve je potom potrebné priradiť pole s~dátami a definovať pre ňu takzvané prístupové funkcie (\emph{data accessors}), ktoré určujú, akým spôsobom sa z~poľa s~dátami získa poloha a farba prvku. Napríklad u~vrstvy \texttt{PointCloudLayer} je potrebné definovať funkciu \texttt{getPosition} pre získanie polohy bodu a \texttt{getColor} pre výpočet farby bodu \cite{deck.gl_documentation}.
 
 Práve vo funkcii \texttt{getPosition} je možné aplikovať na polohu bodu ľubovoľnú transformáciu.
 
@@ -569,23 +588,23 @@ function getPosition(d) {
 
 Výhodou tohto prístupu je, že je možné vykonať ľubovoľnú transformáciu, pretože do funkcie možno napísať akýkoľvek kód.
 
-Veľkou nevýhodou je časová náročnosť, pri zmene polohy kamery sa totiž musí prepočítať poloha každého bodu. Tieto výpočty sa vykonávajú na procesore a výsledky sa následne nahrávajú na grafickú kartu. To konštatuje aj samotná dokumentácia frameworku deck.gl, kde sa píše, že kľúčom k~tvorbe výkonných aplikácií je minimalizácia aktualizácií vrstiev, pri ktorých dochádza k~prepočítavaniu dát a ich opätovnému nahrávaniu na grafickú kartu. Taktiež je tam uvedené, že prístupové funkcie by mali byť čo najtriviálnejšie, pretože sa počítajú pre každú položku v~dátach, t. j. pre každý bod v~mračne bodov, a teda sa každé pridanie operácií naviac výrazne prejaví na výkonnosti. 99\% procesorového času venovaného aktualizácii dát vrstvy sa strávi práve volaním prístupových funkcií \cite{deck.gl_performance_optimization}.
+Veľkou nevýhodou je časová náročnosť, pri zmene polohy kamery sa totiž musí prepočítať poloha každého bodu. Tieto výpočty sa vykonávajú na procesore a výsledky sa následne nahrávajú na grafickú kartu. To konštatuje aj samotná dokumentácia frameworku Deck.gl, kde sa píše, že kľúčom k~tvorbe výkonných aplikácií je minimalizácia aktualizácií vrstiev, pri ktorých dochádza k~prepočítavaniu dát a ich opätovnému nahrávaniu na grafickú kartu. Taktiež je tam uvedené, že prístupové funkcie by mali byť čo najtriviálnejšie, pretože sa počítajú pre každú položku v~dátach, t. j. pre každý bod v~mračne bodov, a teda sa každé pridanie operácií naviac výrazne prejaví na výkonnosti. 99\% procesorového času venovaného aktualizácii dát vrstvy sa strávi práve volaním prístupových funkcií \cite{deck.gl_performance_optimization}.
 
 \subsubsection{Aplikovanie transformácií na kameru}
 
-Meniť polohu a orientáciu kamery je v~deck.gl možné pomocou troch parametrov: \texttt{position}, \texttt{bearing} a \texttt{pitch} \cite{deck.gl_documentation}. To sú rotácie iba podľa dvoch osí, a teda nie je možné dosiahnuť všeobecnú rotáciu -- chýba možnosť nastaviť rotáciu okolo tretej osi, takzvaný \emph{roll} uhol.
+Meniť polohu a orientáciu kamery je vo frameworku Deck.gl možné pomocou troch parametrov: \texttt{position}, \texttt{bearing} a \texttt{pitch} \cite{deck.gl_documentation}. To zahŕňa rotácie iba podľa dvoch osí, a teda nie je možné dosiahnuť všeobecnú rotáciu -- chýba možnosť nastaviť rotáciu okolo tretej osi, takzvaný \emph{roll} uhol.
 
-V~dokumentácii deck.gl je popísaná aj trieda \texttt{Viewport}, u~ktorej je možné namiesto parametrov \texttt{position}, \texttt{bearing} a \texttt{pitch} nastaviť maticu pohľadu \texttt{viewMatrix}, čo znamená možnosť použiť akúkoľvek rotáciu. Problém je však v~tom, že sa v~dokumentácii už nikde nepíše, ako túto triedu použiť. Ide teda o~nezrovnalosť, pravdepodobne pozostatok z~predchádzajúcich verzií deck.gl, kde táto možnosť bola, ale medzičasom bola zrušená. V~aktuálnej verzii je možné túto maticu už iba prečítať, ale nie nahradiť vlastnou.
+V~dokumentácii frameworku Deck.gl je popísaná aj trieda \texttt{Viewport}, u~ktorej je možné namiesto parametrov \texttt{position}, \texttt{bearing} a \texttt{pitch} nastaviť maticu pohľadu \texttt{viewMatrix}, čo znamená možnosť použiť akúkoľvek rotáciu. Problém je však v~tom, že sa v~dokumentácii už nikde nepíše, ako túto triedu použiť. Ide teda o~nezrovnalosť, pravdepodobne pozostatok z~predchádzajúcich verzií frameworku Deck.gl, kde táto možnosť bola, ale medzičasom bola zrušená. V~aktuálnej verzii je možné túto maticu už iba prečítať, ale nie nahradiť vlastnou.
 
-Nevýhodou tohto spôsobu nastavenia polohy kamery teda je, že sa nedá nastaviť \emph{roll} uhol. Tento problém je však možné vyriešiť trikom, a to otočením HTML elementu \texttt{canvas}, do ktorého deck.gl vykresľuje výsledné zobrazenie, pomocou CSS vlastnosti \texttt{transform}. 
+Nevýhodou tohto spôsobu nastavenia polohy kamery teda je, že sa nedá nastaviť \emph{roll} uhol. Tento problém je však možné vyriešiť trikom, a to otočením HTML elementu \texttt{canvas}, do ktorého framework Deck.gl vykresľuje výsledné zobrazenie, pomocou CSS vlastnosti \texttt{transform}. 
 
-Za poznámku tiež stojí, že ak potrebujeme na kameru aplikovať nejakú zložitejšiu transformáciu než iba jednu rotáciu a posunutie, tak je potrebné odvodiť vzorce, ktorými sa táto zložitejšia transformácia prevedie na parametre \texttt{position}, \texttt{bearing} a \texttt{pitch}. Konrétnym prípadom, ktorý bolo potrebné vyriešiť v~tejto práci, sa zaoberá nasledujúca kapitola.
+Miernou nevýhodou tiež je, že ak potrebujeme na kameru aplikovať nejakú zložitejšiu transformáciu než iba jednu rotáciu a posunutie, tak je potrebné odvodiť vzorce, ktorými sa táto zložitejšia transformácia prevedie na parametre \texttt{position}, \texttt{bearing} a \texttt{pitch}. Konkrétnym prípadom, ktorý bolo potrebné vyriešiť v~tejto práci, sa zaoberá nasledujúca kapitola.
 
-Veľkou výhodou naopak je, že na rozdiel od predchádzajúceho spôsobu nedochádza k~žianym aktualizáciám vrstiev, teda nie je potrebné prepočítavať polohy bodov na procesore ani ich znova nahrávať na grafickú kartu. Tým sa výrazne zvýši výkonnosť.
+Veľkou výhodou naopak je, že na rozdiel od predchádzajúceho spôsobu nedochádza k~žiadnym aktualizáciám vrstiev, a teda nie je potrebné prepočítavať polohy bodov ani ich znova nahrávať na grafickú kartu. Pri použití tohto spôsobu je teda oveľa menej zaťažený procesor a aplikácia dosahuje lepšiu výkonnosť.
 
 \subsubsection{Upresnenie polohy kamery}
 
-Experimentmi s~dodanými dátami sa zistilo, že ak je mračno bodov zobrazené presne podľa dodaných údajov o~polohe a parametroch kamery, výsledné zobrazenie nesedí presne na záber z~kamery. Aby naozaj sedelo, je potrebné pridať isté posunutie kamery. Taká situácia je zjednodušene znázornená na obrázku \ref{fig:transformacie_kamery} -- je zadaná translácia $T$ a rotácia $R$, ale kameru je ešte potrebné posunúť doprava transláciou $T'$.
+Experimentmi s~dodanými dátami sa zistilo, že ak je mračno bodov zobrazené presne podľa dodaných údajov o~polohe a parametroch kamery, výsledné zobrazenie nesedí presne na záznam z~kamery. Na to, aby sedelo, je potrebné pridať isté posunutie kamery. Taká situácia je zjednodušene znázornená na obrázku \ref{fig:transformacie_kamery} -- je zadaná translácia $T$ a rotácia $R$, ale kameru je ešte potrebné posunúť doprava transláciou $T'$.
 
 \begin{figure}[h]
     \centering
@@ -594,17 +613,20 @@ Experimentmi s~dodanými dátami sa zistilo, že ak je mračno bodov zobrazené 
     \label{fig:transformacie_kamery}
 \end{figure}
 
-Ak by bolo pri implementácii v~deck.gl možné použiť aplikovanie transformácií na dáta, mal by tento problém jednoduché riešenie: z~translácie $T$ a rotácie $R$ sa zloží transformačná matica, ktorá sa použije v~prístupovej funkcii, a translácia $T'$ sa priamo použije ako poloha kamery.
+Ak by bolo pri implementácii vo frameworku Deck.gl možné použiť aplikovanie transformácií na dáta, mal by tento problém jednoduché riešenie: z~translácie $T$ a rotácie $R$ sa zloží transformačná matica, ktorá sa použije v~prístupovej funkcii, a translácia $T'$ sa priamo použije ako poloha kamery.
 
-Ak však tento prístup nie je vhodný, napríklad z~dôvodu horšieho výkonu, je nutné nájsť transláciu $T_V$ a rotáciu $R_V$ tak, aby platil vzťah 
+Ak však tento prístup nie je vhodný, napríklad z~dôvodu horšej výkonnosti, je nutné nájsť transláciu $T_V$ a rotáciu $R_V$ tak, aby platil vzťah \ref{eq:rovnost_transformacii}.
 
-$$ T R T' = T_V R_V \mathrm{.}$$
+\begin{equation}
+T R T' = T_V R_V
+\label{eq:rovnost_transformacii}
+\end{equation}
 
-Transformácie $T_V$ a $R_V$ sa potom už totiž dajú priamo previesť na parametre \texttt{position}, \texttt{bearing} a \texttt{pitch} (na prevod rotácie na \texttt{bearing} a \texttt{pitch} sa dá použiť napríklad trieda \texttt{Rotation} z~knižnice \texttt{scipy}).
+Transformácie $T_V$ a $R_V$ sa potom totiž dajú priamo previesť na parametre \texttt{position}, \texttt{bearing} a \texttt{pitch} (na prevod rotácie na \texttt{bearing} a \texttt{pitch} sa v jazyku Python dá použiť napríklad trieda \texttt{Rotation} z~knižnice \texttt{scipy}).
 
-Nech
+Označme prvky matíc spôsobom popísaným vzťahmi \ref{eq:matice_transformacii1} a \ref{eq:matice_transformacii2}.
 
-$$
+\begin{equation}
     T =
     \begin{pmatrix}
     1 & 0 & 0 & t_1 \\
@@ -628,9 +650,10 @@ $$
     0 & 0 & 1 & t'_3 \\
     0 & 0 & 0 & 1
     \end{pmatrix}
-    \mathrm{,}
-$$
-$$
+\label{eq:matice_transformacii1}
+\end{equation}
+
+\begin{equation}
     T_V =
     \begin{pmatrix}
     1 & 0 & 0 & t_{v1} \\
@@ -646,12 +669,12 @@ $$
     r_{v31} & r_{v32} & r_{v33} & 0 \\
     0 & 0 & 0 & 1
     \end{pmatrix}
-    \mathrm{.}
-$$
+\label{eq:matice_transformacii2}
+\end{equation}
 
-Potom
+Potom platia vzťahy \ref{eq:matice_transformacii3} a \ref{eq:matice_transformacii4}.
 
-$$
+\begin{equation}
     T R T' =
     \begin{pmatrix}
     r_{11} & r_{12} & r_{13} & t'_1 r_{11} + t'_2 r_{12} + t'_3 r_{13} + t_1 \\
@@ -659,23 +682,23 @@ $$
     r_{31} & r_{32} & r_{33} &  t'_1 r_{31} + t'_2 r_{32} + t'_3 r_{33} + t_3 \\
     0 & 0 & 0 & 1
     \end{pmatrix}
-$$
+\label{eq:matice_transformacii3}
+\end{equation}
 
-a
-
-$$
+\begin{equation}
     T_V R_V =
     \begin{pmatrix}
     r_{v11} & r_{v12} & r_{v13} & t_{v1} \\
     r_{v21} & r_{v22} & r_{v23} & t_{v2} \\
     r_{v31} & r_{v32} & r_{v33} & t_{v3} \\
     0 & 0 & 0 & 1
-    \end{pmatrix} \mathrm{.}
-$$
+    \end{pmatrix}
+\label{eq:matice_transformacii4}
+\end{equation}
 
-Z~toho vyplýva, že musí platiť $R_V = R$ a
+Zo vzťahov \ref{eq:rovnost_transformacii}, \ref{eq:matice_transformacii3} a \ref{eq:matice_transformacii4} vyplýva, že musí platiť $R_V = R$ a vzťah \ref{eq:prvky_translacie}.
 
-$$
+\begin{equation}
     \begin{pmatrix}
     t_{v1} \\
     t_{v2} \\
@@ -703,8 +726,9 @@ $$
     t_1 \\
     t_2 \\
     t_3
-    \end{pmatrix} \mathrm{.}
-$$
+    \end{pmatrix}
+\label{eq:prvky_translacie}
+\end{equation}
 
 Tým sme našli hľadanú transláciu $T_V$ a rotáciu $R_V$.
 
@@ -714,39 +738,39 @@ Keďže hlavným cieľom práce bolo vytvoriť aplikáciu v~jazyku Python, a to 
 
 \subsubsection{Porovnanie frameworkov Streamlit a Dash}
 
-Streamlit a Dash sú frameworky, ktoré majú rovnaké zameranie: oba slúžia na tvorbu webových aplikácií pre prácu s~dátami (\emph{data apps}) v~jazyku Python. Dash je oproti Streamlitu na nižšej úrovni abstrakcie, pretože sám o~sebe nemá žiaden vizuálny štýl a mnohé jeho komponenty sa priamo mapujú na HTML elementy, napríklad \texttt{dash.html.Div} a \texttt{dash.html.H1} \cite{dash_documentation, streamlit_documentation}.
+Streamlit a Dash sú frameworky, ktoré majú rovnaké zameranie: oba slúžia na tvorbu webových aplikácií pre prácu s~dátami (\emph{data apps}) v~jazyku Python. Framework Dash je oproti frameworku Streamlit na nižšej úrovni abstrakcie, pretože sám o~sebe nemá žiaden vizuálny štýl a mnohé jeho komponenty sa priamo mapujú na HTML elementy, napríklad \texttt{dash.html.Div} a \texttt{dash.html.H1} \cite{dash_documentation, streamlit_documentation}.
 
-Oba frameworky majú podporu pre Pydeck, u~Streamlitu je priamo k~dispozícii element \texttt{st.pydeck\_chart} a Dash má na tento účel vytvorenú prídavnú knižnicu \textbf{Dash Deck}. Ukázalo sa však, že \texttt{st.pydeck\_chart} podporuje iba pohľad \texttt{MapView}, ktorý je určený na zobrazenie dát na mape a nedá sa použiť na perspektívne zobrazenie bodov v~trojrozmernom priestore. Preto je pre účely tejto práce element \texttt{st.pydeck\_chart} prakticky nepoužiteľný.
+Oba frameworky majú podporu pre Pydeck, u~frameworku Streamlit je priamo k~dispozícii element \texttt{st.pydeck\_chart} a framework Dash má na tento účel vytvorenú prídavnú knižnicu \textbf{Dash Deck}. Ukázalo sa však, že \texttt{st.pydeck\_chart} podporuje iba pohľad \texttt{MapView}, ktorý je určený na zobrazenie dát na mape a nedá sa použiť na perspektívne zobrazenie bodov v~trojrozmernom priestore. Preto je pre účely tejto práce element \texttt{st.pydeck\_chart} prakticky nepoužiteľný.
 
-Dash Deck má navyše tú výhodu, že umožňuje vynechať Pydeck a definovať zobrazenie iba pomocou slovníkov so štruktúrou zodpovedajúcou tej, ktorú vyžaduje modul @deck.gl/json, čo je tiež znázornené na obrázku \ref{fig:pydeck_dashdeck_schema}. To trochu zefektívni vykonávanie zmien vo vizualizácii, keďže taká reprezentácia umožní jednoduchšie vykonávanie úprav.
+Knižnica Dash Deck má navyše tú výhodu, že umožňuje vynechať Pydeck a definovať zobrazenie iba pomocou slovníkov so štruktúrou zodpovedajúcou tej, ktorú vyžaduje modul @Deck.gl/json, čo je tiež znázornené na obrázku \ref{fig:pydeck_dashdeck_schema}. To trochu zefektívni vykonávanie zmien vo vizualizácii, keďže taká reprezentácia umožní jednoduchšie vykonávanie úprav.
 
 Z~týchto dôvodov bol pre implementáciu zvolený framework Dash, ktorý je podrobnejšie popísaný v~nasledujúcej podsekcii.
 
 \subsubsection{Popis frameworku Dash}
 
-Dash je framework, ktorý umožňuje tvorbu webových aplikácií v~jazyku Python. Interne používa na vytváranie používateľského rozhrania framework React \cite{dash_documentation}. Princíp jeho fungovania je nasledovný: kód aplikácie sa spúšťa v~rámci HTTP servera a generuje HTML dokument a skripty v~jazyku JavaScript, ktoré server odošle klientovi. Tieto skripty následne komunikujú sa serverom, čím sa zabezpečuje funkcionalita aplikácie. Server je bezstavový a neuchováva si žiadne informácie o~klientoch.
+Dash je framework, ktorý umožňuje tvorbu webových aplikácií v~jazyku Python. Interne používa na vytváranie používateľského rozhrania framework React \cite{dash_documentation}. Princíp jeho fungovania je nasledovný: kód aplikácie sa spúšťa v~rámci HTTP servera a generuje HTML dokument a skripty v~jazyku JavaScript, ktoré server odošle klientovi. Tieto skripty následne komunikujú so serverom, čím sa zabezpečuje funkcionalita aplikácie. Server je bezstavový a neuchováva si žiadne informácie o~klientoch.
 
-Kód webovej aplikácie napísanej s~využitím frameworku Dash sa skladá z~dvoch základných častí: komponentov a callbackov.
+Kód webovej aplikácie napísanej s~využitím frameworku Dash sa skladá z~dvoch základných častí: komponentov a callbackov (funkcií spätného volania).
 
-\emph{Komponenty} sú prvky používateľského rozhrania, ktoré sa skladajú do stromovej štruktúry. Je možné použiť komponenty priamo zodpovedajúce HTML elementom (Dash HTML Components), komponenty z~knižnice Dash Core Components (napríklad \texttt{Graph}, \texttt{Input}, \texttt{Tabs}, \texttt{Upload}) a ďalšie špeciálne komponenty \cite{dash_documentation}.
+\emph{Komponenty} sú prvky používateľského rozhrania, ktoré sa skladajú do stromovej štruktúry. Je možné použiť komponenty priamo zodpovedajúce HTML elementom (Dash HTML Components), komponenty z~knižnice Dash Core Components (napríklad \texttt{Graph}, \texttt{Tabs}, \texttt{Upload}) a ďalšie špeciálne komponenty \cite{dash_documentation}.
 
-Pre túto prácu je významný komponent sklad (\texttt{Store}) z~knižnice Dash Core Components, ktorý umožňuje uložiť dáta na strane klienta. Hodí sa na uloženie dát, ktoré sa následne zobrazujú pomocou frameworku deck.gl.
+Pre túto prácu je významný komponent sklad (\texttt{Store}) z~knižnice Dash Core Components, ktorý umožňuje uložiť dáta na strane klienta. Hodí sa na uloženie dát, ktoré sa následne zobrazujú pomocou frameworku Deck.gl.
 
 Ďalej je možné použiť knižnicu \textbf{Dash Bootstrap Components} (DBC), ktorá poskytuje ďalšie komponenty, ikony, lepšie možnosti pre rozloženie stránky, a v~neposlednom rade vizuálne štýly \cite{dbc_documentation}.
 
 Tam, kde nestačia štýly a možnosti rozloženia stránky z~DBC, je možné u~komponentov dodefinovať vlastné pravidlá v~jazyku CSS.
 
-\emph{Callbacky} vytvárajú funkcionalitu aplikácie. Každý callback je funkcia, ktorá má vstupy a výstupy. Vstupy a výstupy sú vždy atribúty konkrétnych komponentov. Callback sa zavolá na začiatku behu aplikácie (táto vlastnosť sa dá zrušiť) a potom vždy, keď sa zmení niektorý z~jeho vstupov. Callback môže mať aj špeciálne vstupy typu \texttt{State}, ktorých zmena callback nespustí. Platí obmedzenie, že každý atribút komponentu môže byť výstupom maximálne jedného callbacku \cite{dash_documentation}. U~vstupov žiadne obmedzenia nie sú.
+\emph{Callbacky} vytvárajú funkcionalitu aplikácie. Každý callback je funkcia, ktorá má vstupy a výstupy. Vstupy a výstupy sú vždy atribúty konkrétnych komponentov. Callback sa spustí na začiatku behu aplikácie (táto vlastnosť sa dá zrušiť) a potom vždy, keď sa zmení niektorý z~jeho vstupov. Callback môže mať aj špeciálne vstupy typu \texttt{State}, ktorých zmena callback nespustí. Platí obmedzenie, že každý atribút komponentu môže byť výstupom maximálne jedného callbacku \cite{dash_documentation}. U~vstupov žiadne obmedzenia nie sú.
 
 Existujú dva typy callbackov.
 \begin{itemize}
     \item Obyčajné callbacky. Sú napísané v~jazyku Python. Klient má iba informáciu o~ich vstupoch a výstupoch. Keď sa zmení niektorý zo vstupov, klient pošle na server požiadavok obsahujúci hodnoty všetkých vstupov. Server spustí kód callbacku a pošle klientovi odpoveď, ktorá obsahuje hodnoty všetkých výstupov.
-    \item Klientske callbacky. Sú napísané v~jazyku JavaScript. Klient má k~dispozícii celý kód callbacku. Keď sa zmení niektorý zo vstupov, klient vykoná kód callbacku bez akejkoľvek komunikácie so serverom.
+    \item Klientske callbacky. Sú napísané v~jazyku JavaScript. Klient má k~dispozícii celý kód callbacku. Keď sa zmení niektorý zo vstupov, klient vykoná kód callbacku bez komunikácie so serverom.
 \end{itemize}
 
 Je zrejmé, že klientske callbacky sú efektívnejšie než tie obyčajné, pretože ich nespomaľuje réžia komunikácie so serverom. Najvýraznejšie sa to prejaví vtedy, keď vstupy alebo výstupy obsahujú veľké množstvo dát.
 
-K~aplikácii vytvorenej pomocou frameworku Dash je možné pridať vlastné štýlové predpisy a skripty alebo moduly v~jazyku JavaScript. Je potrebné uložiť ich do priečinka s~názvom \texttt{assets} v~koreňovom priečinku aplikácie. Rovnako je nutné postupovať aj pri vkladaní obrázkov a videí. Všetky štýlové predpisy, skripty a moduly z~priečinka \texttt{assets} Dash automaticky načítava a pripája k~aplikácii \cite{dash_documentation}.
+K~aplikácii vytvorenej pomocou frameworku Dash je možné pridať vlastné štýlové predpisy a skripty alebo moduly v~jazyku JavaScript. Je potrebné uložiť ich do priečinka s~názvom \texttt{assets} v~koreňovom priečinku aplikácie. Rovnako je nutné postupovať aj pri vkladaní obrázkov a videí. Všetky štýlové predpisy, skripty a moduly z~priečinka \texttt{assets} framework Dash automaticky načítava a pripája k~aplikácii \cite{dash_documentation}.
 
 \section{Existujúce riešenia}
 \label{sec:existujuce_riesenia}
@@ -762,9 +786,9 @@ Prvou kategóriu sú systémy určené na vizualizáciu dát z~mobilných mapova
     \label{fig:orbit}
 \end{figure}
 
-Druhou kategóriou sú systémy zamerané na vizualizáciu dát z~autonómnych vozidiel a robotov, ktoré taktiež často zobrazujú mračno bodov, záznam z~kamery a vektorové dáta, ale sú zamerané skôr na zobrazenie dát v~reálnom čase. 
+Druhou kategóriou sú systémy zamerané na vizualizáciu dát z~autonómnych vozidiel a~robotov, ktoré taktiež často zobrazujú mračno bodov, záznam z~kamery a vektorové dáta, ale sú zamerané skôr na zobrazenie dát v~reálnom čase. 
 
-Sem patrí napríklad Autonomous Visualization System (AVS), toolkit pre vývoj webových aplikácií pre vizualizáciu dát z~autonómnych vozidiel, ktorý sa skladá z~dvoch častí: prenosového protokolu XVIZ a toolkitu pre vizualizáciu dát streetscape.gl \cite{avs}. Ukážka aplikácie vytvorenej pomocou toolkitu AVS na webových stránkach tohto projektu je veľmi podobná ukážke na stránkach komerčnej platformy Foxglove, ktorá vizualizuje dáta z~robotov a autonómnych systémov (obr. \ref{fig:foxglove}) \cite{foxglove}. Obe zobrazujú dáta z~autonomného vozidla, ktoré sa skladajú z~neagregovaného mračna bodov, vektorových označení ostatných identifikovaných vozidiel a záznamu z~kamery v~osobitnom okne.
+Sem patrí napríklad Autonomous Visualization System (AVS), toolkit pre vývoj webových aplikácií pre vizualizáciu dát z~autonómnych vozidiel, ktorý sa skladá z~dvoch častí: prenosového protokolu XVIZ a toolkitu pre vizualizáciu dát streetscape.gl \cite{avs}. Ukážka aplikácie vytvorenej pomocou toolkitu AVS na webových stránkach tohto projektu je veľmi podobná ukážke na stránkach komerčnej platformy Foxglove, ktorá vizualizuje dáta z~robotov a autonómnych systémov (obr. \ref{fig:foxglove}) \cite{foxglove}. Obe zobrazujú dáta z~autonómneho vozidla, ktoré sa skladajú z~neagregovaného mračna bodov, vektorových označení ostatných identifikovaných vozidiel a záznamu z~kamery v~osobitnom okne.
 
 \begin{figure}[h]
     \centering
@@ -778,19 +802,20 @@ Okrem toho ešte existuje množstvo komerčných aj voľne dostupných nástrojo
 \chapter{Návrh aplikácie}
 \label{ch:navrh}
 
-Cieľom tejto práce bolo vytvoriť používateľskú aplikáciu. Výsledná aplikácia mala byť webová, aby ju bolo možné spustiť jednoducho pomocou webového prehliadača. Čo sa týka funkcionality, mala by spĺňať nasledujúce body:
+Cieľom tejto práce bolo vytvoriť používateľskú aplikáciu. Výsledná aplikácia mala byť webová, aby ju bolo možné jednoducho spustiť pomocou webového prehliadača. Čo sa týka funkcionality, mala by spĺňať nasledujúce body:
 
 \begin{itemize}
     \item Zobrazenie dát z~mobilného mapovacieho systému. Tieto dáta sú tvorené mračnom bodov z~lidaru, kamerovým záznamom, údajmi o~pohybe vlaku a ďalšími vektorovými dátami a mali by byť zobrazené z~pohľadu strojvedúceho vlaku.
-    \item Umožniť používateľovi vybrať si konkrétnu pozíciu vlaku alebo prehrať si animáciu pohybu vlaku s~nastaviteľnou rýchlosťou.
-    \item Umožniť používateľovi nahrať súbory s~dátami na zobrazenie: súbor s~mračnom bodov, video z~kamery na čele vlaku, súbor s~vektorovými dátami, textové súbory s~údajmi o~pohybe vlaku -- pole translácií, pole rotácií a pole zodpovedajúcich časových razítok.
+    \item Umožniť používateľovi vybrať si konkrétnu pozíciu a prehrať si animáciu pohybu po trati s~nastaviteľnou rýchlosťou.
+    \item Umožniť používateľovi nahrať súbory s~dátami na zobrazenie: súbor s~mračnom bodov, video z~kamery na čele vlaku, súbor s~vektorovými dátami, textové súbory s~údajmi o~pohybe vlaku -- pole translácií, pole rotácií a pole zodpovedajúcich časových pečiatok.
     \item Zobrazovať dva typy dát z~lidaru:
     \begin{itemize}
-        \item \emph{real-time} -- malé, postupne nasnímané kusy mračna bodov s~časovými razítkami,
+        \item \emph{real-time} -- malé, postupne nasnímané kusy mračna bodov s~časovými pečiatkami,
         \item \emph{postprocess} -- jedno celistvé mračno bodov, ktoré vzniklo ich spojením.
     \end{itemize}
-    (U~oboch typov ide o~agregované dáta -- všetky body sú v~jednej spoločnej súradnicovej sústave). Umožniť používateľovi prepínať medzi týmito dvoma typmi.
-    \item Poskytnúť používateľovi možnosti prispôsobenia zobrazenia, ako napríklad zmeny viditeľnosti jednotlivých vrstiev (mračno bodov, vektorové dáta, kamerový záznam) a základné nastavenia zobrazenia mračna bodov (rôzne farebné škály podľa intenzity, veľkosť a priehľadnosť bodov, zobrazenie bodov len do určitej vzdialenosti) aj vektorových dát (farba a hrúbka čiar).
+    (U~oboch typov ide o~agregované dáta -- všetky body sú v~jednej spoločnej súradnicovej sústave). \\
+    Umožniť používateľovi prepínať medzi týmito dvoma typmi.
+    \item Poskytnúť používateľovi možnosti prispôsobenia zobrazenia, ako napríklad zmeny viditeľnosti jednotlivých vrstiev (mračna bodov, vektorových dát, kamerového záznamu) a základné nastavenia zobrazenia mračna bodov (rôzne farebné škály podľa intenzity, veľkosť a priehľadnosť bodov, zobrazenie bodov len do určitej vzdialenosti) aj vektorových dát (farba a hrúbka čiar).
     \item Mať prepínač na zapnutie a vypnutie skreslenia mračna bodov a vektorových dát podľa parametrov skreslenia kamery.
     \item Zobrazovať prejazdný profil vlaku v~predikovanej polohe v~rôznych vzdialenostiach pred vlakom -- 25, 50, 75 a 100m. Zobrazovať aj čiaru spájajúcu predikované polohy. (Súbory s~predikovanými polohami sú súčasťou dát, ktoré aplikácia načítava.)
 
@@ -800,7 +825,7 @@ Cieľom tejto práce bolo vytvoriť používateľskú aplikáciu. Výsledná apl
 
 Pri návrhu používateľského rozhrania aplikácie bolo prioritou zobrazenie vizualizácie ako hlavnej časti aplikácie na čo najväčšej ploche a tiež tak, aby bola viditeľná vo všetkých stavoch.
 
-Z~ovládacích prvkov sú za najdôležitejšie považované prvky pre zmenu polohy vlaku, ktoré sú umiestnené v~spodnom paneli. Všetky ostatné ovládacie prvky sú skryté v~bočnom paneli, ktorý sa dá vysunúť tlačítkom v~ľavom hornom rohu, a sú rozdelené do troch záložiek -- nahrávanie dát, prispôsobenie zobrazenia a samostatná záložka pre prejazdný profil. Celkový návrh vzhľadu je na obrázku \ref{fig:navrh_gui}.
+Celkový návrh vzhľadu je na obrázku \ref{fig:navrh_gui}. Z~ovládacích prvkov sú za najdôležitejšie považované prvky pre zmenu polohy na trati, ktoré sú umiestnené v~spodnom paneli. Všetky ostatné ovládacie prvky sú umiestnené v~bočnom paneli vľavo, ktorý sa dá skryť tlačidlom, a sú rozdelené do troch záložiek -- nahrávanie dát, prispôsobenie zobrazenia a samostatná záložka pre prejazdný profil. 
 
 \begin{figure}[h]
     \centering
@@ -827,26 +852,26 @@ Pre používateľskú prívetivosť by mala aplikácia spĺňať nasledujúce bo
     \item v~záložke \uv{Dáta}:
     \begin{itemize}
         \item prehľadné zobrazenie, aké dáta boli nahrané, možnosť ich nahradenia inými dátami,
-        \item zobrazovanie indikátoru, že práve prebieha nahrávanie dát.
+        \item zobrazenie indikátoru, ak práve prebieha nahrávanie dát.
     \end{itemize}
 \end{enumerate}
 
 \section{Problém nahrávania dát do aplikácie}
 
-Dáta, ktoré má vyvíjaná webová aplikácia zobrazovať, sú rozdelené do väčšieho množstva súborov rôznych typov. Nahrávať ich do aplikácie klasickým spôsobom po jednom či po nejakých skupinách by bolo síce možné, ale pre používateľov časovo náročné a veľmi nepraktické.
+Dáta, ktoré má vyvíjaná webová aplikácia zobrazovať, sú rozdelené do väčšieho množstva súborov rôznych typov. Nahrávať ich do aplikácie klasickým spôsobom po jednom či po skupinách by bolo síce možné, ale pre používateľov časovo náročné a nepraktické.
 
-Keďže je aplikácia určená úzkej cieľovej skupine používateľov, môžeme si dovoliť predpokladať, že používateľ bude buď spúšťať server webovej aplikácie lokálne, alebo bude mať k~serveru aspoň prístup. Za tohto predpokladu má problém s~nahrávaním dát veľmi elegantné riešenie, a tým je \textbf{projektový súbor}, teda textový súbor, v~ktorom sú špecifikované cesty k~dátovým súborom uloženým na serveri. Používateľovi stačí nahrať tento súbor a aplikácia podľa neho automaticky nahrá všetky potrebné dátové súbory.
+Keďže je aplikácia určená úzkej cieľovej skupine používateľov, tak je reálna možnosť, že používateľ bude buď spúšťať server aplikácie lokálne, alebo bude mať k~serveru aspoň prístup. Za tohto predpokladu má problém s~nahrávaním dát elegantné riešenie, a tým je \textbf{projektový súbor}, teda textový súbor, v~ktorom sú špecifikované cesty k~dátovým súborom uloženým na serveri a prípadne aj ďalšie nastavenia. Používateľovi stačí nahrať tento súbor a aplikácia podľa neho automaticky nahrá všetky potrebné dátové súbory.
 
 Presný formát projektového súboru bolo potrebné navrhnúť. Kompletný návrh je uvedený v~prílohe \ref{ch:project_file}. Bol zvolený formát TOML, ktorý je jednoduchý, praktický a dobre čitateľný \cite{toml}. U~dátových súborov, ktorých môže byť rôzny počet, napríklad súbory s~dátami z~lidaru, sa do projektového súboru uvedie, v~akom priečinku sa nachádzajú, ako sú pomenované a koľko ich je. Predpokladá sa, že sú tieto súbory jednotne pomenované a očíslované (napríklad \texttt{pcd\_0.pcd}, \texttt{pcd\_1.pcd}, \dots).
 
 Keby však bol projektový súbor jediným možným spôsobom nahrávania dát do aplikácie, malo by to isté nevýhody -- napríklad pre vyskúšanie zmeny v~jednom dátovom súbore by bolo potrebné meniť projektový súbor a znova ho nahrávať.
 
-Preto by mala výsledná aplikácia kombinovať oba prístupy, projektový súbor aj klasické nahrávanie dát. Pre jednoduchosť a prístupnosť by mala umožniť nahranie základných súborov klasickým spôsobom. Naopak pre pokročilejšie použitie by mala mať možnosť nahrania projektového súboru, podľa ktorého by mala nahrať všetky špecifikované dátové súbory. Potom by mal používateľ prehľadne vidieť všetky nahrané súbory a mať možnosť tieto súbory jednotlivo ľubovoľne nahradzovať inými súbormi.
+Preto by mala výsledná aplikácia kombinovať oba prístupy, projektový súbor aj klasické nahrávanie dát. Pre všeobecnú prístupnosť by mala umožniť nahranie všetkých súborov klasickým spôsobom. Pre praktickosť pri intenzívnejšom používaní by však mala mať aj možnosť automatizácie tejto činnosti pomocou projektového súboru. Potom by mal používateľ prehľadne vidieť nahrané súbory a mať možnosť tieto súbory jednotlivo nahradzovať inými súbormi.
 
 \chapter{Implementácia navrhnutej aplikácie}
 \label{ch:implementacia}
 
-Navrhnutá webová aplikácia je implementovaná v~jazyku Python s~využitím frameworku Dash. Pre optimalizáciu obsahuje aplikácia aj skript napísaný v~jazyku Javascript, ktorý používa pre vykresľovanie mračna bodov a vektorových dát hardvérovo akcelerovaný framework deck.gl a na rozdiel od zvyšku kódu aplikácie sa vykonáva priamo na klientovi. Táto štruktúra je schematicky znázornená na obrázku \ref{fig:schema_implementacie}. Snímka obrazovky finálnej implementácie je na obrázku \ref{fig:screenshot}.
+Navrhnutá webová aplikácia je implementovaná v~programovacom jazyku Python s~využitím frameworku Dash. Pre optimalizáciu obsahuje aplikácia aj skript napísaný v~jazyku JavaScript, ktorý používa pre vykresľovanie mračna bodov a vektorových dát hardvérovo akcelerovaný framework Deck.gl a na rozdiel od zvyšku kódu aplikácie sa vykonáva priamo na klientovi. Táto štruktúra je schematicky znázornená na obrázku \ref{fig:schema_implementacie}. Snímka obrazovky finálnej implementácie je na obrázku \ref{fig:screenshot}.
 
 Vizuálny štýl používateľského rozhrania čiastočne zabezpečuje knižnica Dash Bootstrap Components, čiastočne je dodefinovaný pomocou CSS.
 
@@ -856,8 +881,8 @@ Zdrojový kód je rozdelený do nasledujúcich súborov:
     \item \texttt{params.py} -- Počiatočné parametre.
     \item \texttt{loading\_functions.py} -- Pomocné funkcie pre načítanie dát zo súborov.
     \item \texttt{general\_functions.py} -- Pomocné funkcie pre výpočet projekčnej matice, transformačných matíc a operácií s~rotáciami.
-    \item Moduly s~komponentmi a callbackmi rozdelené podľa štruktúry používateľského rozhrania. Sú to štyri dvojice súborov. V~jednom súbore z~dvojice sú vždy definované komponenty používateľského rozhrania vrátane ich vizuálneho štýlu, v~tom druhom k~nim patriace callbacky.
-    \item \texttt{visualization.js} -- Vizualizácia mračna bodov a vektorových dát pomocou frameworku deck.gl, riadenie animácie pohybu vlaku. Činnosť tohto skriptu je podrobnejšie popísaná v~sekciách \ref{sec:vrstvy} a \ref{sec:implementacia_animacie}. Pre pripojenie skriptu k~aplikácii tak, aby sa pripojili aj zdrojové kódy frameworku deck.gl, bolo nutné použiť bundler. V~rámci tejto práce bol použitý bundler Webpack. K~aplikácii sa teda nepripája priamo skript \texttt{visualization.js}, ale modul \texttt{bundle.mjs}, ktorý vytvára bundler a sú v~ňom zahrnuté aj zdrojové kódy frameworku deck.gl. Je nutné použiť modul namiesto obyčajného skriptu, pretože mimo modulu nie je v~jazyku JavaScript možné použiť deklaráciu \texttt{import}, ktorá je nutná pre pripojenie zdrojových kódov frameworku deck.gl. 
+    \item Moduly s~komponentmi a callbackmi rozdelené podľa štruktúry používateľského rozhrania. Je to päť dvojíc modulov. V~prvom module z~dvojice sú vždy definované komponenty používateľského rozhrania vrátane ich vizuálneho štýlu, v~tom druhom k~nim patriace callbacky.
+    \item \texttt{visualization.js} -- Definícia objektu \texttt{window.vis}, ktorý vizualizuje mračno bodov a vektorové dát pomocou frameworku Deck.gl a riadi animáciu pohybu po trati. Činnosť tohto skriptu je podrobnejšie popísaná v~sekciách \ref{sec:vrstvy} a \ref{sec:implementacia_animacie}. Pre pripojenie skriptu k~aplikácii tak, aby sa pripojili aj zdrojové kódy frameworku Deck.gl, bolo nutné použiť bundler (zlučovač zdrojových súborov). V~rámci tejto práce bol použitý bundler Webpack. K~aplikácii sa teda nepripája priamo skript \texttt{visualization.js}, ale modul \texttt{bundle.mjs}, ktorý vytvára bundler a sú v~ňom zahrnuté aj zdrojové kódy frameworku Deck.gl. Je nutné použiť modul namiesto obyčajného skriptu, pretože mimo modulu nie je v~jazyku JavaScript možné použiť deklaráciu \texttt{import}, ktorá je nutná pre pripojenie zdrojových kódov frameworku Deck.gl. 
 \end{itemize}
 
 \begin{figure}[t]
@@ -874,74 +899,84 @@ Zdrojový kód je rozdelený do nasledujúcich súborov:
     \label{fig:screenshot}
 \end{figure}
 
+Graf závislostí modulov, ktorý obsahuje všetky moduly finálnej implementácie, ktoré sú napísané v jazyku Python, je na obrázku \ref{fig:graf_zavislosti} na konci kapitoly. Bol vygenerovaný pomocou nástroja Pydeps\footnote{\url{https://github.com/thebjorn/pydeps}}.
+
 \section{Popis modulov}
 
 Táto sekcia sa venuje podrobnejšiemu popisu niektorých modulov.
 
 \subsubsection{Hlavný modul \newline {\normalsize \textmd{(súbor \texttt{app.py})}}}
 
-Načíta zo súborov ukažkové dáta, ktoré aplikácia zobrazí po spustení. Tieto dáta spolu s~počiatočnými parametrami uloží do skladov, z~ktorých ich následne callbacky definované v~module \emph{data} kopírujú do objektu \texttt{window}, aby boli prístupné skriptu \texttt{visualization.js}.
+Načíta zo súborov ukážkové dáta, ktoré aplikácia zobrazí po spustení. Tieto dáta spolu s~počiatočnými parametrami uloží do skladov. Pripojí všetky potrebné komponenty a callbacky z~iných modulov, inicializuje a~spustí aplikáciu.
 
-Definuje základné rozloženie a vzhľad aplikácie -- vizualizácia na celú výšku okna, spodný panel, bočný panel s~troma záložkami a prvok na prepínanie svetlého a tmavého režimu. Vizualizácia je zložená z~troch HTML elementov: \texttt{Video}, \texttt{Canvas}, do ktorého vykresľuje dáta framework deck.gl, a druhý \texttt{Canvas} pre implementáciu skreslenia. Toto základné rozloženie je definované väčšinou pomocou CSS pravidiel. Záložka \emph{Data} je obalená komponentom \texttt{Loading} z~knižnice Dash Core Components, ktorý sa používateľovi zobrazuje, keď prebieha aktualizácia niektorého prvku z~tejto záložky, teda keď aplikácia nahráva dáta.
+Obsahuje jeden klientsky callback, ktorý kopíruje dáta zo skladov do objektu \texttt{window.vis}, ktorý je definovaný v~skripte \texttt{visualization.js}, a následne volá metódu tohto objektu pre inicializáciu vizualizácie.
 
-Modul načíta všetky potrebné komponenty a callbacky z~iných modulov, inicializuje a spustí aplikáciu. Obsahuje tri klientske callbacky -- jeden pre inicializáciu vizualizácie, jeden pre vysúvanie bočného panelu a jeden pre prepínanie svetlého a tmavého režimu.
+\subsubsection{Dvojica modulov \emph{layout} \newline {\normalsize \textmd{
+(súbory \texttt{layout\_components.py}, \texttt{layout\_callbacks.py})
+}}}
 
-\subsubsection{Modul \emph{animation control} \newline {\normalsize \textmd{
+Definuje základné rozloženie a vzhľad aplikácie -- vizualizácia na celú výšku okna, spodný panel s ovládacími prvkami, bočný panel s~troma záložkami a prvok na prepínanie svetlého a tmavého režimu. Vizualizácia je zložená z~troch HTML elementov: \texttt{Video}, \texttt{Canvas}, do ktorého vykresľuje dáta framework Deck.gl, a druhý \texttt{Canvas} pre implementáciu skreslenia. Toto základné rozloženie je definované väčšinou pomocou CSS pravidiel, ale na úrovni jednotlivých záložiek je už rozloženie definované hlavne pomocou knižnice Dash Bootstrap Components.
+
+Záložka \emph{Data} je obalená komponentom \texttt{Loading} z~knižnice Dash Core Components, ktorý používateľovi zobrazuje indikátor, keď prebieha aktualizácia niektorého prvku z~tejto záložky, teda keď aplikácia nahráva dáta.
+
+Obsahuje dva klientske callbacky -- jeden pre vysúvanie bočného panelu a jeden pre prepínanie svetlého a tmavého režimu.
+
+\subsubsection{Dvojica modulov \emph{animation control} \newline {\normalsize \textmd{
 (súbory \texttt{animation\_control\_components.py}, \texttt{animation\_control\_callbacks.py})
 }}}
 
 Obsahuje prvky pre ovládanie animácie -- spustenie a zastavenie, posunutie, zmena rýchlosti, výber konkrétneho snímku, -- ktoré sa nachádzajú v~spodnom paneli. Prvky sú rozmiestnené s~využitím CSS mechanizmov \emph{grid} a \emph{flexbox}.
 
-Keďže riadenie animácie prebieha na strane klienta, všetky callbacky v~tomto module sú klientske a väčšinou volajú funkcie definované v~skripte \texttt{visualization.js}. Mechanizmus riadenia animácie je popísaný v~sekcii \ref{sec:implementacia_animacie}.
+Keďže riadenie animácie prebieha na strane klienta, všetky callbacky v~tomto module sú klientske a väčšinou volajú metódy definované v~skripte \texttt{visualization.js}. Mechanizmus riadenia animácie je popísaný v~sekcii \ref{sec:implementacia_animacie}.
 
 Zmena rýchlosti animácie prebieha tak, že sa u~videa zmení vlastnosť \texttt{playbackRate}. Tým sa zmení rýchlosť videa, a keďže vykresľovanie mračna bodov a vektorových dát je naviazané na video, zrýchli sa tým celá animácia.
 
-\subsubsection{Modul \emph{data} \newline {\normalsize \textmd{
+\subsubsection{Dvojica modulov \emph{data} \newline {\normalsize \textmd{
 (súbory \texttt{data\_tab\_components.py}, \texttt{data\_tab\_callbacks.py})
 }}}
 
-Tvorí záložku \emph{Data} v~bočnom paneli a riadi nahrávanie dát do aplikácie. Obsahuje komponenty dvoch typov -- \texttt{*\_upload} a \texttt{*\_uploaded\_file[s]}. Komponenty typu \texttt{*\_upload} umožňujú manuálne nahranie súborov do aplikácie. Keď také nahranie prebehne, komponent \texttt{*\_upload} je skrytý a namiesto neho sa zobrazí komponent \texttt{*\_uploaded\_file[s]}, ktorý používateľovi pre kontrolu zobrazuje názov nahraného súboru a obsahuje aj tlačítko v~tvare~x, ktoré skryje komponent \texttt{*\_uploaded\_file[s]} a znova zobrazí komponent \texttt{*\_upload}, čím umožní používateľovi nahrať iný súbor.
+Tvorí záložku \emph{Data} v~bočnom paneli a riadi nahrávanie dát do aplikácie. Obsahuje komponenty dvoch typov -- \texttt{*\_upload} a \texttt{*\_uploaded\_file[s]}. Komponenty typu \texttt{*\_upload} umožňujú manuálne nahranie súborov do aplikácie. Keď také nahranie prebehne, komponent \texttt{*\_upload} je skrytý a namiesto neho sa zobrazí komponent \texttt{*\_uploaded\_file[s]}, ktorý používateľovi pre kontrolu zobrazuje názov nahraného súboru a obsahuje aj tlačidlo v~tvare~x, ktoré skryje komponent \texttt{*\_uploaded\_file[s]} a znova zobrazí komponent \texttt{*\_upload}, čím umožní používateľovi nahrať iný súbor.
+
+Umožňuje tiež nastavenie kalibračnej matice, zadnej orezávacej roviny a parametrov skreslenia kamery.
 
 Špeciálnym typom nahrávaného súboru je projektový súbor, ktorý vyvolá automatické nahranie všetkých v~ňom definovaných súborov.
 
-Niektoré typy dát nemajú komponent \texttt{*\_upload} a dajú sa nahrať iba pomocou projektového súboru. Sú to tie typy dát, ktoré sa skladajú z~viacerých súborov, a to konkrétne mračno bodov typu real-time, vektorové dáta a polohy prejazdného profilu.
-
 Väčšina callbackov je napísaná v~Pythone, spracúvajú nahrané súbory a spracované dáta ukladajú do skladov (komponenty \texttt{Store}).
 
-Isté špecifiká sú u~nahrávania súboru s~mračnom bodov a videa. Framework Dash totiž načítané súbory odovzdáva callbackom ako pole bytov, ale použitá knižnica \texttt{pypcd4} dokáže načítať súbor vo formáte \texttt{pcd} iba podľa cesty k~súboru. Preto je nahraný súbor s~mračnom bodov uložený ako dočasný súbor do priečinka \texttt{assets/temp}, odtiaľ nahraný a potom hneď zmazaný.
+Isté špecifiká sú u~nahrávania súborov s~mračnom bodov a videa. Framework Dash totiž načítané súbory odovzdáva callbackom ako pole bajtov, ale použitá knižnica \texttt{pypcd4} dokáže načítať súbor vo formáte \texttt{pcd} iba podľa cesty k~súboru. Preto je nahraný súbor s~mračnom bodov uložený ako dočasný súbor do priečinka \texttt{assets/temp}, odtiaľ nahraný a potom hneď zmazaný.
 
-Podobne je to u~videa, ktoré je tiež potrebné uložiť ako dočasný súbor a potom nastaviť cestu k~nemu do atribútu \texttt{src} komponentu \texttt{html.Video}. Na rozdiel od súboru s~mračnom bodov ho však nie je možné zmazať hneď v~tom istom callbacku, musí v~priečinku \texttt{assets/temp} po istú dobu zostať, pretože jeho nahranie do aplikácie nejakú dobu trvá. Preto je definovaný špeciálny callback, ktorý sa spustí každé dve minúty a vymaže všetky dočasné súbory staršie než dve minúty. Okrem toho novému videu po nahraní musí byť nastavený rovnaký čas, ako malo to predchádzajúce, čo je zabezpečené ďalším callbackom.
+Podobne je to u~videa, ktoré je tiež potrebné uložiť ako dočasný súbor a potom nastaviť cestu k~nemu do atribútu \texttt{src} komponentu \texttt{html.Video}. Na rozdiel od súboru s~mračnom bodov ho však nie je možné zmazať hneď v~tom istom callbacku, musí v~priečinku \texttt{assets/temp} po istú dobu zostať, pretože jeho nahranie do aplikácie nejakú dobu trvá. Preto je definovaný špeciálny callback, ktorý sa spustí každé dve minúty a vymaže všetky dočasné súbory staršie než dve minúty.
 
-Ďalej sú v~tomto module ešte klientske callbacky, ktoré kopírujú nové dáta zo skladov do objektu \texttt{window}, aby boli prístupné skriptu \texttt{visualization.js}.
+Ďalej sú v~tomto module ešte klientske callbacky, ktoré kopírujú nové dáta zo skladov do objektu \texttt{window.vis}.
 
-\subsubsection{Modul \emph{visualization} \newline {\normalsize \textmd{
+\subsubsection{Dvojica modulov \emph{visualization} \newline {\normalsize \textmd{
 (súbory \texttt{visualization\_tab\_components.py}, \texttt{visualization\_tab\_callbacks.py})
 }}}
 
 Tvorí záložku \emph{Zobrazení} v~bočnom paneli a obsahuje všeobecné nastavenia týkajúce sa zobrazenia. Dôležitou funkciou je voľba typu zobrazovaného mračna bodov -- postprocess alebo real-time.
 
-Najzložitejším komponentom je graf, ktorý zobrazuje rozloženie bodov podľa intenzity a zároveň aj farebnú škálu (ukážka je na obrázku \ref{fig:farebna_skala}). Ďalej táto záložka obsahuje aj posuvníky pre upresnenie polohy kamery a tlačidlá pre export a import nastavení zobrazenia. Nastavenia sa exportujú vo formáte \texttt{toml}. Táto možnosť je užitočná najmä pre uloženie nastavenia posuvníkov, ale ukladá aj všetky ostatné nastavenia zo záložiek \emph{Zobrazení} a \emph{Průjezdný profil}.
+Najzložitejším komponentom je graf, ktorý zobrazuje rozloženie bodov podľa intenzity a zároveň aj farebnú škálu (ukážka je na obrázku \ref{fig:farebna_skala}). Ďalej táto záložka obsahuje aj posuvníky pre upresnenie polohy kamery a tlačidlá pre export a import nastavení zobrazenia. Nastavenia sa exportujú vo formáte TOML. Táto možnosť je užitočná najmä pre uloženie nastavenia posuvníkov, ale ukladá aj všetky ostatné nastavenia zo záložiek \emph{Zobrazení} a~\emph{Průjezdný profil}.
 
 Nachádza sa tu aj možnosť zapnutia a vypnutia skreslenia vizualizácie podľa parametrov skreslenia kamery.
 
-Modul obsahuje niekoľko klientskych callbackov, ktoré volajú funkcie definované v~skripte \texttt{visualization.js}.
+Modul obsahuje niekoľko klientskych callbackov, ktoré zabezpečujú zmeny zobrazenia väčšinou volaním metód objektu \texttt{window.vis}.
 
 Ďalej je tu viacero callbackov patriacich ku grafu zobrazujúcemu farebnú škálu. Keďže je to zložitý komponent, obsahuje štyri sklady, do ktorých sa ukladá typ farebnej škály, jej rozsah a agregácia mračna bodov oboch typov, ktoré aplikácia zobrazuje. Graf sa aktualizuje, keď sa zmení ktorýkoľvek z~týchto údajov, alebo keď sa zmení typ zobrazovaného mračna bodov.
 
 V~module sa ešte nachádzajú callbacky pre počítanie skreslenia, ktoré sú bližšie popísané v~sekcii \ref{sec:implementacia_skreslenia}.
 
-\subsubsection{Modul \emph{profile} \newline {\normalsize \textmd{
+\subsubsection{Dvojica modulov \emph{profile} \newline {\normalsize \textmd{
 (súbory \texttt{profile\_tab\_components.py}, \texttt{profile\_tab\_callbacks.py})
 }}}
 
-Tvorí záložku \emph{Průjezdný profil} v~bočnom paneli a obsahuje iba nastavenia týkajúce sa zobrazenia prejazdného profilu a čiary cez polohy prejazdného profilu. Umožnuje používateľovi vybrať si, ktorú predikciu chce vidieť -- na 25, 50, 75 alebo 100 metrov.
+Tvorí záložku \emph{Průjezdný profil} v~bočnom paneli a obsahuje iba nastavenia týkajúce sa zobrazenia prejazdného profilu a čiary spájajúcej polohy prejazdného profilu. Umožnuje používateľovi vybrať si, ktorú predikciu chce vidieť -- na 25, 50, 75 alebo 100 metrov.
 
-Callbacky sú klientske a volajú funkcie definované v~skripte \texttt{visualization.js}.
+Callbacky sú klientske a volajú metódy objektu \texttt{window.vis}.
 
 \section{Rozdelenie dát do vrstiev}
 \label{sec:vrstvy}
 
-Pri vizualizácii dát pomocou frameworku deck.gl sú použité dva typy vrstiev:
+Pri vizualizácii dát pomocou frameworku Deck.gl sú použité dva typy vrstiev:
 \begin{itemize}
     \item \texttt{PointCloudLayer} pre mračno bodov,
     \item \texttt{PathLayer} pre vektorové dáta.
@@ -955,11 +990,11 @@ Rozdelenie vizualizácie na vrstvy je znázornené na obrázku \ref{fig:vrstvy}.
     \label{fig:vrstvy}
 \end{figure}
 
-Na začiatku tvorby práce bola na zobrazenie vektorových dát použitá vrstva \texttt{LineLayer}. Ukázalo sa však, že vstva \texttt{LineLayer} je prispôsobená iba pre zobrazovanie čiar na mapách a pri použití nemapového pohľadu ako \texttt{FirstPersonView} nefunguje dobre -- niektoré čiary sa otáčajú kolmo ku kamere a tým pádom sa ich šírka zmenšuje, niekedy až tak, že úplne prestanú byť viditeľné. Toto správanie u~vrstvy \texttt{LineLayer} nie je možné zmeniť. Naopak u~vrstvy \texttt{PathLayer} je možné nastaviť vlastnosť \texttt{billboard}, ktorá znamená otočenie čiar smerom ku kamere, preto bola nakoniec táto vrstva použitá namiesto vrstvy \texttt{LineLayer}. \texttt{PathLayer} sa od \texttt{LineLayer} líši ešte tým, že čiary majú pevnú šírku v~pixeloch a nezužujú sa podľa toho, ako ďaleko sú od kamery.
+Na začiatku tvorby práce bola na zobrazenie vektorových dát použitá vrstva \texttt{LineLayer}. Ukázalo sa však, že vrstva \texttt{LineLayer} je prispôsobená iba pre zobrazovanie čiar na mapách a pri použití nemapového pohľadu, ako napríklad \texttt{FirstPersonView}, nefunguje dobre -- niektoré čiary sa otáčajú kolmo ku kamere a tým pádom sa ich šírka zmenšuje, niekedy až tak, že úplne prestanú byť viditeľné. Toto správanie u~vrstvy \texttt{LineLayer} nie je možné zmeniť. Naopak u~vrstvy \texttt{PathLayer} je možné nastaviť vlastnosť \texttt{billboard}, ktorá znamená otočenie čiar smerom ku kamere, preto bola nakoniec táto vrstva použitá namiesto vrstvy \texttt{LineLayer}. \texttt{PathLayer} sa od \texttt{LineLayer} líši ešte tým, že čiary majú pevnú šírku v~pixeloch a nezužujú sa podľa toho, ako ďaleko sú od kamery.
 
 Vizualizácia obsahuje nasledujúce vrstvy:
 \begin{itemize}
-    \item Mračno bodov. Ak aplikácia zobrazuje mračno bodov typu real-time, teda malé, postupne nasnímané časti s~časovými razítkami, tak je vrstiev desať a zobrazujú desať z~týchto častí -- jednu, ktorá zodpovedá danej pozícii, a deväť predchádzajúcich (obrázok \ref{fig:vrstvy}, časť a)). Ak aplikácia zobrazuje mračno bodov typu postprocess, tak je celé v~jednej vrstve (obrázok \ref{fig:vrstvy}, časť b)).
+    \item Mračno bodov. Ak aplikácia zobrazuje mračno bodov typu real-time, teda malé, postupne nasnímané časti s~časovými pečiatkami, tak je vrstiev desať a zobrazujú desať z~týchto častí -- jednu, ktorá zodpovedá danej pozícii, a deväť predchádzajúcich (obrázok \ref{fig:vrstvy}, časť a)). Ak aplikácia zobrazuje mračno bodov typu postprocess, tak je celé v~jednej vrstve (obrázok \ref{fig:vrstvy}, časť b)).
     \item Čiara spájajúca predikované polohy prejazdného profilu vlaku.
     \item Prejazdný profil vlaku v~predikovanej polohe. Od ostatných vektorových dát sa líši tým, že sa jeho poloha mení pri zmene polohy kamery. To je v~implementácii dosiahnuté pomocou špeciálnej prístupovej funkcie \texttt{profileGetPath} (prístupové funkcie boli popísané v~sekcii \ref{sec:nastavenie_polohy_kamery}, podsekcia Aplikovanie transformácií na dáta). 
     \item Ďalšie vektorové dáta.
@@ -983,38 +1018,40 @@ Pre prehľadnosť bol tiež implementovaný graf, ktorý používateľovi ukazuj
     \label{fig:farebna_skala}
 \end{figure}
 
-\section{Implementácia animácie pohybu vlaku}
+\section{Implementácia animácie pohybu po trati}
 \label{sec:implementacia_animacie}
 
-Animácia pohybu vlaku sa vykonáva výhradne na strane klienta, bez komunikácie so serverom. Zabezpečujú ju tri javascriptové funkcie, ktorých definícia sa nachádza v~súbore \texttt{visualization.js}: \texttt{runDeckAnimation}, \texttt{stopDeckAnimation} a \texttt{animationStep}.
+Animácia pohybu po trati sa vykonáva výhradne na strane klienta, bez komunikácie so serverom. Zabezpečujú ju štyri metódy objektu \texttt{window.vis}, ktorých definícia sa nachádza v~súbore \texttt{visualization.js}: \texttt{runDeckAnimation}, \texttt{stopDeckAnimation}, \texttt{animationStep} a~\texttt{togglePlay}.
 
 V~tejto sekcii je popísaný princíp fungovania animácie, pre prehľadnosť boli vynechané niektoré menej dôležité implementačné detaily.
 
-Keď používateľ klikne na tlačítko pre prehranie animácie, spustí sa klientsky callback, ktorý vykoná nasledujúci kód:
+Keď používateľ klikne na tlačidlo pre prehranie animácie, spustí sa klientsky callback, ktorý zavolá metódu \texttt{togglePlay}.
+
+Metóda \texttt{togglePlay} vykoná nasledujúci kód:
 
 \begin{lstlisting}
 const video = document.getElementById('background-video');
-window.runDeckAnimation();
+window.vis.runDeckAnimation();
 video.play();
-video.onpause = function(){ window.stopDeckAnimation() };
+video.onpause = function(){ window.vis.stopDeckAnimation() };
 \end{lstlisting}
 
-Funkcia \texttt{runDeckAnimation} reinicializuje niektoré parametre, ak je to potrebné, a potom zavolá funkciu \texttt{animationStep}.
+Metóda \texttt{runDeckAnimation} reinicializuje niektoré parametre, ak je to potrebné, a potom volá metódu \texttt{animationStep}.
 
-Funkcia \texttt{animationStep} vykonáva tieto kroky:
+Metóda \texttt{animationStep} vykonáva tieto kroky:
 
 \begin{enumerate}
     \item Najprv zabezpečí, aby sa zavolala znova pri najbližšom vykreslení nového snímku vo videu:
     \begin{lstlisting}
 const video = document.getElementById('background-video');
-video.requestVideoFrameCallback(animationStep);
+video.requestVideoFrameCallback(window.vis.animationStep);
     \end{lstlisting}
 
-    \item Potom na základe časových razítok polôh kamery v~mračne bodov a aktuálneho času videa vypočíta aktualizovanú polohu kamery. Ak je to posledná poloha, zastaví video metódou \texttt{pause}.
+    \item Potom na základe časových pečiatok polôh kamery v~mračne bodov a aktuálneho času videa vypočíta aktualizovanú polohu kamery. Ak je to posledná poloha, zastaví video metódou \texttt{pause}.
 
-    \item Ak aplikácia zobrazuje mračno bodov typu real-time, tak následne na základe časových razítok mračna bodov zistí, či by sa nemali zobraziť nejaké nové časti. Vymieňanie častí prebieha efektívnym cyklickým spôsobom, ktorý je znázornený na obrázku \ref{fig:vrstvy_animacia}.
+    \item Ak aplikácia zobrazuje mračno bodov typu real-time, tak následne na základe časových pečiatok mračna bodov zistí, či by sa nemali zobraziť nejaké nové časti. Vymieňanie častí prebieha efektívnym cyklickým spôsobom, ktorý je znázornený na obrázku \ref{fig:vrstvy_animacia}.
 
-    \item Potom prebehne samotná aktualizácia vizualizácie (v~skripte funkcia \texttt{updateDeck}), kedy sa kamera posunie na novú polohu a aktualizujú sa vrstvy (v~skripte funkcia \texttt{createLayers}), čím sa posunie prejazdný profil a prípadne sa vymenia časti mračna bodov.
+    \item Potom prebehne samotná aktualizácia vizualizácie (v~skripte metóda \texttt{updateDeck}), kedy sa kamera posunie na novú polohu a aktualizujú sa vrstvy (v~skripte metóda \texttt{createLayers}), čím sa posunie prejazdný profil a prípadne sa vymenia časti mračna bodov.
 
     \item Ako posledné sa aktualizujú prvky v~grafickom používateľskom rozhraní, ktoré ukazujú stav animácie -- posuvník, čas a vstupné pole s~číslom snímky.
 \end{enumerate}
@@ -1022,18 +1059,18 @@ video.requestVideoFrameCallback(animationStep);
 \begin{figure}[t]
     \centering
     \includegraphics[width=0.4\linewidth]{text_prace/obrazky-figures/vrstvy_animacia.pdf}
-    \caption[Schéma cyklického prepisovania deck.gl vrstiev obsahujúcich mračno bodov typu real-time.]{Schéma cyklického prepisovania deck.gl vrstiev obsahujúcich mračno bodov typu real-time. Vizualizácia obsahuje vždy desať vrstiev, ktoré zobrazujú desať častí mračna bodov. Ak podľa časových razítok má byť zobrazená nejaká nová časť, tak sa prepíše vždy tá najstaršia.}
+    \caption[Schéma cyklického prepisovania vrstiev obsahujúcich mračno bodov typu real-time.]{Schéma cyklického prepisovania vrstiev obsahujúcich mračno bodov typu real-time. Vizualizácia obsahuje vždy desať vrstiev, ktoré zobrazujú desať častí mračna bodov. Ak podľa časových pečiatok má byť zobrazená nejaká nová časť, tak sa prepíše vždy tá najstaršia.}
     \label{fig:vrstvy_animacia}
 \end{figure}
 
-Animácia sa končí buď tak, že používateľ klikne na tlačítko pre zastavenie animácie, čím sa spustí klientsky callback, ktorý zastaví video metódou \texttt{pause}, alebo tak, že skončí video, alebo tak, že je dosiahnutá posledná poloha kamery. V~každom prípade sa spustí funkcia \texttt{stopDeckAnimation}, pretože bola na začiatku animácie nastavená ako callback pre udalosť zastavenia videa.
+Animácia sa končí buď tak, že používateľ klikne na tlačidlo pre zastavenie animácie, čím sa spustí klientsky callback, ktorý zastaví video metódou \texttt{pause}, alebo tak, že skončí video, alebo tak, že je dosiahnutá posledná poloha kamery. V~každom prípade sa spustí metóda \texttt{stopDeckAnimation}, pretože bola na začiatku animácie nastavená ako callback pre udalosť zastavenia videa.
 
-Funkcia \texttt{stopDeckAnimation} upovedomí framework Dash o~novej hodnote posuvníka, času a vstupného poľa s~číslom snímku. Toto sa nevykonáva počas animácie, pretože je to výkonovo náročné.
+Metóda \texttt{stopDeckAnimation} upovedomí framework Dash o~novej hodnote posuvníka, času a vstupného poľa s~číslom snímky. Toto sa nevykonáva počas animácie, pretože si to vyžaduje komunikáciu so serverom, ktorá by spôsobila zdržanie.
 
 \section{Implementácia skreslenia}
 \label{sec:implementacia_skreslenia}
 
-Pri zobrazovaní mračna bodov a vektorových dát tak, aby zobrazenie čo najpresnejšie sedelo na záznam z~kamery, je potrebné vziať do úvahy aj skreslenie kamery, ktoré bolo popísané v~sekcii \ref{sec:skreslenie}. 
+Pri zobrazovaní mračna bodov a vektorových dát tak, aby zobrazenie čo najpresnejšie sedelo na záznam z~kamery, je potrebné vziať do úvahy aj skreslenie kamery, ktoré bolo teoreticky popísané v~sekcii \ref{sec:skreslenie}. 
 
 Parametre skreslenia boli súčasťou dodaných dát. Existuje niekoľko možností, ako ich použiť:
 \begin{enumerate}
@@ -1047,21 +1084,21 @@ Parametre skreslenia boli súčasťou dodaných dát. Existuje niekoľko možnos
 
 Možnosti 1 a 2b) sú výkonovo približne rovnako náročné a výkonnosť závisí od rozmerov vizualizácie v~pixeloch.
 
-Možnosť 2a) by bola v~rámci frameworku realizovateľná dvoma spôsobmi: buď výpočtom skreslenia v~prístupových funkciách, alebo implementáciou vlastných vrstiev a napísaním vlastného kódu pre vertex shader. Akékoľvek výpočty v~prístupových funkciách však majú výrazný vplyv na výkon, výpočet skreslenia je pomerne zložitý (oproti napríklad násobeniu maticou, ktoré sa u~bežných transformácii používa) a výkonnosť by sa naviac zhoršovala s~počtom vykresľovaných bodov. Druhý spôsob je implementačne náročný a realizácia by zabrala veľa času.
+Možnosť 2a) by bola v~rámci frameworku Deck.gl realizovateľná dvoma spôsobmi: buď výpočtom skreslenia v~prístupových funkciách, alebo implementáciou vlastných vrstiev a~napísaním vlastného kódu pre vertex shader. Akékoľvek výpočty v~prístupových funkciách však majú výrazný vplyv na výkonnosť, výpočet skreslenia je pomerne zložitý (v porovnaní s násobením súradníc bodu maticou, ktoré sa u~bežných transformácii používa) a výkonnosť by sa naviac zhoršovala s~počtom vykresľovaných bodov. Druhý spôsob je implementačne náročný a realizácia by zabrala veľa času.
 
 Preto bola zvolená a implementovaná možnosť 2b).
 
-Pri hľadaní existujúcich riešenení podobných problémov bol nájdený článok od J. Balocha, ktorý sa zaoberá aplikáciou rôznych efektov na obrázky vo webových stránkach pomocou Javascriptu \cite{baloch_distortion_in_js}.
+Pri hľadaní existujúcich riešení podobných problémov bol nájdený článok od J. Balocha, ktorý sa zaoberá aplikáciou rôznych efektov na obrázky vo webových stránkach pomocou jazyka JavaScript \cite{baloch_distortion_in_js}.
 
 Toto riešenie funguje tak, že vytvorí element \texttt{Canvas} rovnakej veľkosti ako pôvodný obrázok, cyklom prechádza všetky pixely obrázku a pre každý pixel vypočíta jeho novú polohu a vykreslí ho do elementu \texttt{Canvas}.
 
 Myšlienka tohto riešenia bola využitá aj pri implementácii skreslenia v~tejto práci, ale s~niekoľkými rozdielmi.
 
-Poprvé, pixely sa nečítajú z~obrázku, ale z~elementu \texttt{Canvas}, do ktorého vykresľuje zobrazenie framework deck.gl. Keďže je tento element naviazaný na framework deck.gl, nie je možné z~neho prečítať pixel jednoducho príkazmi 
+Po prvé, pixely sa nečítajú z~obrázku, ale z~elementu \texttt{Canvas}, do ktorého vykresľuje zobrazenie framework Deck.gl. Keďže je tento element naviazaný na framework Deck.gl, nie je možné z~neho prečítať pixel jednoducho príkazmi 
 
 \begin{lstlisting}
-ctx = canvas.getContext("2d");
-pixelData = ctx.getImageData(...);
+const ctx = canvas.getContext("2d");
+const pixelData = ctx.getImageData(...);
 \end{lstlisting}
 
 Namiesto toho je nutné použiť rozhranie WebGL:
@@ -1073,24 +1110,31 @@ gl_ctx.readPixels(0, 0, width, height, gl_ctx.RGBA, gl_ctx.UNSIGNED_BYTE,
     pixelData);
 \end{lstlisting}
 
-Podruhé, keďže vo vyvíjanej aplikácii je potrebné počítať skreslenie mnohokrát s~tými istými parametrami a rozmermi obrazu, bolo by neefektívne pri každom výpočte počítať novú polohu pre každý pixel, pretože tieto hodnoty sa nemenia.
+Po druhé, keďže vo vyvíjanej aplikácii je potrebné počítať skreslenie mnohokrát s~tými istými parametrami a rozmermi obrazu, bolo by neefektívne pri každom výpočte počítať opakovane novú polohu pre každý pixel, pretože tieto hodnoty sa nemenia.
 
-Preto je skreslenie implementované dvoma klientskymi callbackmi. Ten prvý vypočíta pre každý pixel jeho novú polohu v~skreslenom obraze a výsledky uloží do poľa v~objekte \texttt{window}. Tento výpočet je nutné zopakovať iba vtedy, keď sa zmenia rozmery vizualizácie. Ten druhý reaguje na vypnutie a zapnutie skreslenia používateľom. Keď je skreslenie zapnuté, skryje element \texttt{visualization-canvas}, do ktorého vykresľuje zobrazenie deck.gl, zviditeľní namiesto neho element \texttt{distorted-visualization-canvas}, ktorý má rovnakú veľkosť a pozíciu, a zaregistruje javascriptový callback, ktorý po každom vykreslení zobrazenia frameworkom deck.gl prečíta hodnotu všetkých pixelov a prekreslí ich na predpočítané pozície do elementu \texttt{distorted-visualization-canvas}.
+Preto je skreslenie implementované dvoma klientskymi callbackmi. Ten prvý vypočíta pre každý pixel jeho novú polohu v~skreslenom obraze a výsledky uloží do poľa v~objekte \texttt{window}. Tento výpočet je nutné zopakovať iba vtedy, keď sa zmenia rozmery vizualizácie. Ten druhý reaguje na vypnutie a zapnutie skreslenia používateľom. Keď je skreslenie zapnuté, skryje element \texttt{visualization-canvas}, do ktorého vykresľuje zobrazenie framework Deck.gl, zviditeľní namiesto neho element \texttt{distorted-visualization-canvas}, ktorý má rovnakú veľkosť a pozíciu, a zaregistruje klientsky callback, ktorý po každom vykreslení zobrazenia frameworkom Deck.gl prečíta hodnoty všetkých pixelov a prekreslí ich na vopred vypočítané pozície do elementu \texttt{distorted-visualization-canvas}.
+
+\begin{sidewaysfigure}[t]
+    \centering
+    \includegraphics[width=1\linewidth]{text_prace/obrazky-figures/graf_modulov.pdf}
+    \caption[Graf závislostí modulov vo finálnej implementácii.]{Graf závislostí modulov vo finálnej implementácii vygenerovaný pomocou nástroja Pydeps.}
+    \label{fig:graf_zavislosti}
+\end{sidewaysfigure}
 
 \chapter{Testovanie a evaluácia}
 \label{ch:vyhodnotenie}
 
-Pri vývoji aplikácie bola k~dispozícii iba jedna sada dát, ktorú bolo možné použiť pre testovanie.
+Pri vývoji aplikácie bola k~dispozícii jedna sada dát, ktorú bolo možné použiť pre testovanie.
 
-Už pri prvých pokusoch o~zobrazenie mračna bodov sa ukázalo, že údaje o~polohách kamery sú v~inom súradnicovom systéme ako mračno bodov, pretože sa líši poradie ôs, čomu bola implementácia prispôsobená.
+Už pri prvých pokusoch o~zobrazenie mračna bodov sa ukázalo, že údaje o~polohách kamery sú v~inom súradnicovom systéme ako mračno bodov (líši sa poradie ôs), čomu bola implementácia prispôsobená.
 
-Ďalej sa ukázalo, že aj pri zobrazení mračna bodov presne podľa dodanej polohy kamery a kalibračnej matice zobrazenie nesedí presne na záznam z~kamery a je potrebné pridať isté posunutie a rotáciu. Preto boli do používateľského rozhrania aplikácie pridané posuvníky, ktorými si používateľ môže prispôsobiť polohu virtuálnej kamery (posunutím a otočením v~istom rozsahu), a tým opraviť nepresnosti v~dátach.
+Ďalej sa ukázalo, že aj pri zobrazení mračna bodov presne podľa dodanej polohy kamery a kalibračnej matice zobrazenie nesedí presne na záznam z~kamery a aby sedelo, je potrebné pridať isté posunutie a rotáciu. Preto boli do používateľského rozhrania aplikácie pridané posuvníky, ktorými si používateľ môže prispôsobiť polohu virtuálnej kamery (posunutím a otočením v~istom rozsahu), a tým opraviť nepresnosti v~dátach. Snímky obrazovky znázorňujúce funkcionalitu posuvníkov sú na obrázku \ref{fig:posuvniky}.
 
 \begin{figure}[h]
     \centering
     \includegraphics[width=0.9\linewidth]{text_prace/obrazky-figures/posuvniky1.png}
     \includegraphics[width=0.9\linewidth]{text_prace/obrazky-figures/posuvniky2.png}
-    \caption[Funkcionalita posuvníkov pre prispôsobenie polohy virtuálnej kamery.]{Funkcionalita posuvníkov pre prispôsobenie polohy virtuálnej kamery. Hore je zobrazenie bez prispôsobenia, dole s~prispôsobením.}
+    \caption[Funkcionalita posuvníkov pre prispôsobenie polohy virtuálnej kamery.]{Funkcionalita posuvníkov pre prispôsobenie polohy virtuálnej kamery. Na hornom obrázku je zobrazenie bez prispôsobenia, na dolnom s~prispôsobením.}
     \label{fig:posuvniky}
 \end{figure}
 
@@ -1100,20 +1144,20 @@ V~priebehu implementácie bolo postupne vyskúšaných a porovnaných päť rôz
 \begin{enumerate}
     \item Použitie knižníc Pydeck a Dash Deck tak, ako je to vo vzorových príkladoch v~dokumentácii knižnice Dash Deck. Počítanie transformácií v~prístupových funkciách.
     \item Použitie iba knižnice Dash Deck, definícia vizualizácie pomocou slovníka. Počítanie transformácií v~prístupových funkciách.
-    \item Použitie frameworku deck.gl priamo pomocou kódu v~jazyku JavaScript, riadenie animácie pomocou komponentu \texttt{Interval}\footnote{Funkcionalita komponentu \texttt{Interval} frameworku Dash spočíva v~tom, že periodicky spúšťa callback, pričom periódu určuje parameter \texttt{interval}.}. Počítanie transformácií v~prístupových funkciách. 
-    \item Použitie frameworku deck.gl a riadenie animácie priamo pomocou kódu v~jazyku JavaScript. Počítanie transformácií v~prístupových funkciách.
-    \item Použitie frameworku deck.gl a riadenie animácie priamo pomocou kódu v~jazyku JavaScript. Aplikovanie transformácií iba na kameru.
+    \item Použitie frameworku Deck.gl priamo pomocou kódu v~jazyku JavaScript, riadenie animácie pomocou komponentu \texttt{Interval}\footnote{Funkcionalita komponentu \texttt{Interval} frameworku Dash spočíva v~tom, že periodicky spúšťa callback, pričom periódu určuje parameter \texttt{interval}.}. Počítanie transformácií v~prístupových funkciách. 
+    \item Použitie frameworku Deck.gl a riadenie animácie priamo pomocou kódu v~jazyku JavaScript. Počítanie transformácií v~prístupových funkciách.
+    \item Použitie frameworku Deck.gl a riadenie animácie priamo pomocou kódu v~jazyku JavaScript. Aplikovanie transformácií iba na kameru.
 \end{enumerate}
 
 Ukázalo sa, že každý z~týchto spôsobov je lepší ako tie uvedené pred ním, takže finálna implementácia, ako už bolo popísané v~predchádzajúcej kapitole, používa 5. spôsob.
 
 Cieľom tejto sekcie je porovnať všetky tieto spôsoby a zdôvodniť, prečo je práve 5. spôsob najlepší.
 
-Všetky v~tejto sekcii uvedené merania prebiehali na notebooku s~operačným systémom Ubuntu 24.04.1, procesorom Intel Core i5-9300H~×~8, grafickou kartou Intel UHD Graphics 630 (CFL GT2) a veľkosťou operačnej pamäte 16~GiB. Vykresľované mračno bodov obsahovalo 201~880 bodov a spolu s~jeho zobrazovaním sa prehrávalo aj video.
+Všetky v~tejto sekcii uvedené merania prebiehali na notebooku s~operačným systémom Ubuntu 24.04.1, procesorom Intel Core i5-9300H~×~8, grafickou kartou Intel UHD Graphics 630 (CFL GT2) a veľkosťou operačnej pamäte 16~GiB. Vykresľované mračno bodov obsahovalo 201~880 bodov a spolu s~jeho zobrazovaním bolo prehrávané aj video.
 
 \subsubsection{1. spôsob}
 
-Prvý spôsob je výrazne neefektívny. Pri implementácii týmto spôsobom jedno vykreslenie mračna bodov zaberá zhruba 3 sekundy, čo je spôsobené transformáciami medzi rôznymi formátmi, ako to bolo popísané v~sekcii \ref{sec:deck_gl}.
+Prvý spôsob je výrazne neefektívny. Pri implementácii týmto spôsobom jedno vykreslenie mračna bodov zaberá zhruba 3 sekundy, čo je spôsobené transformáciami medzi rôznymi formátmi, ktoré boli popísané v~sekcii \ref{sec:deck_gl}.
 
 \subsubsection{2. spôsob}
 
@@ -1130,17 +1174,17 @@ Prvý spôsob je výrazne neefektívny. Pri implementácii týmto spôsobom jedn
         650 & 71 & 710 \\
         600 & 70 & 700 \\
     \end{tabular}
-    \caption{Výkonnosť animácie pohybu vlaku pri použití 2. spôsobu vykresľovania mračna bodov (použitie knižnice Dash Deck). Z~nameraných údajov vyplýva, že minimálny čas potrebný na vykreslenie jednej snímky je asi 750~ms, čo znamená, že rýchlosť nedosahuje ani 2 snímky za sekundu.}
+    \caption{Výkonnosť animácie pohybu po trati pri použití 2. spôsobu vykresľovania mračna bodov (použitie knižnice Dash Deck). Z~nameraných údajov vyplýva, že minimálny čas potrebný na vykreslenie jednej snímky je asi 750~ms, čo znamená, že rýchlosť nedosahuje ani 2 snímky za sekundu.}
     \label{tab:meranie_sposob_2}
 \end{table}
 
-Podľa nameraných údajov tento spôsob predstavuje významné zlepšenie oproti prvému spôsobu, ani on však nie je dosť výkonný na to, aby umožnil hladký beh animácie pohybu vlaku. Príčina neefektivity je v~spôsobe implementácie knižnice Dash Deck, ktorá zrejme, podobne ako Pydeck, nie je stavaná na to, aby sa vo vizualizácii robili časté zmeny.
+Podľa nameraných údajov tento spôsob predstavuje významné zlepšenie oproti prvému spôsobu, ani on však nie je dosť výkonný na to, aby umožnil hladký beh animácie pohybu po trati. Príčina neefektivity je v~spôsobe implementácie knižnice Dash Deck, ktorá zrejme, podobne ako Pydeck, nie je stavaná na to, aby sa vo vizualizácii robili časté zmeny.
 
 \subsubsection{3. spôsob}
 
-Ide vlastne o~medzistupeň medzi 2. a 4. spôsobom, kedy je už vizualizácia riadená priamo pomocou kódu v~jazyku JavaScript, ale riadenie animácie zostáva v~réžii frameworku Dash.
+Ide o~medzistupeň medzi 2. a 4. spôsobom, kedy je už vizualizácia riadená priamo pomocou kódu v~jazyku JavaScript, ale riadenie animácie zostáva v~réžii frameworku Dash.
 
-Meranie výkonnosti je v~tabuľke \ref{tab:meranie_sposob_3} a profiling na obrázku \ref{fig:profiling_interval}.
+Meranie výkonnosti je v~tabuľke \ref{tab:meranie_sposob_3} a profilovanie na obrázku \ref{fig:profiling_interval}.
 
 \begin{table}[h]
     \centering
@@ -1153,7 +1197,7 @@ Meranie výkonnosti je v~tabuľke \ref{tab:meranie_sposob_3} a profiling na obr�
         100 & 63 & 126 \\
          75 & 62 & 124 \\
     \end{tabular}
-    \caption{Výkonnosť animácie pohybu vlaku pri použití 3. spôsobu vykresľovania mračna bodov (riadenie vizualizácie v~JavaScripte, riadenie animácie v~Pythone). Použité technológie: Python, Dash, Javascript, deck.gl. Z~nameraných údajov vyplýva, že minimálny čas potrebný na vykreslenie jednej snímky je asi 150~ms, čo zodpovedá rýchlosti asi 6 snímok za sekundu.}
+    \caption{Výkonnosť animácie pohybu po trati pri použití 3. spôsobu vykresľovania mračna bodov (riadenie vizualizácie v~jazyku JavaScript, riadenie animácie v~jazyku Python). Z~nameraných údajov vyplýva, že minimálny čas potrebný na vykreslenie jednej snímky je asi 150~ms, čo zodpovedá rýchlosti asi 6 snímok za sekundu.}
     \label{tab:meranie_sposob_3}
 \end{table}
 
@@ -1181,37 +1225,37 @@ Aj tento spôsob priniesol zlepšenie oproti tomu predchádzajúcemu, ale stále
         \caption{5. spôsob, riadenie pomocou kódu v~jazyku JavaScript a aplikovanie transformácií iba na kameru.}
         \label{fig:profiling2}
     \end{subfigure}
-    \caption[Profiling animácie pohybu vlaku pri použití rôznych spôsobov vykresľovania mračna bodov.]{Profiling animácie pohybu vlaku pri použití rôznych spôsobov vykresľovania mračna bodov. Každý graf zachytáva tri sekundy behu animácie. Profiling prebiehal v~prehliadači Google Chrome 133.0.6943.126 s~rozmermi okna 1480×832 pixelov. Bol použitý profiler vstavaný v~tomto prehliadači.}
+    \caption[Profilovanie animácie pohybu po trati pri použití rôznych spôsobov vykresľovania mračna bodov.]{Profilovanie animácie pohybu po trati pri použití rôznych spôsobov vykresľovania mračna bodov. Každý graf zachytáva tri sekundy behu animácie. Profilovanie prebiehalo v~prehliadači Google Chrome 133.0.6943.126 s~rozmermi okna 1480×832 pixelov. Bol použitý profilovací nástroj vstavaný v~tomto prehliadači.}
     \label{fig:profiling}
 \end{figure}
 
 \subsubsection{4. spôsob}
 
-Zmenu oproti predchádzajúcemu spôsobu je iba iný typ riadenia animácie, ktorý je použitý aj vo finálnej verzii implementácie a detailne popísaný v~sekcii \ref{sec:implementacia_animacie}.
+Zmenou oproti predchádzajúcemu spôsobu je iba iný typ riadenia animácie, ktorý je použitý aj vo finálnej verzii implementácie a detailne popísaný v~sekcii \ref{sec:implementacia_animacie}.
 
-Profiling tohto spôsobu je na obrázku \ref{fig:profiling1}. Pri porovnaní s~profilingom predchádzajúceho spôsobu sa ukázalo, že hoci sa zvýšilo zaťaženie procesora, výrazne sa znížil čas potrebný na vykreslenie jednej snímky animácie, čo umožnilo vykreslenie väčšieho počtu snímok za sekundu (v~grafoch sekcia \emph{úlohy}).
+Profilovanie tohto spôsobu je na obrázku \ref{fig:profiling1}. Pri porovnaní s~profilovaním predchádzajúceho spôsobu sa ukázalo, že hoci sa zvýšilo zaťaženie procesora, výrazne sa znížil čas potrebný na vykreslenie jednej snímky animácie, čo umožnilo vykreslenie väčšieho počtu snímok za sekundu (v~grafoch sekcia \emph{úlohy}).
 
-U~tohto spôsobu už animácia vyzerala plynulo, ale výkon aplikácie stále nebol vyhovujúci, pretože animácia výrazne zaťažovala procesor a hodnota snímkovej frekvencie stále miestami dosahovala príliš nízke hodnoty (v~grafoch červené čiary v~sekcii \emph{FPS}).
+U~tohto spôsobu už animácia pôsobila plynulo, ale výkonnosť aplikácie stále nebola vyhovujúca, pretože animácia výrazne zaťažovala procesor a hodnota snímkovej frekvencie stále miestami dosahovala príliš nízke hodnoty (v~grafoch červené čiary v~sekcii \emph{FPS}).
 
 \subsubsection{5. spôsob}
 
-V~sekcii \ref{sec:nastavenie_polohy_kamery} boli popísané dva rôzne spôsoby nastavenia polohy kamery vo frameworku deck.gl. U~vyššie popísaných spôsobov vykresľovania mračna bodov bol použitý ten prvý, teda výpočet transformácií pomocou prístupových funkcií, pretože je implementačne jednoduchší. Tento posledný, 5. spôsob sa od 4. spôsobu líši iba tým, že nepoužíva prístupové funkcie a transformácie aplikuje iba na kameru, nie na body. 
+V~sekcii \ref{sec:nastavenie_polohy_kamery} boli popísané dva rôzne spôsoby nastavenia polohy kamery vo frameworku Deck.gl. U~vyššie popísaných spôsobov vykresľovania mračna bodov bol použitý ten prvý, teda výpočet transformácií pomocou prístupových funkcií, pretože bol implementačne jednoduchší. Tento posledný, 5. spôsob sa od 4. spôsobu líši iba tým, že nepoužíva prístupové funkcie a transformácie aplikuje iba na kameru, nie na body. 
 
-Profiling tohto spôsobu vykresľovania mračna bodov je na obrázku \ref{fig:profiling2}. Z~nameraných údajov vyplýva, že táto optimalizácia veľmi výrazne znížila zaťaženie procesora. Zatiaľ čo pri 4. spôsobe sa počas trojsekudového intervalu vykonával javascriptový kód 2,745 sekúnd, pri tomto spôsobe to bolo iba 239 milisekúnd, čo predstavuje viac než desaťnásobné zníženie.
+Profilovanie tohto spôsobu vykresľovania mračna bodov je na obrázku \ref{fig:profiling2}. Z~nameraných údajov vyplýva, že táto optimalizácia veľmi výrazne znížila zaťaženie procesora. Zatiaľ čo pri 4. spôsobe sa počas trojsekundového intervalu vykonával kód v jazyku JavaScript 2,745 sekúnd, pri tomto spôsobe to bolo iba 239 milisekúnd, čo predstavuje viac než desaťnásobné zníženie.
 
 Dôležitou metrikou pri posudzovaní výkonnosti animácií je snímková frekvencia meraná v~FPS (\emph{frames per second}, počet vykreslených snímok za sekundu). V~ideálnom prípade by sa snímková frekvencia mala blížiť 60~FPS, pretože vtedy sa animácia ľudskému oku zdá hladká \cite{chrome_profiling}.
 
 Podľa vstavaného ukazovateľa snímkovej frekvencie v~prehliadači Google Chrome dosahovala skúmaná animácia pri 4. spôsobe vykresľovania mračna bodov zhruba 28 až 34~FPS, zatiaľ čo pri 5. spôsobe 51 až 55~FPS. Aj v~tomto ohľade teda nastalo významné zlepšenie.
 
-\section{Výkonnosť}
+\section{Meranie výkonnosti}
 
-Na výkonnosť aplikácie má najväčší vplyv mračno bodov. Táto sekcia obsahuje merania, aký výkon dosahuje aplikácia pri prehrávaní animácie s~mračnami bodov rôznych veľkostí. Merania prebiehali s~rovnakými technológiami ako v~predchádzajúcej kapitoly, na meranie záťaže procesora a využitia pamäte bol použitý nástroj Chrome Task Manager.
+Na výkonnosť aplikácie má najväčší vplyv mračno bodov. Táto sekcia obsahuje merania výkonnosti aplikácie pri prehrávaní animácie pohybu po trati s~mračnami bodov rôznych veľkostí. Merania prebiehali s~rovnakými technológiami ako v~predchádzajúcej kapitole, na meranie záťaže procesora bol použitý nástroj Chrome Task Manager.
 
 Výsledky merania výkonnosti animácie s~mračnom bodov typu postprocess sú v~tabuľkách \ref{tab:vykonnost_postprocess} a \ref{tab:vykonnost_postprocess_so_skreslenim}. 
 
 U~animácie bez skreslenia bola snímková frekvencia (FPS) dobrá až do menších jednotiek miliónov bodov, potom začala klesať. Deväť miliónov bodov už aplikácia nezvládla vôbec, pretože veľkosť dát spôsobila chybu vo frameworku Dash. Aby bola aplikácia schopná zobrazovať mračná bodov obsahujúce viac než osem miliónov bodov, musela by prejsť úpravou a deliť dáta na viacero častí. 
 
-Naopak u~animácie so skreslením bola snímková frekvencia veľmi zlá aj pri menšom počte bodov, z~čoho vyplýva, že je implementovaná neefektívne a že režim so zobrazením skreslenia nie je vhodný na prehrávanie animácie.
+Naopak u~animácie so skreslením bola snímková frekvencia veľmi zlá aj pri menšom počte bodov, z~čoho vyplýva, že je skreslenie implementované neefektívne a že režim so zobrazením vrátane skreslenia nie je vhodný na prehrávanie animácie.
 
 Okrem snímkovej frekvencie bolo merané aj zaťaženie procesora. 100~\% hodnoty CPU v~tabuľke zodpovedá jednému plne bežiacemu jadru procesora. Táto hodnota je veľmi variabilná, ale u~animácie s~výpočtom skreslenia je mierne vyššia, čo je očakávané, pretože výpočet skreslenia prebieha na procesore.
 
@@ -1246,11 +1290,11 @@ Okrem snímkovej frekvencie bolo merané aj zaťaženie procesora. 100~\% hodnot
     \label{tab:vykonnost_postprocess_so_skreslenim}
 \end{table}
 
-Ďalej prebehlo meranie výkonnosti animácie s~mračnom bodov typu real-time, ktorého výsledky sú v~tabuľke \ref{tab:vykonnost_postprocess}.
+Ďalej prebehlo meranie výkonnosti animácie s~mračnom bodov typu real-time, ktorého výsledky sú v~tabuľke \ref{tab:vykonnost_realtime}.
 
 Z~meraní vyplýva, že snímková frekvencia je veľmi dobrá a aplikácii nerobí problém ani zvýšenie počtu bodov či frekvencie striedania častí. Zaťaženie procesora je dokonca menšie a~menej variabilné než u~mračna bodov typu postprocess.
 
-Celkovým záverom z~tohto testovania je, že animácia má dobrú výkonnosť, ale iba bez výpočtu skreslenia. U~mračna bodov typu postprocess sa výkon začína zhoršovať u~nižších jednotiek miliónov bodov a maximálny počet bodov, ktorý aplikácia zvládne vykresliť, je osem miliónov.
+Celkovým záverom z~tohto testovania je, že animácia má dobrú výkonnosť, ale iba bez výpočtu skreslenia. U~mračna bodov typu postprocess sa výkonnosť začína zhoršovať u~nižších jednotiek miliónov bodov a maximálny počet bodov, ktorý aplikácia zvládne vykresliť, je osem miliónov.
 
 \begin{table}[t]
     \centering
@@ -1286,20 +1330,20 @@ Závery boli nasledujúce:
 
 Prvé dva body boli vyriešené, tretí nie, pretože je implementačne náročnejší.
 
-Druhá etapa testovania mala jedenásť dobrovoľných účastníkov a prebiehala pomocou dotazníka. Používatelia dostali štyri úlohy, ktoré sa mali pokúsiť pomocou aplikácie vyriešiť, a potom vyplniť~dotazník. Úlohy boli zámerne jednoduché, pretože ich cieľom bolo iba to, aby si účastníci vyskúšali prácu s~aplikáciou.
+Druhá etapa testovania mala dvanásť dobrovoľných účastníkov, väčšinou študentov FIT VUT, a prebiehala pomocou dotazníka. Účastníci dostali štyri úlohy, ktoré sa mali pokúsiť pomocou aplikácie vyriešiť, a potom vyplniť~dotazník. Úlohy boli zámerne jednoduché, pretože ich cieľom bolo iba to, aby si účastníci vyskúšali prácu s~aplikáciou.
 
-Nedokonalosťou testovania bola skutočnosť, že používatelia, s~ktorými bola aplikácia testovaná, neboli cieľovými používateľmi, teda ľuďmi, ktorí pracujú s~dátami z~mobilných mapovacích systémov, ale na túto skutočnosť bol braný ohľad a veci, ktoré by im mohli byť nejasné, boli vysvetlené.
+Nedokonalosťou testovania bola skutočnosť, že účastníci testovania neboli cieľovými používateľmi, teda ľuďmi, ktorí pracujú s~dátami z~mobilných mapovacích systémov, ale na túto skutočnosť bol braný ohľad a veci, ktoré by im mohli byť nejasné, boli vysvetlené.
 
 Prvou časťou dotazníka bolo meranie použiteľnosti metódou \emph{System Usability Scale} (SUS). Táto metóda je rýchla a jednoduchá a zakladá sa na desiatich tvrdeniach, na ktoré účastník testovania vyberá odpoveď v~rozmedzí \uv{rozhodne nesúhlasím -- skôr nesúhlasím -- neviem -- skôr súhlasím -- rozhodne súhlasím}. Tvrdenia sú usporiadané tak, že sa striedajú tie, na ktoré majú účastníci tendenciu odpovedať skôr kladne a tie, na ktoré majú tendenciu odpovedať skôr záporne, čo ich núti neodpovedať mechanicky a skutočne sa nad každým tvrdením zamyslieť. Odpovede sa následne obodujú a spočíta sa skóre od 0 do 100 \cite{brooke_sus}.
 
-Podľa článku J. Saura na stránke spoločnosti MeasuringU sa SUS stalo široko používanou metódou a systémy dosahujú priemerné SUS skóre 68 \cite{sauro_sus}. Testovaná aplikácia získala skóre 78,2, čo podľa grafu publikovaného v~tomto článku zodpovedá približne percentilu 82, a je to teda nadpriemerný výsledok.
+Podľa článku J. Saura na stránke spoločnosti MeasuringU sa SUS stalo široko používanou metódou a systémy dosahujú priemerné SUS skóre 68 \cite{sauro_sus}. Testovaná aplikácia získala skóre 77,5, čo podľa grafu publikovaného v~tomto článku zodpovedá približne percentilu 82, a je to teda nadpriemerný výsledok.
 
-V~druhej časti dotazníka mali účastníci testovania priestor na napísanie postrehov a návrhov na vylepšenia. Podali nasledovné návrhy:
+V~druhej časti dotazníka mali účastníci testovania priestor na napísanie postrehov a~návrhov na vylepšenia. Podali nasledovné návrhy:
 \begin{enumerate}
-    \item panel nástrojov by mal byť implicitne otvorený akebo lepšie zviditeľnený ($3\times$),
+    \item panel nástrojov by mal byť implicitne otvorený alebo lepšie zviditeľnený ($3\times$),
     \item aplikácia by mala obsahovať nápovedy ($2\times$),
-    \item pridanie ovládania pomocou klávesnice,
-    \item zobrazenie \uv{progress baru} pri načítaní,
+    \item ovládanie animácie pohybu po trati pomocou klávesnice,
+    \item zobrazenie ukazovateľa priebehu pri načítaní,
     \item pridanie legendy ku grafu,
     \item skrytie nastavení farieb a hrúbok čiar, pretože to nie je dôležitá vlastnosť,
     \item pridanie prednastavených módov.
@@ -1307,19 +1351,23 @@ V~druhej časti dotazníka mali účastníci testovania priestor na napísanie p
 
 Jeden účastník upozornil na chybu, ktorú sa podarilo reprodukovať v~prehliadači Google Chrome a následne opraviť.
 
+Návrhy 1 a 3 boli zaradené do implementácie. Animáciu pohybu po trati je vo finálnej implementácii možné spustiť a zastaviť pomocou medzerníka a šípkami vľavo a vpravo sa posúva poloha o 3 sekundy dozadu alebo dopredu. Návrh 4 v rámci frameworku Dash nie je možné realizovať. Čo sa týka ostatných návrhov, bolo by možné v budúcnosti vykonať ďalší prieskum, ideálne s cieľovými používateľmi, v ktorom by sa presnejšie zistilo, či a do akej miery je vhodné ich implementovať.
+
 \chapter{Záver}
 
 Cieľom tejto práce bolo vytvoriť systém pre vizualizáciu dát z~mobilného mapovacieho systému. Tento cieľ bol splnený.
 
-Návrh systému zahŕňal návrh funkcionality aj používateľského rozhrania. Systém bol implementovaný ako webová aplikácia v~programovacom jazyku Python s~využitím frameworku Dash\footnote{Zdrojové kódy vytvorenej aplikácie sú voľne dostupné na stránke \url{https://github.com/xmiska03/RailwayDataVisualization}.}. Bolo preskúmaných niekoľko rozdielnych spôsobov implementácie vykresľovania mračna bodov pomocou rôznych technológií, z~ktorých bol vybraný ten najlepší, a~to vloženie skriptu v~jazyku JavaScript, ktorý beží na strane klienta a využíva hardvérovo akcelerovaný framework deck.gl. Bola vyhodnotená výkonnosť a používateľská prívetivosť aplikácie.
+Návrh systému zahŕňal návrh funkcionality aj používateľského rozhrania. Pre zjednodušenie nahrávania dát do aplikácie bol navrhnutý špeciálny projektový súbor, ktorý je možné využiť, ak má používateľ prístup k~serveru, na ktorom je aplikácia spustená.
 
-Pre zjednodušenie nahrávania dát do aplikácie bol navrhnutý špeciálny projektový súbor, ktorý je možné využiť, ak má používateľ prístup k~serveru, na ktorom aplikácia beží.
+Systém bol implementovaný ako webová aplikácia v~programovacom jazyku Python s~využitím frameworku Dash\footnote{Zdrojové kódy vytvorenej aplikácie sú voľne dostupné na stránke \url{https://github.com/xmiska03/RailwayDataVisualization}.}. Bolo preskúmaných niekoľko rozdielnych spôsobov implementácie vykresľovania mračna bodov pomocou rôznych technológií, z~ktorých bol vybraný ten najlepší, a~to vloženie skriptu v~jazyku JavaScript, ktorý sa vykonáva na strane klienta a využíva hardvérovo akcelerovaný framework Deck.gl. 
 
-Výsledná aplikácia má dobrú výkonnosť s~výnimkou výpočtu skreslenia. U~mračna bodov typu postprocess sa výkon začína zhoršovať u~nižších jednotiek miliónov bodov a aplikácia zvládne mračná bodov do maximálnej veľkosti 8 miliónov bodov. Aplikácia spĺňa v~dostatočnej miere všetky vlastnosti popísané v~návrhu.
+Bola vyhodnotená výkonnosť a používateľská prívetivosť aplikácie. 
 
-Aplikácia bola testovaná s~použitím metódy \emph{System Usability Scale}. Testovanie zahŕňalo jedenásť účastníkov, ktorí dali aplikácii nadpriemerné hodnotenie a navyše poskytli aj užitočné podnety na jej ďalšie zlepšenie.
+Výsledná aplikácia má dobrú výkonnosť s~výnimkou výpočtu skreslenia. U~mračna bodov typu postprocess sa výkonnosť začína zhoršovať u~nižších jednotiek miliónov bodov a~aplikácia zvládne mračná bodov do maximálnej veľkosti 8 miliónov bodov. Aplikácia spĺňa v~dostatočnej miere všetky vlastnosti popísané v~návrhu.
 
-V~práci by bolo možné pokračovať pridaním možnosti zobrazovať dáta streamované v~reálnom čase. Existuje ešte mnoho možných zlepšení funkcionality aj používateľského rozhrania, napríklad rozšírenie možností nahrávania dát, umožnenie nastavenia farebnej škály klikaním do grafu, filtrácia mračna bodov a optimalizácia výpočtu skreslenia. Hodilo by sa pridať validáciu nahrávaných dát a upozorniť používateľa chybovou hláškou, ak nahrá dáta v~nesprávnom formáte.
+Používateľská prívetivosť aplikácie bola testovaná s~použitím metódy \emph{System Usability Scale}. Testovanie malo dvanásť účastníkov, ktorí dali aplikácii nadpriemerné hodnotenie a~navyše poskytli aj užitočné podnety na jej ďalšie zlepšenie.
+
+V~práci by bolo možné pokračovať pridaním možnosti zobrazovať dáta vysielané serverom v~reálnom čase. Existuje ešte mnoho možných zlepšení funkcionality aj používateľského rozhrania, napríklad rozšírenie možností nahrávania dát, umožnenie nastavenia farebnej škály klikaním do grafu, filtrácia mračna bodov a optimalizácia výpočtu skreslenia a procesu nahrávania dát. Hodilo by sa pridať validáciu nahrávaných dát a upozorniť používateľa chybovou hláškou, ak nahrá dáta v~nesprávnom formáte.
 
 V~dlhodobejšom horizonte by bolo možné prácu rozšíriť okrem vizualizácie aj o~niektoré možnosti spracovania mračna bodov, napríklad kolorizáciu podľa videa.
 
@@ -1327,4 +1375,3 @@ V~dlhodobejšom horizonte by bolo možné prácu rozšíriť okrem vizualizácie
 
 % Pro kompilaci po částech (viz projekt.tex) nutno odkomentovat
 %\end{document}
-

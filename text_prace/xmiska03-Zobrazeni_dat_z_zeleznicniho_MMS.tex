@@ -49,12 +49,20 @@
 \usepackage{caption}
 \usepackage{subcaption}
 \usepackage{rotating}
+\usepackage{longtable}
+\usepackage{lscape}
 \hyphenation{view-port}
 \hyphenation{apli-ká-cia}
 \hyphenation{apli-ká-cie}
 \hyphenation{funk-cio-na-li-ty}
 \hyphenation{po-uží-va-nou}
 \hyphenation{Goog-le}
+\hyphenation{pri-spô-so-bi-teľ-nos-ti}
+\hyphenation{ak-tua-li-zu-je}
+\hyphenation{do-siah-nu-té}
+\hyphenation{Py-thon}
+\hyphenation{Ja-va-Script}
+\hyphenation{funk-cie}
 
 % Pro seznam zkratek lze využít balíček Glossaries - nutno odkomentovat i níže a při kompilaci z konzoly i v Makefile (plnou verzi pro Perl, nebo lite)
 % The Glossaries package can be used for the list of abbreviations - it is necessary to uncomment also below. When compiling from the console also in the Makefile (full version for Perl or lite)
@@ -153,21 +161,21 @@
   keywords.en={data visualization, mobile mapping system, lidar, point cloud, deck.gl, web aplication, Dash, pinhole camera model, distortion, rendering pipeline}, % klíčová slova v anglickém jazyce / keywords in english
   %keywords.en={Here, individual keywords separated by commas will be written in English.},
   % Abstrakt / Abstract
-  abstract.cs={Cieľom tejto práce je vytvoriť systém pre vizualizáciu dát z železničného mobilného mapovacieho systému, ktorý dáta zobrazí praktickým, prehľadným a prispôsobiteľným spôsobom.
+  abstract.cs={Cieľom tejto práce je vytvoriť praktický, prehľadný a prispôsobiteľný systém pre vizualizáciu dát z železničného mobilného mapovacieho systému.
   %
-  Tento systém bol implementovaný ako webová aplikácia s využitím programovacieho jazyka Python a frameworku Dash. Pre optimalizáciu výkonu prebieha vykresľovanie mračna bodov na strane klienta pomocou frameworku deck.gl. 
+  Tento systém bol implementovaný ako webová aplikácia s využitím programovacieho jazyka Python a aplikačného rámca Dash. Pre optimalizáciu výkonu prebieha vykresľovanie mračna bodov a vektorových dát na strane klienta a riadi ho skript napísaný v jazyku JavaScript, ktorý využíva aplikačný rámec Deck.gl. 
   %
-  Vyvinutá aplikácia poskytuje dostatočnú funkcionalitu a výkonnosť. Avšak stále by boli možné ďalšie zlepšenia, najmä čo sa týka prispôsobiteľnosti.
+  Vyvinutá aplikácia poskytuje požadovanú funkcionalitu a pri testovaní použiteľnosti dosiahla nadpriemerný výsledok. Stále by však boli možné ďalšie zlepšenia, najmä čo sa týka prispôsobiteľnosti.
   %
   Táto nová webová aplikácia má potenciál byť využitá v oblasti vizualizácie dát z mobilných mapovacích systémov. Znalosti získané počas tvorby práce by tiež mohli byť užitočné pre ďalších vývojárov, ktorí vytvárajú systémy pre vizualizáciu dát.
   }, % abstrakt v českém či slovenském jazyce / abstract in czech or slovak language
-  abstract.en={The aim of this thesis is to create a system visualizing data from a railway mobile mapping system, which will display data in a practical, clear and customizable way.
+  abstract.en={The aim of this thesis is to create a practical, clear, and customizable system for visualizing data from a railway mobile mapping system.
   %	
-  The system was implemented as a web application using programming language Python and framework Dash. For performance optimization, the rendering of the point cloud and vector data is done on the client's side using framework deck.gl.
+  The system was implemented as a web application using the Python programming language and the Dash framework. For performance optimization, the rendering of the point cloud and vector data is done on the client side and is managed by a script written in the JavaScript programming language, which uses the Deck.gl framework.
   %	
-  The created application offers sufficient functionality and performance. Hovewer, there is still room for further improvement, mainly in customizability.
+  The resulting application offers sufficient functionality and achieved an above-average result in usability testing. However, there is still room for further improvement, mainly in terms of customizability.
   %
-  This new web application has a potential to be exploited within the field of mobile mapping system data visualizations. The knowledge acquired throughout the work could also useful to other developers creating visualization systems.
+  This new web application has the potential to be exploited within the field of mobile mapping system data visualizations. The knowledge acquired throughout the work could also be useful to other developers creating visualization systems.
   }, % abstrakt v anglickém jazyce / abstract in english
   %abstract.en={An abstract of the work in English will be written in this paragraph.},
   % Prohlášení (u anglicky psané práce anglicky, u slovensky psané práce slovensky; u projektové praxe lze zakomentovat) / Declaration (for thesis in english should be in english; for project practice can be commented out)
@@ -393,4 +401,3 @@
   %\subfile{xmiska03-Zobrazeni_dat_z_zeleznicniho_MMS-30-prilohy-appendices}
   
 \end{document}
-
