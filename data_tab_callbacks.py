@@ -506,11 +506,11 @@ def get_callbacks(app):
             for i in range(len(filenames)):
                 # decide which file is it
                 index = 0
-                if filenames[i][-6:] == "50.csv":
+                if filenames[i][-6:-4] == "50":
                     index = 1
-                elif filenames[i][-6:] == "75.csv":
+                elif filenames[i][-6:-4] == "75":
                     index = 2
-                elif filenames[i][-7:] == "100.csv":
+                elif filenames[i][-7:-4] == "100":
                     index = 3
                 # read the file
                 content_type, content_string = file_content[i].split(',')
@@ -554,11 +554,11 @@ def get_callbacks(app):
             for i in range(len(filenames)):
                 # decide which file is it
                 index = 0
-                if filenames[i][-6:] == "50.csv":
+                if filenames[i][-6:-4] == "50":
                     index = 1
-                elif filenames[i][-6:] == "75.csv":
+                elif filenames[i][-6:-4] == "75":
                     index = 2
-                elif filenames[i][-7:] == "100.csv":
+                elif filenames[i][-7:-4] == "100":
                     index = 3
                 # read the file
                 content_type, content_string = file_content[i].split(',')

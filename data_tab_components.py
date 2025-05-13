@@ -213,6 +213,10 @@ data_tab = [
     dbc.Row(html.Div("Mračno bodů typu real-time (.pcd soubory):")),
     dbc.Row(html.Div(divided_pc_upload, id="divided-pc-upload-div")),
     dbc.Row(html.Div(divided_pc_uploaded_files, id="divided-pc-uploaded-file-div")),
+    dbc.Tooltip(
+        "Při nahrávání mimo projektový soubor musí být tyto soubory pojmenovány 'pcd_0.pcd', 'pcd_1.pcd', atd.",
+        target="divided-pc-upload-div",
+    ),
     dbc.Row(html.Div("Časová razítka mračna bodů typu real-time (.txt):")),
     dbc.Row(html.Div(pc_timestamps_upload, id="pc-timestamps-upload-div")),
     dbc.Row(html.Div(pc_timestamps_uploaded_file, id="pc-timestamps-uploaded-file-div")),
@@ -248,10 +252,18 @@ data_tab = [
     dbc.Row(html.Div("Translace (.csv soubory):")),
     dbc.Row(html.Div(profile_trans_upload, id="profile-trans-upload-div")),
     dbc.Row(html.Div(profile_trans_uploaded_files, id="profile-trans-uploaded-file-div")),
+    dbc.Tooltip(
+        "Při nahrávání mimo projektový soubor musí mít názvy těchto souborů koncovky '25.csv', '50.csv', '75.csv' a '100.csv'.",
+        target="profile-trans-upload-div",
+    ),
     dbc.Row(html.Div("Rotace (.csv soubory):")),
     dbc.Row(html.Div(profile_rot_upload, id="profile-rot-upload-div")),
     dbc.Row(html.Div(profile_rot_uploaded_files, id="profile-rot-uploaded-file-div")),
     dbc.Row(html.Hr(style={'marginTop':'15px'})),
+    dbc.Tooltip(
+        "Při nahrávání mimo projektový soubor musí mít názvy těchto souborů koncovky '25.csv', '50.csv', '75.csv' a '100.csv'.",
+        target="profile-rot-upload-div",
+    ),
 
     dbc.Row(html.Div("Parametry kamery"), style={"fontWeight": "bold", "textAlign": "center"}), 
     dbc.Row(html.Div("Kalibrační matice:")),
@@ -274,6 +286,6 @@ data_tab = [
         id="distortion-params-textarea",
         style={'margin': '10px 16px', 'width': '90%', 'height': '40px'}
     )),
-    dcc.Store(id="distortion-params-store", data=[-0.183217, 0.026917, -0.001191, 0.000804, 0.335446])
+    dcc.Store(id="distortion-params-store", data=[-0.183217, 0.026917, -0.001191, 0.000804, 0.335446]),
 ]
 
