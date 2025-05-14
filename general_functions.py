@@ -1,9 +1,17 @@
+## @file general_functions.py
+# @author Zuzana Miškaňová
+# @brief Contains some mathematical functions for calculating matrices and rotations.
+
 import numpy as np
 from scipy.spatial.transform import Rotation
 
 from params import NEAR_PLANE, FAR_PLANE
 
-# creates a deck.gl-style projection matrix according to camera parameters
+## @brief Creates a Deck.gl-style projection matrix according to camera parameters.
+# @param camera_params_dict A dictionary with camera parameters such as loaded from file data/camera_azd.yaml.
+# @param K A custom calibration matrix.
+# @param far_plane A custom distance of the far plane.
+# @return The calculated projection matrix.
 def calculate_projection_matrix(camera_params_dict, K=np.array([]), far_plane=None):
     w = camera_params_dict['Camera.width']
     h = camera_params_dict['Camera.height']
@@ -33,22 +41,13 @@ def calculate_projection_matrix(camera_params_dict, K=np.array([]), far_plane=No
     ])
     return proj_mat.transpose().flatten()
 
-# calculates camera position offset according to the extrinsic matrix
-def calculate_translation_from_extr_mat(camera_params_dict):
-    # extracts T from matrix E = RT
-    extr_mat = camera_params_dict['ExtrinsicMat']['data']
-    extr_fourth_col = np.array([extr_mat[3], extr_mat[7], extr_mat[11]]).transpose()
-    R = np.array([
-        [extr_mat[0], extr_mat[1], extr_mat[2]],
-        [extr_mat[4], extr_mat[5], extr_mat[6]],
-        [extr_mat[8], extr_mat[9], extr_mat[10]]
-    ])
-    T = np.matmul(np.linalg.inv(R), extr_fourth_col) * -1
-    return [T[2], T[0], T[1]]
 
-# function used for train profile positioning
-# it is needed to translate the frame to "trans_point" and then rotate around that point
-# that is equivalent to rotating around [0, 0, 0] and then translating to "trans_point"
+## @brief Calculates a transformation matrix for train profile positioning.
+# It is needed to translate the frame to "trans_point" and then rotate around that point.
+# That is equivalent to rotating around [0, 0, 0] and then translating to "trans_point".
+# @param trans_point The position to which the profile needs to be translated.
+# @param rot_mat_3x3 The rotation that needs to be applied to the profile.
+# @return The calculated transformation matrix.
 def calculate_train_profile_transformation_matrix(trans_point, rot_mat_3x3):
     trans_matrix = np.array([
         [1, 0, 0, trans_point[0]],
@@ -64,20 +63,32 @@ def calculate_train_profile_transformation_matrix(trans_point, rot_mat_3x3):
     ])
     return trans_matrix @ rot_matrix
 
-# loads rotation from the format in the files (xzy, in degrees) into a Rotation object
-# if translations are in order yzx instead of xyz, then rotations are in order xzy instead of zyx
+
+## @brief Loads rotation from the format in the files (xzy, in degrees) into a Rotation object.
+# (If translations are in order yzx instead of xyz, then rotations are in order xzy instead of zyx.)
+# @param rot_raw A rotation in euler angles, xzy format.
+# @return A Rotation object.
 def load_rotation(rot_raw):
     return Rotation.from_euler("xzy", rot_raw, degrees=True)
 
-# converts Rotation object to inverse euler angles (for the camera)
+
+## @brief Converts a Rotation object to inverse euler angles (for the camera).
+# @param rotation A Rotation object.
+# @return A rotation in euler angles, zyx format.
 def rotation_to_euler(rotation):
     rotation_zyx = rotation.inv().as_euler("zyx", degrees=True)
     return [-rotation_zyx[0], rotation_zyx[1], -rotation_zyx[2]]
 
-# converts Rotation object to rotation matrix
+
+## @brief Converts a Rotation object to a rotation matrix.
+# @param rotation A Rotation object.
+# @return A rotation matrix.
 def rotation_to_matrix(rotation):
     return rotation.as_matrix()
 
-# converts Rotation object to inverted rotation matrix
+
+## @brief Converts a Rotation object to an inverted rotation matrix.
+# @param rotation A Rotation object.
+# @return An inverted rotation matrix.
 def rotation_to_inv_matrix(rotation):
     return rotation.inv().as_matrix()

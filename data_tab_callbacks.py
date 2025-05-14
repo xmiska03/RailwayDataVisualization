@@ -1,4 +1,6 @@
-# This file contains definitions of dash callbacks used in the "data" tab of the app.
+## @file data_tab_callbacks.py
+# @author Zuzana Miškaňová
+# @brief Contains definitions of Dash callbacks used in the "data" tab.
 
 from dash import Output, Input, State, Patch, ctx, no_update
 import base64
@@ -18,6 +20,8 @@ from loading_functions import load_pcl_timestamps_file, load_pcl_timestamps, \
                               load_space_separated_into_nparray
 
 
+## @brief Registers all callbacks for the "data" tab.
+# @param app The Dash app instance.
 def get_callbacks(app):
 
     # copy the transformations data from a store to the window object

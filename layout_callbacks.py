@@ -1,6 +1,11 @@
+## @file layout_callbacks.py
+# @author Zuzana Miškaňová
+# @brief Contains the definitions of Dash callbacks which manage the layout of the app.
+
 from dash import Output, Input
 
-
+## @brief Registers all callbacks which manage the layout of the app.
+# @param app The Dash app instance.
 def get_callbacks(app):
     
     # roll out the side panel on button click

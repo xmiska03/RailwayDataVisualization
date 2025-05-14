@@ -1,8 +1,11 @@
-# This file contains definitions of dash components and callbacks used in the "data" tab of the app.
+## @file animation_control_components.py
+# @author Zuzana Miškaňová
+# @brief Contains definitions of Dash components used in the "animation control" panel.
 
 from dash import html, dcc
 import dash_bootstrap_components as dbc
 
+## @brief The button to play or stop the animation.
 play_button = dbc.Button(
     html.I(className="bi bi-play-fill"),
     id='play-button',
@@ -13,8 +16,12 @@ play_button = dbc.Button(
         'padding': '0'
     }
 )
+
+## @brief The text showing currently chosen time in the record.
 current_time_div = html.Div("00:00", id="current-time-div")
-camera_position_slider = dcc.Input(        # TODO try dbc input here
+
+## @brief The slider allowing to choose a time in the record.
+camera_position_slider = dcc.Input(
     value=0,
     id="camera-position-slider-input",
     type="range",
@@ -22,7 +29,11 @@ camera_position_slider = dcc.Input(        # TODO try dbc input here
     max=499,
     style={'width': '100%'}
 )
+
+## @brief The text showing the total length of the record.
 total_time_div = html.Div("00:19", id="total-time-div")
+
+## @brief The input allowing to select the speed of the animation.
 animation_speed_select = html.Div(
     [
         html.Div("Rychlost:", style={
@@ -42,6 +53,7 @@ animation_speed_select = html.Div(
 
 )
 
+## @brief All the elements which control the animation.
 play_controls = html.Div(
     [
         play_button,
@@ -64,6 +76,7 @@ play_controls = html.Div(
     }
 )
 
+## @brief The input allowing to choose position number.
 camera_position_input = html.Div(
     [
         html.Div("Snímek:", style={'paddingLeft': '15px'}),
@@ -88,6 +101,7 @@ camera_position_input = html.Div(
     style={'width': 'fit-content'}
 )
 
+## @brief All the elements at the bottom of the screen.
 bottom_panel = html.Div(
     [
         play_controls,

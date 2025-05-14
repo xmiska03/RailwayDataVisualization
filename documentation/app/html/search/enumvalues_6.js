@@ -1,0 +1,20 @@
+var searchData=
+[
+  ['failed_0',['Failed',['../namespacearrow_1_1flight.html#a9646b05ed7886d8967494f73da99b450ad7c8c85bf79bbe1b7188497c32c3b0ca',1,'arrow::flight']]],
+  ['failure_1',['FAILURE',['../namespacearrow.html#a235876e04ae6167cfde18ad69cf2821aa36fc6065a3e970bc3e6b2e59da52bf2a',1,'arrow']]],
+  ['fast_5fdtoa_5fprecision_2',['FAST_DTOA_PRECISION',['../namespacearrow__vendored_1_1double__conversion.html#a387583a1e40e04e7dce516d51f374b28a7dc2c8f9f95b7f41bee6a640af07d2b6',1,'arrow_vendored::double_conversion']]],
+  ['fast_5fdtoa_5fshortest_3',['FAST_DTOA_SHORTEST',['../namespacearrow__vendored_1_1double__conversion.html#a387583a1e40e04e7dce516d51f374b28abc96ea90047bc4f98906f7e81d3d9802',1,'arrow_vendored::double_conversion']]],
+  ['fast_5fdtoa_5fshortest_5fsingle_4',['FAST_DTOA_SHORTEST_SINGLE',['../namespacearrow__vendored_1_1double__conversion.html#a387583a1e40e04e7dce516d51f374b28a8d9bfc7b5d1b592bcecfe572961fe93f',1,'arrow_vendored::double_conversion']]],
+  ['fatal_5',['Fatal',['../namespacearrow_1_1fs.html#a88a2a7e735ce646ccbd886ababddeceaa882384ec38ce8d9582b57e70861730e4',1,'arrow::fs']]],
+  ['file_6',['file',['../structarrow_1_1io_1_1ObjectType.html#a1058f546342de12b2b2ade7410f4de7aa81af1cfcfc5aa3722be154e02b6193a7',1,'arrow::io::ObjectType::FILE'],['../namespacearrow_1_1fs.html#ae7f70d357901a07a605fcdd5e2bfc98ba0b27918290ff5323bea1e3b78a9cf04e',1,'arrow::fs::File']]],
+  ['filter_7',['FILTER',['../namespacearrow_1_1acero.html#a4e22f75e5cd2a39bb213cfff0a5f3a47ae75ab17a550f46adbbe891b819cf951d',1,'arrow::acero']]],
+  ['first_8',['first',['../classarrow_1_1compute_1_1RankOptions.html#abb0d5b3199cf1b371d890b9b565ebd39a3af0a7f0809cebe1bb3fbcdc7700ff65',1,'arrow::compute::RankOptions::First'],['../classarrow_1_1compute_1_1MapLookupOptions.html#af2d1d7254210fe01de5ec1f165627a04a8edc467131a57b6fa28da9f7831c4765',1,'arrow::compute::MapLookupOptions::FIRST']]],
+  ['fixed_9',['fixed',['../classarrow__vendored_1_1double__conversion_1_1DoubleToStringConverter.html#af4906456c2180fda716f2f7750edf658a85cfdd65346124a018e2788388ddbd2f',1,'arrow_vendored::double_conversion::DoubleToStringConverter::FIXED'],['../classarrow_1_1compute_1_1OutputType.html#a95a34c2431265bad99a7e125a7970105a2738646c3644695bc090019c090602c5',1,'arrow::compute::OutputType::FIXED']]],
+  ['fixed_5flen_5fbyte_5farray_10',['FIXED_LEN_BYTE_ARRAY',['../structparquet_1_1Type.html#a2a4b0ad3da98a8a407a0dc3ecbf737caa1f6918fb61821465548fe8604d59e73a',1,'parquet::Type']]],
+  ['fixed_5fsize_5fbinary_11',['FIXED_SIZE_BINARY',['../structarrow_1_1Type.html#a00a041cb19a3be373da8eec7d4bf1f44a1b3f48148c5ff94c039d09ff689da179',1,'arrow::Type']]],
+  ['fixed_5fsize_5flist_12',['FIXED_SIZE_LIST',['../structarrow_1_1Type.html#a00a041cb19a3be373da8eec7d4bf1f44a870656978bd9028566f88fe1c0afb127',1,'arrow::Type']]],
+  ['fixed_5fwidth_13',['FIXED_WIDTH',['../structarrow_1_1DataTypeLayout.html#a76193b66e1f11de695343b5d2174ea63a0cb736bfdff9e4b1a4a18f1c6d19039d',1,'arrow::DataTypeLayout']]],
+  ['float_14',['float',['../structparquet_1_1Type.html#a2a4b0ad3da98a8a407a0dc3ecbf737caaff7e2e6530a5789ad552dd9c9a05d612',1,'parquet::Type::FLOAT'],['../structarrow_1_1Type.html#a00a041cb19a3be373da8eec7d4bf1f44a57c54c2b9d1630bc8c99b5fec4c93e58',1,'arrow::Type::FLOAT'],['../structarrow_1_1py_1_1PythonType.html#a5647c556737ebf2394714fc7e3fe7e4da5a92a5f82c928716c57048835cc2a41d',1,'arrow::py::PythonType::FLOAT']]],
+  ['float16_15',['FLOAT16',['../structparquet_1_1LogicalType_1_1Type.html#a417e83a60f7d477e6d39173d1f67053fa432fb1fd4b6db64c4eeab048ce8cd31a',1,'parquet::LogicalType::Type']]],
+  ['full_5fouter_16',['FULL_OUTER',['../group__acero-nodes.html#gga0206c29e186fd8b4e7ac64c7d0ac4741a2afcfafefd05a51318c2b3eb54c03622',1,'arrow::acero']]]
+];

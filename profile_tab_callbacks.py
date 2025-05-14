@@ -1,6 +1,13 @@
-from dash import Output, Input, State, Patch, clientside_callback
+## @file profile_tab_callbacks.py
+# @author Zuzana Miškaňová
+# @brief Contains definitions of Dash callbacks used in the "profile" tab.
 
+from dash import Input
+
+## @brief Registers all callbacks for the "profile" tab.
+# @param app The Dash app instance.
 def get_callbacks(app):
+    
     # change train profile distance
     app.clientside_callback(
         """

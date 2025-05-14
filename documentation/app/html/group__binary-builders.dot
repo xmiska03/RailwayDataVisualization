@@ -1,0 +1,17 @@
+digraph "Concrete builder subclasses for binary types"
+{
+ // LATEX_PDF_SIZE
+  bgcolor="transparent";
+  edge [fontname=Helvetica,fontsize=10,labelfontname=Helvetica,labelfontsize=10];
+  node [fontname=Helvetica,fontsize=10,shape=box,height=0.2,width=0.4];
+  rankdir=LR;
+  Node1 [id="Node000001",label="Concrete builder subclasses\l for binary types",height=0.2,width=0.4,color="gray40", fillcolor="grey60", style="filled", fontcolor="black",tooltip=" "];
+  Node4 [id="Node000004",label="Concrete builder subclasses\l for dictionary types",height=0.2,width=0.4,color="grey40", fillcolor="white", style="filled",URL="$group__dictionary-builders.html",tooltip=" "];
+  Node2 [id="Node000002",label="Concrete classes for\l nested arrays",height=0.2,width=0.4,color="grey40", fillcolor="white", style="filled",URL="$group__nested-arrays.html",tooltip=" "];
+  Node3 [id="Node000003",label="Concrete builder subclasses\l for numeric types",height=0.2,width=0.4,color="grey40", fillcolor="white", style="filled",URL="$group__numeric-builders.html",tooltip=" "];
+  Node5 [id="Node000005",label="Concrete builder subclasses\l for run-end encoded",height=0.2,width=0.4,color="grey40", fillcolor="white", style="filled",URL="$group__run-end-encoded-builders.html",tooltip=" "];
+  Node1->Node2 [shape=plaintext, label="arrow::internal", color="blueviolet", dir="none", style="dashed"];
+  Node1->Node3 [shape=plaintext, label="arrow::internal", color="blueviolet", dir="none", style="dashed"];
+  Node1->Node4 [shape=plaintext, label="arrow::internal", color="blueviolet", dir="none", style="dashed"];
+  Node1->Node5 [shape=plaintext, label="arrow::internal", color="blueviolet", dir="none", style="dashed"];
+}

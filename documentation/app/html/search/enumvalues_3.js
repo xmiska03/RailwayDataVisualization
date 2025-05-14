@@ -1,0 +1,21 @@
+var searchData=
+[
+  ['cancelled_0',['cancelled',['../namespacearrow.html#a331ad1dbd1c157c8be168cb6548d188faa149e85a44aeec9140e92733d9ed694e',1,'arrow::Cancelled'],['../namespacearrow_1_1flight.html#a9646b05ed7886d8967494f73da99b450aa149e85a44aeec9140e92733d9ed694e',1,'arrow::flight::Cancelled']]],
+  ['capacityerror_1',['CapacityError',['../namespacearrow.html#a331ad1dbd1c157c8be168cb6548d188fa65f55acee27ef038c04505e05dbf6c35',1,'arrow']]],
+  ['chunked_5farray_2',['CHUNKED_ARRAY',['../structarrow_1_1Datum.html#aef17d22c0c1f9ca9d4e32a4a914f4d60aafbdb6bc8776d9aeb53abe138c91afb0',1,'arrow::Datum']]],
+  ['cmd_3',['CMD',['../structarrow_1_1flight_1_1FlightDescriptor.html#a86465cf81f2b46fd5e80b7082dec3962a0614d8795bf553f8063af0331125f97e',1,'arrow::flight::FlightDescriptor']]],
+  ['codegenerror_4',['CodeGenError',['../namespacearrow.html#a331ad1dbd1c157c8be168cb6548d188fa8a938435e76704025c8ab2b7f7a7ca52',1,'arrow']]],
+  ['column_5',['COLUMN',['../namespacearrow_1_1internal.html#a30244b9b193ddf590b8e092eacbf7b78a829250befeaeea0b203d31fd09a0ced3',1,'arrow::internal']]],
+  ['computed_6',['COMPUTED',['../classarrow_1_1compute_1_1OutputType.html#a95a34c2431265bad99a7e125a7970105ae5d99d7dab83d93dbdf2396e6a80fe47',1,'arrow::compute::OutputType']]],
+  ['computed_5fno_5fpreallocate_7',['COMPUTED_NO_PREALLOCATE',['../structarrow_1_1compute_1_1NullHandling.html#ab81498e40cebe53cc70945f45539c342ab14b9e339977d4e451906c4506a23b09',1,'arrow::compute::NullHandling']]],
+  ['computed_5fpreallocate_8',['COMPUTED_PREALLOCATE',['../structarrow_1_1compute_1_1NullHandling.html#ab81498e40cebe53cc70945f45539c342a74c3870d772c80796a3d866588c99067',1,'arrow::compute::NullHandling']]],
+  ['conflict_5fappend_9',['CONFLICT_APPEND',['../classarrow_1_1SchemaBuilder.html#a6857f64910ab8b3f550a99c5bed91903a424d0d713d59bc95f2590e6ef0e2a5c7',1,'arrow::SchemaBuilder']]],
+  ['conflict_5ferror_10',['CONFLICT_ERROR',['../classarrow_1_1SchemaBuilder.html#a6857f64910ab8b3f550a99c5bed91903ab61b85ae69bbe2db271dfa8005e66a6b',1,'arrow::SchemaBuilder']]],
+  ['conflict_5fignore_11',['CONFLICT_IGNORE',['../classarrow_1_1SchemaBuilder.html#a6857f64910ab8b3f550a99c5bed91903a941b35990a200fee00b81a8dff84f064',1,'arrow::SchemaBuilder']]],
+  ['conflict_5fmerge_12',['CONFLICT_MERGE',['../classarrow_1_1SchemaBuilder.html#a6857f64910ab8b3f550a99c5bed91903ad3fd6f8b59d4a878d69feff658f3d8a4',1,'arrow::SchemaBuilder']]],
+  ['conflict_5freplace_13',['CONFLICT_REPLACE',['../classarrow_1_1SchemaBuilder.html#a6857f64910ab8b3f550a99c5bed91903af2db8becf715530b227b2a974ca18bf6',1,'arrow::SchemaBuilder']]],
+  ['coo_14',['COO',['../structarrow_1_1SparseTensorFormat.html#a0693b2fa5192ae86d525995fe6f64f3aabaa7e5ab93ab151ead4102620d0a15ae',1,'arrow::SparseTensorFormat']]],
+  ['csc_15',['CSC',['../structarrow_1_1SparseTensorFormat.html#a0693b2fa5192ae86d525995fe6f64f3aa8e53eed9093b40c94a65034a572c26c4',1,'arrow::SparseTensorFormat']]],
+  ['csf_16',['CSF',['../structarrow_1_1SparseTensorFormat.html#a0693b2fa5192ae86d525995fe6f64f3aaeb7b593db5faea5772798b3ed0646ef3',1,'arrow::SparseTensorFormat']]],
+  ['csr_17',['CSR',['../structarrow_1_1SparseTensorFormat.html#a0693b2fa5192ae86d525995fe6f64f3aa639bcac72fe3163e571a8d66738aa4b1',1,'arrow::SparseTensorFormat']]]
+];

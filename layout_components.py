@@ -1,3 +1,7 @@
+## @file layout_components.py
+# @author Zuzana Miškaňová
+# @brief Contains the definition of the overall layout of the app.
+
 from dash import  html, dcc
 import dash_bootstrap_components as dbc
 
@@ -6,11 +10,12 @@ import visualization_tab_components
 import profile_tab_components
 import animation_control_components
 
-# a part of the Dash app which visualizes the data
+
+## @brief The part of the Dash app which shows the visualized data.
 visualization = html.Div(
     [
         html.Video(
-            src="/assets/video_long_compatible.mp4",
+            src="/assets/video_10s.mp4",
             id="background-video",
             style={
                 'height': '100%',
@@ -44,7 +49,7 @@ visualization = html.Div(
     }
 )
 
-# the right side of the screen with tabs
+## @brief The right side of the screen with tabs.
 tabs = dbc.Tabs(
     [
         dbc.Tab(
@@ -82,7 +87,8 @@ tabs = dbc.Tabs(
     active_tab="data"
 )
 
-# the right margin of the page, almost empty, contains only a color mode switch
+## @brief A color mode switch.
+# Switches between a light and a dark theme.
 color_mode_switch = html.Div(
     [
         html.I(className="bi bi-moon"),
@@ -107,12 +113,15 @@ color_mode_switch = html.Div(
     }
 )
 
-main_part = [    # visualization + animation controls, takes full screen
+## @brief The part of the app containing the visualization and the animation controls.
+# Takes the full height of the screen.
+main_part = [
     visualization,
     color_mode_switch,
     animation_control_components.bottom_panel,
 ]
 
+## @brief The panel on the left side of the screen.
 side_panel = [ 
     html.Div(
         html.Div(
@@ -142,6 +151,7 @@ side_panel = [
     )
 ]
 
+## @brief The overall layout of the app.
 app_layout = [
     html.Div(
         side_panel,

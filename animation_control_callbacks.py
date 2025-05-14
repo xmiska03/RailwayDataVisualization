@@ -1,11 +1,16 @@
-# This file contains definitions of dash callbacks used in the "animation control" part 
-# of the app.
+## @file animation_control_callbacks.py
+# @author Zuzana Miškaňová
+# @brief Contains definitions of Dash callbacks used in the "animation control" panel.
 
 from dash import Output, Input, State
 import base64
 
+## @brief Registers all callbacks for the "animation control" panel.
+# @param app The Dash app instance.
 def get_callbacks(app):
-    # play/pause the animation
+
+    ## @brief Plays and pauses the animation.
+    # @param btn The "play" button clicks.
     app.clientside_callback(
         """
         function(btn) {
@@ -15,8 +20,10 @@ def get_callbacks(app):
         Input("play-button", "n_clicks"),
         prevent_initial_call=True
     )
-
-    # change the frame by number input or slider
+ 
+    ## @brief Changes the position in the animation by the frame number input and by the slider.
+    # @param input_val The frame number input value.
+    # @param slider_val_dec The slider value.
     app.clientside_callback(
         """
         function(input_val, slider_val_dec) {
@@ -38,7 +45,8 @@ def get_callbacks(app):
         prevent_initial_call=True
     )
 
-    # change animation speed
+    ## @brief Changes the animation speed.
+    # @param speed_str The animation speed input.
     app.clientside_callback(
         """
         function(speed_str) {

@@ -1,10 +1,14 @@
-# This file contains definitions of dash components and callbacks used in the "data" tab of the app.
+## @file data_tab_components.py
+# @author Zuzana Miškaňová
+# @brief Contains definitions of Dash components used in the "data" tab.
 
 from dash import html, dcc
 import dash_bootstrap_components as dbc
 
 from params import FAR_PLANE
 
+
+## @brief The style for the uploading boxes.
 upload_box_style = {
     'width': '95%',
     'height': '40px',
@@ -18,6 +22,7 @@ upload_box_style = {
     'boxShadow': '0px 2px 5px rgba(0, 0, 0, 0.1)'
 }
 
+## @brief The style for the deleting buttons ("x" buttons).
 delete_button_style = {
     'background': 'none',
     'border': 'none',
@@ -25,37 +30,62 @@ delete_button_style = {
     'padding': '0'
 }
 
-# some components
-upload_design = html.Div([    # icon + text on upload widget
+## @brief The structure of the uploading boxes for single files.
+upload_structure = html.Div([    # icon + text on upload widget
     html.I(className="bi bi-upload", style={'margin': '5px'}),
     'Vybrat soubor'
 ])
-upload_multiple_design = html.Div([    # icon + text on upload widget
+
+## @brief The structure of the uploading boxes for multiple files.
+upload_multiple_structure = html.Div([    # icon + text on upload widget
     html.I(className="bi bi-upload", style={'margin': '5px'}),
     'Vybrat soubory'
 ])
+
+## @brief A component used for spacing in components displaying uploaded files.
 spacer = html.Div("", className="ms-auto")
+
+## @brief The icon "x" for the deleting buttons.
 icon_x = html.I(className="bi bi-x-lg")
 
-# widgets for uploading files
-project_file_upload = dcc.Upload(id='project-file-upload', children=upload_design, style=upload_box_style)
-united_pc_upload = dcc.Upload(id='united-pc-upload', children=upload_design, style=upload_box_style)
-divided_pc_upload = dcc.Upload(id='divided-pc-upload', children=upload_multiple_design, 
+
+
+## @brief A widget for uploading a project file.
+project_file_upload = dcc.Upload(id='project-file-upload', children=upload_structure, 
+                                 style=upload_box_style)
+## @brief A widget for uploading postprocess point cloud.
+united_pc_upload = dcc.Upload(id='united-pc-upload', children=upload_structure, 
+                              style=upload_box_style)
+## @brief A widget for uploading real-time point cloud.
+divided_pc_upload = dcc.Upload(id='divided-pc-upload', children=upload_multiple_structure, 
                               style=upload_box_style, multiple=True)
-pc_timestamps_upload = dcc.Upload(id='pc-timestamps-upload', children=upload_design, style=upload_box_style)
-translations_upload = dcc.Upload(id='translations-upload', children=upload_design, style=upload_box_style)
-rotations_upload = dcc.Upload(id='rotations-upload', children=upload_design, style=upload_box_style)
-timestamps_upload = dcc.Upload(id='timestamps-upload', children=upload_design, style=upload_box_style)
-video_upload = dcc.Upload(id='video-upload', children=upload_design, style=upload_box_style)
-vector_data_upload = dcc.Upload(id='vector-data-upload', children=upload_multiple_design, 
+## @brief A widget for uploading point cloud timestamps.
+pc_timestamps_upload = dcc.Upload(id='pc-timestamps-upload', children=upload_structure, 
+                                  style=upload_box_style)
+## @brief A widget for uploading camera translations.
+translations_upload = dcc.Upload(id='translations-upload', children=upload_structure, 
+                                 style=upload_box_style)
+## @brief A widget for uploading camera rotations.
+rotations_upload = dcc.Upload(id='rotations-upload', children=upload_structure, 
+                              style=upload_box_style)
+## @brief A widget for uploading camera timestamps.
+timestamps_upload = dcc.Upload(id='timestamps-upload', children=upload_structure, 
+                               style=upload_box_style)
+## @brief A widget for uploading a video.
+video_upload = dcc.Upload(id='video-upload', children=upload_structure, 
+                          style=upload_box_style)
+## @brief A widget for uploading vector data.
+vector_data_upload = dcc.Upload(id='vector-data-upload', children=upload_multiple_structure, 
                                 style=upload_box_style, multiple=True)
-profile_trans_upload = dcc.Upload(id='profile-trans-upload', children=upload_multiple_design, 
+## @brief A widget for uploading train profile translations.
+profile_trans_upload = dcc.Upload(id='profile-trans-upload', children=upload_multiple_structure, 
                                   style=upload_box_style, multiple=True)
-profile_rot_upload = dcc.Upload(id='profile-rot-upload', children=upload_multiple_design, 
+## @brief A widget for uploading train profile rotations.
+profile_rot_upload = dcc.Upload(id='profile-rot-upload', children=upload_multiple_structure, 
                                 style=upload_box_style, multiple=True)
 
-# widgets which display uploaded files
 
+## @brief A widget which displays the uploaded project file.
 project_file_uploaded_file = dbc.Stack(
     [
         html.I(className="bi bi-file-earmark-text"),
@@ -65,6 +95,7 @@ project_file_uploaded_file = dbc.Stack(
     ], direction="horizontal", gap=2, style={'margin': '10px'}
 )
 
+## @brief A widget which displays the uploaded postprocess point cloud file.
 united_pc_uploaded_file = dbc.Stack(
     [
         html.I(className="bi bi-file-earmark-binary"),
@@ -77,6 +108,7 @@ united_pc_uploaded_file = dbc.Stack(
     ], direction="horizontal", gap=2, style={'margin': '10px'}
 )
 
+## @brief A widget which displays the uploaded real-time point cloud files.
 divided_pc_uploaded_files = dbc.Stack(
     [
         html.I(className="bi bi-files"),
@@ -89,6 +121,7 @@ divided_pc_uploaded_files = dbc.Stack(
     ], direction="horizontal", gap=2, style={'margin': '10px'}
 )
 
+## @brief A widget which displays the uploaded point cloud timestamps file.
 pc_timestamps_uploaded_file = dbc.Stack(
     [
         html.I(className="bi bi-filetype-txt"),
@@ -99,7 +132,7 @@ pc_timestamps_uploaded_file = dbc.Stack(
     ], direction="horizontal", gap=2, style={'margin': '10px'}
 )
 
-
+## @brief A widget which displays the uploaded video file.
 video_uploaded_file = dbc.Stack(
     [
         html.I(className="bi bi-filetype-mp4"),
@@ -117,7 +150,7 @@ video_uploaded_file = dbc.Stack(
     ], direction="horizontal", gap=2, style={'margin': '10px'}
 )
 
-
+## @brief A widget which displays the uploaded postprocess vector data file.
 vector_data_uploaded_files = dbc.Stack(
     [
         html.I(className="bi bi-files"),
@@ -128,7 +161,7 @@ vector_data_uploaded_files = dbc.Stack(
     ], direction="horizontal", gap=2, style={'margin': '10px'}
 )
 
-
+## @brief A widget which displays the uploaded camera translations file.
 translations_uploaded_file = dbc.Stack(
     [
         html.I(className="bi bi-filetype-csv"),
@@ -139,6 +172,7 @@ translations_uploaded_file = dbc.Stack(
     ], direction="horizontal", gap=2, style={'margin': '10px'}
 )
 
+## @brief A widget which displays the uploaded camera rotations file.
 rotations_uploaded_file = dbc.Stack(
     [
         html.I(className="bi bi-filetype-csv"),
@@ -149,6 +183,7 @@ rotations_uploaded_file = dbc.Stack(
     ], direction="horizontal", gap=2, style={'margin': '10px'}
 )
 
+## @brief A widget which displays the uploaded camera timestamps file.
 timestamps_uploaded_file = dbc.Stack(
     [
         html.I(className="bi bi-filetype-csv"),
@@ -159,6 +194,7 @@ timestamps_uploaded_file = dbc.Stack(
     ], direction="horizontal", gap=2, style={'margin': '10px'}
 )
 
+## @brief A widget which displays the uploaded train profile translations file.
 profile_trans_uploaded_files = dbc.Stack(
     [
         html.I(className="bi bi-files"),
@@ -171,6 +207,7 @@ profile_trans_uploaded_files = dbc.Stack(
     ], direction="horizontal", gap=2, style={'margin': '10px'}
 )
 
+## @brief A widget which displays the uploaded train profile rotations file.
 profile_rot_uploaded_files = dbc.Stack(
     [
         html.I(className="bi bi-files"),
@@ -183,6 +220,7 @@ profile_rot_uploaded_files = dbc.Stack(
     ], direction="horizontal", gap=2, style={'margin': '10px'}
 )
 
+## @brief A widget which allow to set the far plane.
 far_plane_widget = [
     dbc.Col(html.Div("Maximální vzdálenost (m): "), width=5),
     dbc.Col(dbc.Input(
@@ -195,7 +233,7 @@ far_plane_widget = [
     ), width=6)
 ]
 
-
+## @brief The whole content of the "data" tab.
 data_tab = [
     # project file
     dbc.Row(html.Div("Projektový soubor (.toml)"), style={"fontWeight": "bold", "textAlign": "center", "marginTop": "25px"}),

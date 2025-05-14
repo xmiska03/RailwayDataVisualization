@@ -1,0 +1,22 @@
+var searchData=
+[
+  ['table_0',['TABLE',['../structarrow_1_1Datum.html#aef17d22c0c1f9ca9d4e32a4a914f4d60ab864a792cef2859639271feaa766b59d',1,'arrow::Datum']]],
+  ['tensor_1',['tensor',['../structarrow_1_1py_1_1PythonType.html#a5647c556737ebf2394714fc7e3fe7e4dadc58d366393593849569f531767a955c',1,'arrow::py::PythonType::TENSOR'],['../namespacearrow_1_1ipc.html#a82cb7379342c7b4d63640152ae9a06caace2f94540fa9914e8fe6f0de9817717b',1,'arrow::ipc::TENSOR']]],
+  ['three_5flevel_2',['THREE_LEVEL',['../structparquet_1_1schema_1_1ListEncoding.html#a6d37a12d644af2d555ee52a544a916e7a006b9eed2ef843782cab727ac62a550e',1,'parquet::schema::ListEncoding']]],
+  ['time_3',['TIME',['../structparquet_1_1LogicalType_1_1Type.html#a417e83a60f7d477e6d39173d1f67053fa110ef3809cf5533200902b49d133d0ee',1,'parquet::LogicalType::Type']]],
+  ['time32_4',['TIME32',['../structarrow_1_1Type.html#a00a041cb19a3be373da8eec7d4bf1f44a73fb0fcd2b5d9a4c6071574c73cdf3c5',1,'arrow::Type']]],
+  ['time64_5',['TIME64',['../structarrow_1_1Type.html#a00a041cb19a3be373da8eec7d4bf1f44ab960cffd22f54b634d9f055f7568d321',1,'arrow::Type']]],
+  ['time_5fmicros_6',['TIME_MICROS',['../structparquet_1_1ConvertedType.html#a4c93674b47bffc29042acda48281e198aade6e027cafff1cbc9c770807f607c9c',1,'parquet::ConvertedType']]],
+  ['time_5fmillis_7',['TIME_MILLIS',['../structparquet_1_1ConvertedType.html#a4c93674b47bffc29042acda48281e198ac68af55e43d34f59d10d4563f4f5b73c',1,'parquet::ConvertedType']]],
+  ['timedout_8',['TimedOut',['../namespacearrow_1_1flight.html#a9646b05ed7886d8967494f73da99b450a9541eb2348d883dd8e32ae0420274c4c',1,'arrow::flight']]],
+  ['timestamp_9',['timestamp',['../structarrow_1_1Type.html#a00a041cb19a3be373da8eec7d4bf1f44a1e41dddee4a6410c4d6fe164b36a230e',1,'arrow::Type::TIMESTAMP'],['../structparquet_1_1LogicalType_1_1Type.html#a417e83a60f7d477e6d39173d1f67053fa796913cd4e4d4542db5ca9f07aa2043f',1,'parquet::LogicalType::Type::TIMESTAMP']]],
+  ['timestamp_5fmicros_10',['TIMESTAMP_MICROS',['../structparquet_1_1ConvertedType.html#a4c93674b47bffc29042acda48281e198a770e8476456a75f133f08672dfaf3c4a',1,'parquet::ConvertedType']]],
+  ['timestamp_5fmillis_11',['TIMESTAMP_MILLIS',['../structparquet_1_1ConvertedType.html#a4c93674b47bffc29042acda48281e198a4d5ea1fbe93f8803dafc812b6a588ba6',1,'parquet::ConvertedType']]],
+  ['towards_5finfinity_12',['TOWARDS_INFINITY',['../group__compute-concrete-options.html#ggaa2da346c4bcd23c4027498376a17f8bba9691a6c69d8d21912f9a40c57dc9f5dd',1,'arrow::compute']]],
+  ['towards_5fzero_13',['TOWARDS_ZERO',['../group__compute-concrete-options.html#ggaa2da346c4bcd23c4027498376a17f8bba1d7920a65fc4ddd7c0d9c79f250cfab9',1,'arrow::compute']]],
+  ['trace_14',['Trace',['../namespacearrow_1_1fs.html#a88a2a7e735ce646ccbd886ababddeceaadd4ec0ac4e58f7c32a01244ae91150b1',1,'arrow::fs']]],
+  ['tuple_15',['TUPLE',['../structarrow_1_1py_1_1PythonType.html#a5647c556737ebf2394714fc7e3fe7e4da1e33d998c5eeff61b5ac131397580d64',1,'arrow::py::PythonType']]],
+  ['two_5flevel_16',['TWO_LEVEL',['../structparquet_1_1schema_1_1ListEncoding.html#a6d37a12d644af2d555ee52a544a916e7ab39cb6739c927619db1b6b05991167f1',1,'parquet::schema::ListEncoding']]],
+  ['type_5fdefined_5forder_17',['TYPE_DEFINED_ORDER',['../classparquet_1_1ColumnOrder.html#ad074805f32ef2fcfbe87f20c6f6ca70fa821eadfb4db2efab7f29f8b8a66344cb',1,'parquet::ColumnOrder']]],
+  ['typeerror_18',['TypeError',['../namespacearrow.html#a331ad1dbd1c157c8be168cb6548d188fa137bf8cff2d59f0883c600f9524b3eed',1,'arrow']]]
+];

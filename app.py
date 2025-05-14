@@ -1,3 +1,7 @@
+## @file app.py
+# @author Zuzana Miškaňová
+# @brief The main module, which loads the default dataset and starts the app.
+
 from dash import Dash, html, dcc, Output, Input, State
 import dash_bootstrap_components as dbc
 from pypcd4 import PointCloud
@@ -10,81 +14,98 @@ import profile_tab_callbacks
 import animation_control_callbacks
 import layout_callbacks
 import params
-from general_functions import calculate_projection_matrix, calculate_translation_from_extr_mat, \
-                              load_rotation, rotation_to_euler, rotation_to_matrix, rotation_to_inv_matrix
+from general_functions import calculate_projection_matrix, load_rotation, \
+                              rotation_to_euler, rotation_to_matrix, rotation_to_inv_matrix
 from loading_functions import load_csv_file_into_nparray, load_yaml_into_dict, \
                               load_timestamps_file_into_nparray, \
-                              load_pcl_timestamps_file, load_profile_translations, load_profile_rotations
+                              load_pcl_timestamps_file, load_profile_translations, \
+                              load_profile_rotations
 
 
 # create directory for temporary files
 if not os.path.exists("assets/temp"):
    os.makedirs("assets/temp")
 
-# load unaggregated point cloud data
+
+# load all the data files
+
+
+## @brief The real-time point cloud as a list of numpy arrays.
 pc_nparray = []
-for i in range(596):
-    pc = PointCloud.from_path(f"data/joined/joined_pcd_files/pcd_{i}.pcd")
+for i in range(100):
+    pc = PointCloud.from_path(f"data/MMS_dataset_10s/joined_pcd_files/pcd_{i}.pcd")
     pc_nparray.append(pc.numpy(("x", "y", "z", "intensity")))
     #pc_nparray.append(pc.numpy(("x", "y", "z", "intensity"))[:1])    # for testing
     #points = np.vstack((pc.numpy(("x", "y", "z", "intensity"))))    # for testing 
     #pc_nparray.append(points[:1000])
-    
 
-# load unaggregated point cloud timestamps
-pcl_timestamps = load_pcl_timestamps_file("data/joined/joined_pcl_timestamps.txt")
+
+## @brief The point cloud timestamps.
+pcl_timestamps = load_pcl_timestamps_file("data/MMS_dataset_10s/joined_pcl_timestamps.txt")
 #pcl_timestamps = [i * 0.04 for i in range(596)]   # for testing 
 
-# load aggregated point cloud data
-#united_pc = PointCloud.from_path("data/joined/scans.pcd")
-united_pc = PointCloud.from_path("data/joined/joined_pcd_files/pcd_0.pcd")   # for development
+## @brief The postprocess point cloud.
+united_pc = PointCloud.from_path("data/MMS_dataset_10s/scans_10s.pcd")
+#united_pc = PointCloud.from_path("data/joined/joined_pcd_files/pcd_0.pcd")   # for development
+
+## @brief The postprocess point cloud in a numpy array.
 united_pc_nparray = united_pc.numpy(("x", "y", "z", "intensity"))
 #united_pc_nparray = np.vstack((united_pc_nparray, united_pc_nparray))    # for testing 
 #united_pc_nparray = united_pc_nparray[:8000000]    # for testing 
 #print(len(united_pc_nparray))
 
-# load camera parameters
+## @brief The camera parameters in a dictionary.
 camera_params_dict = load_yaml_into_dict("data/camera_azd.yaml")
+## @brief The camera distortion coefficients.
 distortion_coeffs = camera_params_dict['DistCoeffs']['data']
-#calibration_matrix = load_csv_file_into_nparray("data/joined/K.csv")
+## @brief The projection matrix calculated from the loaded camera parameters.
 proj_matrix = calculate_projection_matrix(camera_params_dict)
-camera_translation = calculate_translation_from_extr_mat(camera_params_dict)
 
 # load data about camera positions
 # load translations and fix the order of columns in the translations array: yzx -> xyz
-trans_nparray = load_csv_file_into_nparray("data/joined/trans_joined.csv")[:, [2, 0, 1]]
-# load rotations
-rot_nparray_raw = load_csv_file_into_nparray("data/joined/rot_joined.csv")
+## @brief The camera translations.
+trans_nparray = load_csv_file_into_nparray("data/MMS_dataset_10s/trans_joined.csv")[:, [2, 0, 1]]
+## @brief The camera rotations as loaded from the file.
+rot_nparray_raw = load_csv_file_into_nparray("data/MMS_dataset_10s/rot_joined.csv")
+## @brief The camera rotations as matrices.
 rot_nparray = []
+## @brief The camera rotations as inverted matrices.
 rot_inv_nparray = []
+## @brief The camera rotations as zyx euler angles.
 rot_euler_array = []
 for rot_raw in rot_nparray_raw:
     rotation = load_rotation(rot_raw)
     rot_euler_array.append(rotation_to_euler(rotation))
     rot_nparray.append(rotation_to_matrix(rotation))
     rot_inv_nparray.append(rotation_to_inv_matrix(rotation))
-# load timestamps
-timestamps_nparray = load_timestamps_file_into_nparray("data/joined/imu_joined_timestamps.csv")
+## @brief The virtual camera timestamps.
+timestamps_nparray = load_timestamps_file_into_nparray("data/MMS_dataset_10s/imu_joined_timestamps.csv")
 #timestamps_nparray = pcl_timestamps    # for testing 
 
-# number of frames to generate
+## @brief The number of positions of the virtual camera.
 frames_cnt = trans_nparray.shape[0]
 
-# load train profile data
+## @brief The train profile placed at position [0, 0, 0].
 profile_shape = [load_csv_file_into_nparray("data/train_profile_shape.csv")]
-profile_translations = load_profile_translations("data/joined/profile", "profile_trans")
-profile_rotations = load_profile_rotations("data/joined/profile", "profile_rot")
+## @brief The translations of the train profile.
+profile_translations = load_profile_translations("data/MMS_dataset_10s/profile", "profile_trans")
+## @brief The rotations of the train profile.
+profile_rotations = load_profile_rotations("data/MMS_dataset_10s/profile", "profile_rot")
+## @brief The lines through the predicted train profile positions.
 profile_line_data = [[profile_translations[0]], [profile_translations[1]], [profile_translations[2]],
                     [profile_translations[3]]]
 
-# load vector data (polylines)
+## @brief The vector data (polylines).
 vector_data = [
-    load_csv_file_into_nparray("data/vector_data/polyline2.csv"),
-    load_csv_file_into_nparray("data/vector_data/polyline3.csv")
+    load_csv_file_into_nparray("data/MMS_dataset_10s/vector_data/polyline2.csv"),
+    load_csv_file_into_nparray("data/MMS_dataset_10s/vector_data/polyline3.csv")
 ]
 
-# prepare the visualization of the point cloud using Deck.GL
 
+# prepare the visualization of the data in a Deck.gl style dictionary
+
+
+## @brief The definition of the point cloud layer(s).
 point_cloud_layer = {
     "data": pc_nparray,
     "pointSize": params.POINT_SIZE,
@@ -93,6 +114,7 @@ point_cloud_layer = {
     "visible": True
 }
 
+## @brief The definition of the layer with the line through train profile positions.
 profile_line_layer = {
     "data": [],   # data for this layer is in the profile-line-data store
     "color": [232, 175, 16],    # #e8af10
@@ -100,6 +122,7 @@ profile_line_layer = {
     "visible": True
 }
 
+## @brief The definition of the train profile layer.
 profile_layer = {
     "data": profile_shape,
     "color": [225, 80, 255],    # #e250ff
@@ -107,6 +130,7 @@ profile_layer = {
     "visible": True
 }
 
+## @brief The definition of the vector data layer.
 vector_layer = {
     "data": [],   # data for this layer is in the vector-data store
     "color": [250, 101, 15],    # #fa650f
@@ -114,17 +138,19 @@ vector_layer = {
     "visible": True
 }
 
+## @brief The definition of the Deck.gl view.
 view = {
     "projectionMatrix": proj_matrix,
     "controller": False
 }
 
+## @brief The definition of the visualization in a dictionary in the style of Deck.gl.
 deck_dict = {
     "views": [view],
     "layers": [point_cloud_layer, profile_line_layer, profile_layer, vector_layer],
 }
 
-# stores used for storing data on the clients side
+## @brief The crucial Dash Store components used for storing data on the clients side.
 stores = [
     dcc.Store(
         id='visualization-data',
@@ -187,7 +213,7 @@ stores = [
     )
 ]
 
-# create a Dash app
+## @brief The Dash application
 app = Dash(
     __name__,
     title = "Vizualizace dat z MMS",
@@ -200,7 +226,8 @@ app = Dash(
 
 app.server.config["MAX_CONTENT_LENGTH"] = 200 * 1024 * 1024  # 200MB to allow a longer video
 
-# Dash app layout
+
+## @brief Puts together the main stores and app layout from the layout_components module
 app.layout = html.Div(
     [
         html.Div(stores),
@@ -218,8 +245,19 @@ app.layout = html.Div(
 
 # callbacks - the logic of the app
 
-# initialize the deck visualization
-app.clientside_callback(
+## @brief Copies the default data to the window.vis object and initializes the Deck.gl visualization.
+# @param data_dict A Dash-Deck-styled dictionary which basic data about the visualization. 
+# @param united_pc_data The postprocess point cloud.
+# @param pcl_timestamps Timestamps of the real-time point cloud.
+# @param profile_line_data The line through the predicted train profile positions.
+# @param vector_data Any vector data.
+# @param translations Camera translations.
+# @param rotations Camera rotations.
+# @param rotations_inv Inverse camera rotations.
+# @param rotations_euler Camera rotations as euler angles.
+# @param camera_timestamps Timestamps of the virtual camera.
+# @return A dummy output needed so that the initial call occurs.
+initialize = app.clientside_callback(
     """
     function(data_dict, united_pc_data, pcl_timestamps, profile_line_data, vector_data, 
              translations, rotations, rotations_inv, rotations_euler, camera_timestamps) {
@@ -256,7 +294,6 @@ app.clientside_callback(
     State('rotations-inv-data', 'data'),
     State('rotations-euler-data', 'data'),
     State('camera-timestamps-data', 'data'),
-    
 )
 
 # add callbacks defined in other files
@@ -267,4 +304,4 @@ animation_control_callbacks.get_callbacks(app)
 layout_callbacks.get_callbacks(app)
 
 if __name__ == "__main__":
-    app.run(debug=True, dev_tools_hot_reload=False)
+    app.run(debug=False, dev_tools_hot_reload=False)

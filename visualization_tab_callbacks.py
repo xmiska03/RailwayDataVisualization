@@ -1,11 +1,14 @@
-# This file contains definitions of dash callbacks used in the "visualization" tab 
-# of the app.
+## @file visualization_tab_callbacks.py
+# @author Zuzana Miškaňová
+# @brief Contains definitions of Dash callbacks used in the "visualization" tab.
 
 import base64
 import tomllib
 
 from dash import Output, Input, State, Patch, no_update
 
+## @brief Registers all callbacks for the "visualization" tab.
+# @param app The Dash app instance.
 def get_callbacks(app):
 
     # change point cloud visibility, point size, color scale or opacity

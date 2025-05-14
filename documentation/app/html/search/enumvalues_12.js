@@ -1,0 +1,19 @@
+var searchData=
+[
+  ['read_0',['READ',['../structarrow_1_1io_1_1FileMode.html#a41b6fb9caec96f1e634fb8052c9a9310ab52e1a23224a7428723418a037a56374',1,'arrow::io::FileMode']]],
+  ['readwrite_1',['READWRITE',['../structarrow_1_1io_1_1FileMode.html#a41b6fb9caec96f1e634fb8052c9a9310a117c7cc18774449e14f1a8a655939d30',1,'arrow::io::FileMode']]],
+  ['record_5fbatch_2',['record_batch',['../structarrow_1_1Datum.html#aef17d22c0c1f9ca9d4e32a4a914f4d60adb333a80a9ec92346c4d1438e99b2416',1,'arrow::Datum::RECORD_BATCH'],['../namespacearrow_1_1ipc.html#a82cb7379342c7b4d63640152ae9a06caa2741fc9e49a6ef51ccf939da996ebea1',1,'arrow::ipc::RECORD_BATCH']]],
+  ['reject_3',['REJECT',['../structarrow_1_1FilterIterator.html#a1df4646fc9121d4c8c91e8052a45e1eba56a268f7a66c096b7e3b325394b61e12',1,'arrow::FilterIterator']]],
+  ['repeated_4',['REPEATED',['../structparquet_1_1Repetition.html#a7e942dfcd49240c465cdf3e1dc011af4a29e26c842c3024e9a897d6841cb27a61',1,'parquet::Repetition']]],
+  ['replace_5',['REPLACE',['../classarrow_1_1compute_1_1JoinOptions.html#a482dc1ead87472e29c32cf6a1a54ac7aa8f4f5714841c7580cff0b0ffd832aa8a',1,'arrow::compute::JoinOptions']]],
+  ['required_6',['REQUIRED',['../structparquet_1_1Repetition.html#a7e942dfcd49240c465cdf3e1dc011af4a153b4c011899d8106eb1324ccb85a4c8',1,'parquet::Repetition']]],
+  ['rerror_7',['RError',['../namespacearrow.html#a331ad1dbd1c157c8be168cb6548d188fa92f049e5e1d59cc2f960d1974c50e072',1,'arrow']]],
+  ['right_5fanti_8',['RIGHT_ANTI',['../group__acero-nodes.html#gga0206c29e186fd8b4e7ac64c7d0ac4741ad4220640f3f5a6ed247d289683f93249',1,'arrow::acero']]],
+  ['right_5fouter_9',['RIGHT_OUTER',['../group__acero-nodes.html#gga0206c29e186fd8b4e7ac64c7d0ac4741a6792c183a86a256fec7d3c3dc49d3b32',1,'arrow::acero']]],
+  ['right_5fsemi_10',['RIGHT_SEMI',['../group__acero-nodes.html#gga0206c29e186fd8b4e7ac64c7d0ac4741a85cb2e8dcaef5618a5b41990aebeac61',1,'arrow::acero']]],
+  ['rle_11',['RLE',['../structparquet_1_1Encoding.html#acd287bb69df941fa0e27dd594462f27eaa699b33df9838a0cbc587d427ad8cfaf',1,'parquet::Encoding']]],
+  ['rle_5fdictionary_12',['RLE_DICTIONARY',['../structparquet_1_1Encoding.html#acd287bb69df941fa0e27dd594462f27ea67dccffdc0b24163f24bca6d0a936aa3',1,'parquet::Encoding']]],
+  ['role_13',['Role',['../namespacearrow_1_1fs.html#a0d2258c82c2a21e9531498019a8c8d1cabbbabdbe1b262f75d99d62880b953be1',1,'arrow::fs']]],
+  ['row_14',['ROW',['../namespacearrow_1_1internal.html#a30244b9b193ddf590b8e092eacbf7b78a54c1ed33c810f895d48c008d89f880b7',1,'arrow::internal']]],
+  ['run_5fend_5fencoded_15',['RUN_END_ENCODED',['../structarrow_1_1Type.html#a00a041cb19a3be373da8eec7d4bf1f44af3f86f1749c154f41aeb53178f7169be',1,'arrow::Type']]]
+];

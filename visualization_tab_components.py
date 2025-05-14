@@ -1,10 +1,13 @@
-# This file contains definitions of dash components and callbacks used in the "data" tab of the app.
+## @file visualization_tab_components.py
+# @author Zuzana Miškaňová
+# @brief Contains definitions of Dash components used in the "visualization" tab.
 
 from dash import html, dcc
 import dash_bootstrap_components as dbc
 from params import POINT_SIZE, OPACITY, LINE_WIDTH  # default values
 
-# dropdown to choose between divided and united point cloud data
+
+## @brief A widget to choose between the postprocess and the real-time point cloud.
 point_cloud_type_widget = [
     dbc.Col(html.Div("Typ: "), width=5),
     dbc.Col(dbc.Select(
@@ -14,6 +17,7 @@ point_cloud_type_widget = [
     ), width=6)
 ]
 
+## @brief An input to choose the size of the points in the point cloud.
 point_size_widget = [
     dbc.Col(html.Div("Velikost bodů: "), width=5),
     dbc.Col(dbc.Input(
@@ -26,6 +30,7 @@ point_size_widget = [
     ), width=6)
 ]
 
+## @brief An input to select the type of the color scale.
 color_scale_widget = [
     dbc.Col(html.Div("Barevná škála: "), width=5),
     dbc.Col(dbc.Select(
@@ -35,6 +40,7 @@ color_scale_widget = [
     ), width=6)
 ]
 
+## @brief The color scale graph.
 color_scale_graph = [
     dbc.Col(dcc.Graph(
         id='color-scale-graph',
@@ -72,6 +78,7 @@ color_scale_graph = [
     )
 ]
 
+## @brief A widget to choose the boundaries of the color scale.
 color_scale_interval_widget = [
     dbc.Col(html.Div("Od: "), width=1),
     dbc.Col(dbc.Input(
@@ -93,6 +100,7 @@ color_scale_interval_widget = [
     ), width=3)
 ]
 
+## @brief An input to choose the opacity of the point cloud layer.
 point_opacity_widget = [
     dbc.Col(html.Div("Průhlednost bodů: "), width=5),
     dbc.Col(dbc.Input(
@@ -105,6 +113,7 @@ point_opacity_widget = [
     ), width=6)
 ]
 
+## @brief An input to choose the line width of the vector data.
 line_width_widget = [
     dbc.Col(html.Div("Tloušťka čar: "), width=5),
     dbc.Col(dbc.Input(
@@ -117,6 +126,7 @@ line_width_widget = [
     ), width=6)
 ]
 
+## @brief A widget to choose the color of the vector data.
 line_color_widget = [
     dbc.Col(html.Div("Barva čar: "), width=5),
     dbc.Col(dbc.Input(
@@ -126,6 +136,7 @@ line_color_widget = [
     ), width=6)
 ]
 
+## @brief A slider to add offset to the position of the virtual camera - move it on the x axis.
 camera_position_x_widget = [
     dbc.Col(html.Div("Posunutí po ose x: "), width=4),
     dbc.Col(dcc.Input(
@@ -137,6 +148,7 @@ camera_position_x_widget = [
         style={"margin": "10px", "width": "95%"}
     ), width=7)
 ]
+## @brief A slider to add offset to the position of the virtual camera - move it on the y axis.
 camera_position_y_widget = [
     dbc.Col(html.Div("Posunutí po ose y: "), width=4),
     dbc.Col(dcc.Input(
@@ -148,6 +160,7 @@ camera_position_y_widget = [
         style={"margin": "10px", "width": "95%"}
     ), width=7)
 ]
+## @brief A slider to add offset to the position of the virtual camera - move it on the z axis.
 camera_position_z_widget = [
     dbc.Col(html.Div("Posunutí po ose z: "), width=4),
     dbc.Col(dcc.Input(
@@ -159,6 +172,7 @@ camera_position_z_widget = [
         style={"margin": "10px", "width": "95%"}
     ), width=7)
 ]
+## @brief A slider to add offset to the orientation of the virtual camera - adjust the yaw angle.
 camera_position_yaw_widget = [
     dbc.Col(html.Div("Otočení doleva/doprava: "), width=4),
     dbc.Col(dcc.Input(
@@ -170,6 +184,7 @@ camera_position_yaw_widget = [
         style={"margin": "10px", "width": "95%"}
     ), width=7)
 ]
+## @brief A slider to add offset to the orientation of the virtual camera - adjust the pitch angle.
 camera_position_pitch_widget = [
     dbc.Col(html.Div("Otočení nahoru/dolů: "), width=4),
     dbc.Col(dcc.Input(
@@ -181,6 +196,7 @@ camera_position_pitch_widget = [
         style={"margin": "10px", "width": "95%"}
     ), width=7)
 ]
+## @brief A slider to add offset to the orientation of the virtual camera - adjust the roll angle.
 camera_position_roll_widget = [
     dbc.Col(html.Div("Naklonění doleva/doprava: "), width=4),
     dbc.Col(dcc.Input(
@@ -193,13 +209,14 @@ camera_position_roll_widget = [
     ), width=7)
 ]
 
-
+## @brief A button to return the sliders back to default.
 back_to_default_button = [
     dbc.Col(html.Div(""), width=7),
     dbc.Col(dbc.Button("Vrátit původní", id="back-to-default-button", style={"width": "100%"}), width=4),
     dbc.Col(dcc.Store(id="camera-offset-default-store", data=[0, 0, 0, 0, 0, 0]))
 ]
 
+## @brief A button to export all the workspace settings.
 export_workspace_widget = [
     dbc.Col(dbc.Button(
         "Exportovat nastavení zobrazení", 
@@ -208,7 +225,7 @@ export_workspace_widget = [
     ), width=7),
     dcc.Download(id="workspace-download")  # not visible
 ]
-
+## @brief A button to import workspace settings from a TOML file.
 import_workspace_widget = [
     dbc.Col(dcc.Upload(
         dbc.Button("Importovat nastavení zobrazení", style={"width": "100%"}), 
@@ -217,6 +234,7 @@ import_workspace_widget = [
     ), width=7)
 ]
 
+## @brief The whole content of the "visualization" tab.
 visualization_tab = [
     dbc.Row(html.Div("Mračno bodů", style={"fontWeight": "bold", "textAlign": "center", "paddingBottom": "0.5em", 'marginTop': '15px'})),
     dbc.Row(dcc.Checklist(

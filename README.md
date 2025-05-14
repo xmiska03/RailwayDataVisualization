@@ -11,3 +11,6 @@ npx webpack
 To generate the documentation:
 
 jsdoc scripts/visualization.js -d documentation/visualization_js
+
+bigger dataset:
+https://www.stud.fit.vutbr.cz/~xmiska03/MMS_dataset_1min.zip

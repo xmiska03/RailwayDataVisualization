@@ -1,0 +1,22 @@
+digraph "myenv/lib/python3.12/site-packages/pyarrow/include/arrow/vendored/pcg/pcg_uint128.hpp"
+{
+ // LATEX_PDF_SIZE
+  bgcolor="transparent";
+  edge [fontname=Helvetica,fontsize=10,labelfontname=Helvetica,labelfontsize=10];
+  node [fontname=Helvetica,fontsize=10,shape=box,height=0.2,width=0.4];
+  Node1 [id="Node000001",label="myenv/lib/python3.12\l/site-packages/pyarrow\l/include/arrow/vendored\l/pcg/pcg_uint128.hpp",height=0.2,width=0.4,color="gray40", fillcolor="grey60", style="filled", fontcolor="black",tooltip=" "];
+  Node1 -> Node2 [id="edge1_Node000001_Node000002",dir="back",color="steelblue1",style="solid",tooltip=" "];
+  Node2 [id="Node000002",label="myenv/lib/python3.12\l/site-packages/pyarrow\l/include/arrow/vendored\l/pcg/pcg_extras.hpp",height=0.2,width=0.4,color="grey40", fillcolor="white", style="filled",URL="$pcg__extras_8hpp.html",tooltip=" "];
+  Node2 -> Node3 [id="edge2_Node000002_Node000003",dir="back",color="steelblue1",style="solid",tooltip=" "];
+  Node3 [id="Node000003",label="myenv/lib/python3.12\l/site-packages/pyarrow\l/include/arrow/vendored\l/pcg/pcg_random.hpp",height=0.2,width=0.4,color="grey40", fillcolor="white", style="filled",URL="$pcg__random_8hpp.html",tooltip=" "];
+  Node3 -> Node4 [id="edge3_Node000003_Node000004",dir="back",color="steelblue1",style="solid",tooltip=" "];
+  Node4 [id="Node000004",label="myenv/lib/python3.12\l/site-packages/pyarrow\l/include/arrow/util/pcg\l_random.h",height=0.2,width=0.4,color="grey40", fillcolor="white", style="filled",URL="$pcg__random_8h.html",tooltip=" "];
+  Node4 -> Node5 [id="edge4_Node000004_Node000005",dir="back",color="steelblue1",style="solid",tooltip=" "];
+  Node5 [id="Node000005",label="myenv/lib/python3.12\l/site-packages/pyarrow\l/include/arrow/acero/partition_util.h",height=0.2,width=0.4,color="grey40", fillcolor="white", style="filled",URL="$partition__util_8h.html",tooltip=" "];
+  Node5 -> Node6 [id="edge5_Node000005_Node000006",dir="back",color="steelblue1",style="solid",tooltip=" "];
+  Node6 [id="Node000006",label="myenv/lib/python3.12\l/site-packages/pyarrow\l/include/arrow/acero/bloom\l_filter.h",height=0.2,width=0.4,color="grey40", fillcolor="white", style="filled",URL="$arrow_2acero_2bloom__filter_8h.html",tooltip=" "];
+  Node6 -> Node7 [id="edge6_Node000006_Node000007",dir="back",color="steelblue1",style="solid",tooltip=" "];
+  Node7 [id="Node000007",label="myenv/lib/python3.12\l/site-packages/pyarrow\l/include/arrow/acero/hash_join.h",height=0.2,width=0.4,color="grey40", fillcolor="white", style="filled",URL="$hash__join_8h.html",tooltip=" "];
+  Node4 -> Node8 [id="edge7_Node000004_Node000008",dir="back",color="steelblue1",style="solid",tooltip=" "];
+  Node8 [id="Node000008",label="myenv/lib/python3.12\l/site-packages/pyarrow\l/include/arrow/engine/substrait\l/test_util.h",height=0.2,width=0.4,color="grey40", fillcolor="white", style="filled",URL="$arrow_2engine_2substrait_2test__util_8h.html",tooltip=" "];
+}

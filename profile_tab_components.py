@@ -1,8 +1,14 @@
+## @file profile_tab_components.py
+# @author Zuzana Miškaňová
+# @brief Contains definitions of Dash components used in the "profile" tab.
+
 from dash import html, dcc
 import dash_bootstrap_components as dbc
 
 from params import PROFILE_LINE_WIDTH, LINE_WIDTH
 
+
+## @brief An input allowing to select the distance of the train profile.
 profile_distance_widget = [
     dbc.Col(html.Div("Vzdálenost průj. profilu: "), width=5),
     dbc.Col(dbc.Select(
@@ -12,6 +18,7 @@ profile_distance_widget = [
     ), width=6)
 ]
 
+## @brief An input to choose the line width of the train profile.
 profile_width_widget = [
     dbc.Col(html.Div("Tloušťka čar: "), width=5),
     dbc.Col(dbc.Input(
@@ -24,6 +31,7 @@ profile_width_widget = [
     ), width=6)
 ]
 
+## @brief A widget to choose the color of the train profile.
 profile_color_widget = [
     dbc.Col(html.Div("Barva čar: "), width=5),
     dbc.Col(dbc.Input(
@@ -33,6 +41,7 @@ profile_color_widget = [
     ), width=6)
 ]
 
+## @brief An input to choose the width of the line through train profile positions.
 profile_line_width_widget = [
     dbc.Col(html.Div("Tloušťka čáry: "), width=5),
     dbc.Col(dbc.Input(
@@ -45,6 +54,7 @@ profile_line_width_widget = [
     ), width=6)
 ]
 
+## @brief A widget to choose the color of the line through train profile positions.
 profile_line_color_widget = [
     dbc.Col(html.Div("Barva čáry: "), width=5),
     dbc.Col(dbc.Input(
@@ -54,6 +64,7 @@ profile_line_color_widget = [
     ), width=6)
 ]
 
+## @brief The whole content of the "profile" tab.
 profile_tab = [
     dbc.Row(dcc.Checklist(
             options=[{'label': ' zobrazovat průjezdný profil', 'value': 'profile'}],
@@ -77,5 +88,4 @@ profile_tab = [
     ),
     dbc.Row(profile_line_width_widget, style={'marginTop': '15px'}),
     dbc.Row(profile_line_color_widget, style={'marginTop': '15px'})
-    
 ]

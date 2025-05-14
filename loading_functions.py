@@ -1,3 +1,7 @@
+## @file loading_functions.py
+# @author Zuzana Miškaňová
+# @brief Contains definitions of functions used for loading various types of data from files.
+
 import numpy as np
 import csv
 import yaml
@@ -6,12 +10,17 @@ import os
 from general_functions import load_rotation, rotation_to_inv_matrix
 
 
-# loads a csv file into a numpy array
+## @brief Loads a csv file into a numpy array.
+# @param file_address A path to a csv file.
+# @return A numpy array.
 def load_csv_file_into_nparray(file_address):
     with open(file_address, 'r') as f:
         return load_csv_into_nparray(f)
     
-# loads an iterable of strings in csv format into a numpy array
+
+## @brief Loads an iterable of strings in csv format into a numpy array.
+# @param iterable An iterable of strings.
+# @return A numpy array.
 def load_csv_into_nparray(iterable):
     reader = csv.reader(iterable)
     data = list(reader)
@@ -21,13 +30,19 @@ def load_csv_into_nparray(iterable):
         data = data[:-1]    
     
     return np.array(data, dtype=float)
-    
-# loads a space separated file into a numpy array
+
+
+## @brief Loads a space separated file into a numpy array.
+# @param file_address A path to a space separated file.
+# @return A numpy array.
 def load_space_separated_file_into_nparray(file_address):
     with open(file_address, 'r') as f:
         return load_space_separated_into_nparray(f)
     
-# loads an iterable of strings with space separated values into a numpy array
+
+## @brief Loads an iterable of strings with space separated values into a numpy array.
+# @param iterable An iterable of strings with space separated values.
+# @return A numpy array.
 def load_space_separated_into_nparray(iterable):
     data = []
     for line in iterable:
@@ -39,13 +54,20 @@ def load_space_separated_into_nparray(iterable):
 
     return np.array(data, dtype=float)
 
-# loads timestamps from file
+
+## @brief Loads timestamps from a file into a numpy array.
+# @param file_address A path to a file containing timestamps.
+# @return A numpy array.
 def load_timestamps_file_into_nparray(file_address):
     with open(file_address, 'r') as f:
         return load_timestamps_into_nparray(f)
 
-# loads timestamps from an iterable of strings in csv format and converts them
-# skips first line and then saves only the first column
+
+## @brief Loads timestamps from an iterable of strings in csv format into a numpy array.
+# Skips first line and then saves only the first column.
+# Converts the timestamps so that they start from zero.
+# @param iterable An iterable of strings with timestamps.
+# @return A numpy array.
 def load_timestamps_into_nparray(iterable):
     reader = csv.reader(iterable)
     data = list(reader)
@@ -62,19 +84,28 @@ def load_timestamps_into_nparray(iterable):
     timestamp0 = int(timestamps_nparray[0])
     return (timestamps_nparray - timestamp0) / 1000000000  # nanoseconds to seconds
 
-# loads a yaml file into a python dictionary
+
+## @brief Loads a yaml file into a python dictionary.
+# @param file_address A path to a yaml file.
+# @return Data from the file in a Python dictionary.
 def load_yaml_into_dict(file_address):
     with open(file_address, 'r') as f:
         data = yaml.safe_load(f)
         return data
-    
-# load a pcl timestamps file
+
+
+## @brief Loads point cloud timestamps from a file into a list.
+# @param file_address A path to a file containing point cloud timestamps.
+# @return A list containing the timestamps.
 def load_pcl_timestamps_file(file_address):
     with open(file_address, "r") as f:
         return load_pcl_timestamps(f)
 
-# loads an iterable of strings with pcl timestamps 
-# (2 columns, space separated, in the second column a timestamp in seconds)
+
+## @brief Loads point cloud timestamps from an iterable of strings into a list.
+# The format: 2 columns, space separated, the timestamp in seconds is in the second column.
+# @param iterable An iterable of strings containing point cloud timestamps.
+# @return A list containing the timestamps.
 def load_pcl_timestamps(iterable):
     pcl_timestamps = []
 
@@ -84,7 +115,11 @@ def load_pcl_timestamps(iterable):
             pcl_timestamps.append(float(split_line[1]))
     return pcl_timestamps
 
-# load predicted translations in distances 25m, 50m, 75m, 100m
+
+## @brief Loads predicted train profile translations in distances 25m, 50m, 75m and 100m.
+# @param directory_path Path to the directory with the files.
+# @param filename_prefix The prefix of the files. Filenames must be: [prefix]_25.csv, etc.
+# @return The loaded translations.
 def load_profile_translations(directory_path, filename_prefix):
     translations = []
     for distance in [25, 50, 75, 100]:
@@ -94,7 +129,10 @@ def load_profile_translations(directory_path, filename_prefix):
     return translations
 
 
-# load predicted rotations in distances 25m, 50m, 75m, 100m
+## @brief Loads predicted train profile rotations in distances 25m, 50m, 75m and 100m.
+# @param directory_path Path to the directory with the files.
+# @param filename_prefix The prefix of the files. Filenames must be: [prefix]_25.csv, etc.
+# @return The loaded rotations.
 def load_profile_rotations(directory_path, filename_prefix):
     rotations = [[] for _ in range(4)]
     for i in range(4):   # for eveery distance

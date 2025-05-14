@@ -1,0 +1,19 @@
+digraph "DLManagedTensorVersioned"
+{
+ // LATEX_PDF_SIZE
+  bgcolor="transparent";
+  edge [fontname=Helvetica,fontsize=10,labelfontname=Helvetica,labelfontsize=10];
+  node [fontname=Helvetica,fontsize=10,shape=box,height=0.2,width=0.4];
+  Node1 [id="Node000001",label="DLManagedTensorVersioned",height=0.2,width=0.4,color="gray40", fillcolor="grey60", style="filled", fontcolor="black",tooltip="A versioned and managed C Tensor object, manage memory of DLTensor."];
+  Node2 -> Node1 [id="edge1_Node000001_Node000002",dir="back",color="darkorchid3",style="dashed",tooltip=" ",label=" version",fontcolor="grey" ];
+  Node2 [id="Node000002",label="DLPackVersion",height=0.2,width=0.4,color="gray40", fillcolor="white", style="filled",URL="$structDLPackVersion.html",tooltip="The DLPack version."];
+  Node3 -> Node1 [id="edge2_Node000001_Node000003",dir="back",color="darkorchid3",style="dashed",tooltip=" ",label=" deleter\nmanager_ctx",fontcolor="grey" ];
+  Node3 [id="Node000003",label="void",height=0.2,width=0.4,color="gray40", fillcolor="white", style="filled",tooltip=" "];
+  Node4 -> Node1 [id="edge3_Node000001_Node000004",dir="back",color="darkorchid3",style="dashed",tooltip=" ",label=" dl_tensor",fontcolor="grey" ];
+  Node4 [id="Node000004",label="DLTensor",height=0.2,width=0.4,color="gray40", fillcolor="white", style="filled",URL="$structDLTensor.html",tooltip="Plain C Tensor object, does not manage memory."];
+  Node3 -> Node4 [id="edge4_Node000004_Node000003",dir="back",color="darkorchid3",style="dashed",tooltip=" ",label=" data",fontcolor="grey" ];
+  Node5 -> Node4 [id="edge5_Node000004_Node000005",dir="back",color="darkorchid3",style="dashed",tooltip=" ",label=" device",fontcolor="grey" ];
+  Node5 [id="Node000005",label="DLDevice",height=0.2,width=0.4,color="gray40", fillcolor="white", style="filled",URL="$structDLDevice.html",tooltip="A Device for Tensor and operator."];
+  Node6 -> Node4 [id="edge6_Node000004_Node000006",dir="back",color="darkorchid3",style="dashed",tooltip=" ",label=" dtype",fontcolor="grey" ];
+  Node6 [id="Node000006",label="DLDataType",height=0.2,width=0.4,color="gray40", fillcolor="white", style="filled",URL="$structDLDataType.html",tooltip="The data type the tensor can hold. The data type is assumed to follow the native endian-ness...."];
+}

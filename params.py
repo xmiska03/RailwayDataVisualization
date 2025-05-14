@@ -1,6 +1,7 @@
-import math
+## @file params.py
+# @author Zuzana Miškaňová
+# @brief Contains the default workspace settings of the visualization.
 
-# initial visualization parameters
 POINT_SIZE = 20
 NEAR_PLANE = 0.1
 FAR_PLANE = 300

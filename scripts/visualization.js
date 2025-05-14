@@ -1,12 +1,13 @@
 /**
  * @fileoverview Creates and manages the deck.gl visualization and the train movement animation.
+ * @author Zuzana Miškaňová
  */
 import {Deck, FirstPersonView} from '@deck.gl/core';
 import {PathLayer, PointCloudLayer} from '@deck.gl/layers';
 
 
 /**
- * A class that manages the deck.gl visualization and the train movement animation.
+ * A class that manages the Deck.gl visualization and the train movement animation.
  */
 class Visualization {
   /**
