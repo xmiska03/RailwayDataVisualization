@@ -4,7 +4,7 @@
 
 from dash import html, dcc
 import dash_bootstrap_components as dbc
-from params import POINT_SIZE, OPACITY, LINE_WIDTH  # default values
+from params import POINT_SIZE, OPACITY, LINE_WIDTH, PROFILE_COLOR, COLOR_SCALE_BOUNDARIES
 
 
 ## @brief A widget to choose between the postprocess and the real-time point cloud.
@@ -76,13 +76,13 @@ color_scale_graph = [
         id='scale-colors-store',         # needed for the graph
         data='bgr'
     )
-]
+] # end of color_scale_graph
 
 ## @brief A widget to choose the boundaries of the color scale.
 color_scale_interval_widget = [
     dbc.Col(html.Div("Od: "), width=1),
     dbc.Col(dbc.Input(
-        value=0,
+        value=COLOR_SCALE_BOUNDARIES[0],
         id="scale-from-input",
         type="number",
         min=0,
@@ -91,7 +91,7 @@ color_scale_interval_widget = [
     ), width=3),
     dbc.Col(html.Div("Do: "), width=1),
     dbc.Col(dbc.Input(
-        value=20,
+        value=COLOR_SCALE_BOUNDARIES[1],
         id="scale-to-input",
         type="number",
         min=0,
@@ -132,7 +132,7 @@ line_color_widget = [
     dbc.Col(dbc.Input(
         type="color",
         id="line-color-picker",
-        value="#fa650f",
+        value=PROFILE_COLOR["hex"],
     ), width=6)
 ]
 
@@ -292,4 +292,4 @@ visualization_tab = [
     
     dbc.Row(export_workspace_widget),
     dbc.Row(import_workspace_widget, style={"marginTop": "15px"})
-]   
+] # end of visualization_tab 

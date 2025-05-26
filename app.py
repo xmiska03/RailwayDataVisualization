@@ -15,7 +15,7 @@ import animation_control_callbacks
 import layout_callbacks
 import params
 from general_functions import calculate_projection_matrix, load_rotation, \
-                              rotation_to_euler, rotation_to_matrix, rotation_to_inv_matrix
+                              rotation_to_euler, rotation_to_inv_matrix
 from loading_functions import load_csv_file_into_nparray, load_yaml_into_dict, \
                               load_timestamps_file_into_nparray, \
                               load_pcl_timestamps_file, load_profile_translations, \
@@ -69,15 +69,12 @@ trans_nparray = load_csv_file_into_nparray("data/MMS_dataset_10s/trans_joined.cs
 rot_nparray_raw = load_csv_file_into_nparray("data/MMS_dataset_10s/rot_joined.csv")
 ## @brief The camera rotations as matrices.
 rot_nparray = []
-## @brief The camera rotations as inverted matrices.
-rot_inv_nparray = []
 ## @brief The camera rotations as zyx euler angles.
 rot_euler_array = []
 for rot_raw in rot_nparray_raw:
     rotation = load_rotation(rot_raw)
     rot_euler_array.append(rotation_to_euler(rotation))
-    rot_nparray.append(rotation_to_matrix(rotation))
-    rot_inv_nparray.append(rotation_to_inv_matrix(rotation))
+    rot_nparray.append(rotation_to_inv_matrix(rotation))
 ## @brief The virtual camera timestamps.
 timestamps_nparray = load_timestamps_file_into_nparray("data/MMS_dataset_10s/imu_joined_timestamps.csv")
 #timestamps_nparray = pcl_timestamps    # for testing 
@@ -117,7 +114,7 @@ point_cloud_layer = {
 ## @brief The definition of the layer with the line through train profile positions.
 profile_line_layer = {
     "data": [],   # data for this layer is in the profile-line-data store
-    "color": [232, 175, 16],    # #e8af10
+    "color": params.PROFILE_LINE_COLOR["rgb"],
     "width": params.LINE_WIDTH,
     "visible": True
 }
@@ -125,15 +122,15 @@ profile_line_layer = {
 ## @brief The definition of the train profile layer.
 profile_layer = {
     "data": profile_shape,
-    "color": [225, 80, 255],    # #e250ff
-    "width": params.PROFILE_LINE_WIDTH,
+    "color": params.PROFILE_COLOR["rgb"],
+    "width": params.PROFILE_WIDTH,
     "visible": True
 }
 
 ## @brief The definition of the vector data layer.
 vector_layer = {
     "data": [],   # data for this layer is in the vector-data store
-    "color": [250, 101, 15],    # #fa650f
+    "color": params.LINE_COLOR["rgb"],    
     "width": params.LINE_WIDTH,
     "visible": True
 }
@@ -183,10 +180,6 @@ stores = [
         data=rot_nparray
     ),
     dcc.Store(
-        id='rotations-inv-data',
-        data=rot_inv_nparray
-    ),
-    dcc.Store(
         id='rotations-euler-data',
         data=rot_euler_array
     ),
@@ -211,7 +204,7 @@ stores = [
         id='point-cloud-type-store',  # decides whether the app displays united or divided point cloud data
         data='divided'
     )
-]
+]  # end of stores
 
 ## @brief The Dash application
 app = Dash(
@@ -246,6 +239,7 @@ app.layout = html.Div(
 # callbacks - the logic of the app
 
 ## @brief Copies the default data to the window.vis object and initializes the Deck.gl visualization.
+# @param id A dummy output needed so that the initial call occurs.
 # @param data_dict A Dash-Deck-styled dictionary which basic data about the visualization. 
 # @param united_pc_data The postprocess point cloud.
 # @param pcl_timestamps Timestamps of the real-time point cloud.
@@ -259,8 +253,8 @@ app.layout = html.Div(
 # @return A dummy output needed so that the initial call occurs.
 initialize = app.clientside_callback(
     """
-    function(data_dict, united_pc_data, pcl_timestamps, profile_line_data, vector_data, 
-             translations, rotations, rotations_inv, rotations_euler, camera_timestamps) {
+    function(id, data_dict, united_pc_data, pcl_timestamps, profile_line_data, vector_data, 
+             translations, rotations, rotations_euler, camera_timestamps) {
         if (window.vis) {
             window.vis.data_dict = data_dict;  // make the data accessible to visualization.js
             window.vis.united_pc_data = united_pc_data;
@@ -270,7 +264,6 @@ initialize = app.clientside_callback(
             
             window.vis.translations = translations;
             window.vis.rotations = rotations;
-            window.vis.rotations_inv = rotations_inv;
             window.vis.rotations_euler = rotations_euler;
             window.vis.camera_timestamps = camera_timestamps;
             window.vis.initializeDeck();       // call function defined in the JavaScript file
@@ -283,18 +276,18 @@ initialize = app.clientside_callback(
         return dash_clientside.no_update;
     }
     """,
-    Output('visualization-data', 'id'),  # dummy output needed so that the initial call occurs
-    Input('visualization-data', 'data'),
+    Output('visualization-data', 'id'),  # dummy input and output needed so that the initial call occurs
+    Input('visualization-data', 'id'),
+    State('visualization-data', 'data'),
     State('united-pc-data', 'data'),
     State('pcl-timestamps-data', 'data'),
     State('profile-line-data', 'data'),
     State('vector-data', 'data'),
     State('translations-data', 'data'),
     State('rotations-data', 'data'),
-    State('rotations-inv-data', 'data'),
     State('rotations-euler-data', 'data'),
     State('camera-timestamps-data', 'data'),
-)
+) # end of callback initialize
 
 # add callbacks defined in other files
 visualization_tab_callbacks.get_callbacks(app)
@@ -304,4 +297,4 @@ animation_control_callbacks.get_callbacks(app)
 layout_callbacks.get_callbacks(app)
 
 if __name__ == "__main__":
-    app.run(debug=False, dev_tools_hot_reload=False)
+    app.run(debug=True, dev_tools_hot_reload=False)

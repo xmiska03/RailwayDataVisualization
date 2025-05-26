@@ -127,11 +127,6 @@ class Visualization {
      */
     this.rotations = [];
     /**
-     * Inverse camera rotation matrices.
-     * @type {number[][][]}
-     */
-    this.rotations_inv = [];
-    /**
      * Camera rotations as Euler angles.
      * @type {number[][]}
      */
@@ -141,8 +136,8 @@ class Visualization {
      * @type {number[]}
      */
     this.camera_timestamps = [];
-  }
-}
+  }  // end of constructor of class Visualization
+}   // end of class Visualization
 
 
 /************************* define all the methods ******************************/
@@ -418,7 +413,7 @@ Visualization.prototype.initializeDeck = function () {
 
   window.vis.updateDeck();
   window.vis.deck_initialized = true;
-}; // end of function initializeDeck()
+}; // end of method initializeDeck()
 
 
 /**
@@ -453,7 +448,7 @@ Visualization.prototype.changeLayersData = function () {
  * Changes camera position.
  * The final position of the virtual camera is a combination of:
    1. the current position of the train (determined by the window.vis.position variable, data is in arrays 
-      window.vis.translations, window.vis.rotations_inv, window.vis.rotations_euler),
+      window.vis.translations, window.vis.rotations and window.vis.rotations_euler),
    2. custom camera offset set by the user (window.vis.camera_offset).
   * @function
  */
@@ -463,14 +458,10 @@ Visualization.prototype.updateDeck = function () {
   const offset_x = window.vis.camera_offset[0];
   const offset_y = window.vis.camera_offset[1];
   const offset_z = window.vis.camera_offset[2];
-  const sum_x = offset_x + window.vis.rotations[pos][0][0] * window.vis.translations[pos][0] + window.vis.rotations[pos][0][1] * window.vis.translations[pos][1] + window.vis.rotations[pos][0][2] * window.vis.translations[pos][2];
-  const sum_y = offset_y + window.vis.rotations[pos][1][0] * window.vis.translations[pos][0] + window.vis.rotations[pos][1][1] * window.vis.translations[pos][1] + window.vis.rotations[pos][1][2] * window.vis.translations[pos][2];
-  const sum_z = offset_z + window.vis.rotations[pos][2][0] * window.vis.translations[pos][0] + window.vis.rotations[pos][2][1] * window.vis.translations[pos][1] + window.vis.rotations[pos][2][2] * window.vis.translations[pos][2];
 
-  // multiply sum_* by inverse rotation matrix
-  const final_x = window.vis.rotations_inv[pos][0][0] * sum_x + window.vis.rotations_inv[pos][0][1] * sum_y + window.vis.rotations_inv[pos][0][2] * sum_z;
-  const final_y = window.vis.rotations_inv[pos][1][0] * sum_x + window.vis.rotations_inv[pos][1][1] * sum_y + window.vis.rotations_inv[pos][1][2] * sum_z;
-  const final_z = window.vis.rotations_inv[pos][2][0] * sum_x + window.vis.rotations_inv[pos][2][1] * sum_y + window.vis.rotations_inv[pos][2][2] * sum_z;
+  const final_x = window.vis.translations[pos][0] + window.vis.rotations[pos][0][0] * offset_x + window.vis.rotations[pos][0][1] * offset_y + window.vis.rotations[pos][0][2] * offset_z;
+  const final_y = window.vis.translations[pos][1] + window.vis.rotations[pos][1][0] * offset_x + window.vis.rotations[pos][1][1] * offset_y + window.vis.rotations[pos][1][2] * offset_z;
+  const final_z = window.vis.translations[pos][2] + window.vis.rotations[pos][2][0] * offset_x + window.vis.rotations[pos][2][1] * offset_y + window.vis.rotations[pos][2][2] * offset_z;
 
   // make a new viewstate from the new position
   const INITIAL_VIEW_STATE = {
@@ -488,7 +479,7 @@ Visualization.prototype.updateDeck = function () {
   dist_canvas.style.transform = transform;
 
   window.vis.updateLayers();
-}; // end of function updateDeck()
+}; // end of method updateDeck()
 
 
 /**
@@ -647,7 +638,7 @@ Visualization.prototype.animationStep = function (now, metadata) {
   const minutes = Math.floor(time_sec / 60);
   const seconds = time_sec % 60;                                                    // update time label
   document.getElementById("current-time-div").innerText = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
-}; // end of function animationStep()
+}; // end of method animationStep()
 
 
 /**
@@ -797,7 +788,7 @@ Visualization.prototype.reactToKeyPress = function (e) {
       || document.activeElement.id === 'camera-pitch-slider-input'
       || document.activeElement.id === 'camera-roll-slider-input') e.preventDefault();
   }
-};
+};  // end of method reactToKeyPress
 
 
 /**

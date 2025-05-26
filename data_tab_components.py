@@ -325,5 +325,5 @@ data_tab = [
         style={'margin': '10px 16px', 'width': '90%', 'height': '40px'}
     )),
     dcc.Store(id="distortion-params-store", data=[-0.183217, 0.026917, -0.001191, 0.000804, 0.335446]),
-]
+] # end of data_tab
 

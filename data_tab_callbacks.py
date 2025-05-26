@@ -11,8 +11,7 @@ import os
 import tomllib
 
 from general_functions import calculate_train_profile_transformation_matrix, load_rotation, \
-                              rotation_to_euler, rotation_to_matrix, rotation_to_inv_matrix, \
-                              calculate_projection_matrix
+                              rotation_to_euler, rotation_to_inv_matrix, calculate_projection_matrix
 from loading_functions import load_pcl_timestamps_file, load_pcl_timestamps, \
                               load_csv_file_into_nparray, load_csv_into_nparray, \
                               load_timestamps_file_into_nparray, load_timestamps_into_nparray, \
@@ -23,33 +22,8 @@ from loading_functions import load_pcl_timestamps_file, load_pcl_timestamps, \
 ## @brief Registers all callbacks for the "data" tab.
 # @param app The Dash app instance.
 def get_callbacks(app):
-
-    # copy the transformations data from a store to the window object
-    app.clientside_callback(
-        """
-        function(profile_transf_data, translations_data, rotations_data, rotations_inv_data, rot_euler_data) {
-            // make the data accessible for the visualization.js script
-            window.vis.profile_transf = profile_transf_data;
-            window.vis.translations = translations_data;
-            window.vis.rotations = rotations_data;
-            window.vis.rotations_inv = rotations_inv_data;
-            window.vis.rotations_euler = rot_euler_data;
-            // update the visualization if it is already created
-            if (window.vis.deck_initialized) {
-                window.vis.updateDeck();  // call function defined in the JavaScript file
-            }
-            return dash_clientside.no_update;
-        }
-        """,
-        Output('translations-data', 'id'),  # dummy output needed so that the initial call occurs
-        Input('profile-transf-data', 'data'),
-        Input('translations-data', 'data'),
-        Input('rotations-data', 'data'),
-        State('rotations-inv-data', 'data'),
-        State('rotations-euler-data', 'data')
-    )
     
-    # calculate new train profile transformations when new guage translations or rotations are uploaded
+    # calculate new train profile transformations when new profile translations or rotations are uploaded
     @app.callback(
         Output('profile-transf-data', 'data'),
         Input('profile-trans-data', 'data'),
@@ -105,35 +79,55 @@ def get_callbacks(app):
             decoded = base64.b64decode(content_string)
             data = tomllib.loads(decoded.decode("utf-8"))
 
-            # load data from toml file and use them as needed
-            united_pcd_path = os.path.join(data['project_path'], data['postprocess_pcd_path'])
-            divided_pcd_paths = {
-                "dir_path": os.path.join(data['project_path'], data['realtime_pcd_path']),
-                "filename_prefix": data['realtime_pcd_filename_prefix'],
-                "files_cnt": data['realtime_pcd_files_cnt']
-            }
-            pc_timestamps_path = os.path.join(data['project_path'], data['realtime_pcd_timestamps_path'])
-            video_path = os.path.join(data['project_path'], data['video_path'])
-            vector_data_path = os.path.join(data['project_path'], data['vector_data_path'])
-            translations_path = os.path.join(data['project_path'], data['translations_path'])
-            rotations_path = os.path.join(data['project_path'], data['rotations_path'])
-            timestamps_path = os.path.join(data['project_path'], data['timestamps_path'])
-            profile_trans_paths = {
-                "dir_path": os.path.join(data['project_path'], data['profile_translations_path']),
-                "filename_prefix": data['profile_translations_filename_prefix']
-            }
-            profile_rot_paths = {
-                "dir_path": os.path.join(data['project_path'], data['profile_rotations_path']),
-                "filename_prefix": data['profile_rotations_filename_prefix']
-            }
+            # initialize the outputs
+            united_pcd_path, divided_pcd_paths, pc_timestamps_path = no_update, no_update, no_update
+            video_path, vector_data_path, translations_path = no_update, no_update, no_update
+            rotations_path, timestamps_path, profile_trans_paths = no_update, no_update, no_update
+            profile_rot_paths, calib_matrix_str, far_plane = no_update, no_update, no_update
+            dist_params_str = no_update
 
-            calibm = data['calibration_matrix']
-            calib_matrix_str = f"{calibm[0]}, {calibm[1]}, {calibm[2]},\n" \
-                             + f"{calibm[3]}, {calibm[4]}, {calibm[5]},\n" \
-                             + f"{calibm[6]}, {calibm[7]}, {calibm[8]}"
-            far_plane = data['far_plane']
-            distp = data['distortion_parameters']
-            dist_params_str = f"{distp[0]}, {distp[1]}, {distp[2]}, {distp[3]}, {distp[4]}"
+            # load data from toml file and use them as needed
+            if 'project_path' in data.keys():
+                if 'postprocess_pcd_path' in data.keys():
+                    united_pcd_path = os.path.join(data['project_path'], data['postprocess_pcd_path'])
+                if 'realtime_pcd_path' in data.keys():
+                    divided_pcd_paths = {
+                        "dir_path": os.path.join(data['project_path'], data['realtime_pcd_path']),
+                        "filename_prefix": data['realtime_pcd_filename_prefix'],
+                        "files_cnt": data['realtime_pcd_files_cnt']
+                    }
+                if 'realtime_pcd_timestamps_path' in data.keys():
+                    pc_timestamps_path = os.path.join(data['project_path'], data['realtime_pcd_timestamps_path'])
+                if 'video_path' in data.keys():
+                    video_path = os.path.join(data['project_path'], data['video_path'])
+                if 'vector_data_path' in data.keys():
+                    vector_data_path = os.path.join(data['project_path'], data['vector_data_path'])
+                if 'translations_path' in data.keys():
+                    translations_path = os.path.join(data['project_path'], data['translations_path'])
+                if 'rotations_path' in data.keys():
+                    rotations_path = os.path.join(data['project_path'], data['rotations_path'])
+                if 'timestamps_path' in data.keys():
+                    timestamps_path = os.path.join(data['project_path'], data['timestamps_path'])
+                if 'profile_translations_path' in data.keys():
+                    profile_trans_paths = {
+                        "dir_path": os.path.join(data['project_path'], data['profile_translations_path']),
+                        "filename_prefix": data['profile_translations_filename_prefix']
+                    }
+                if 'profile_rotations_path' in data.keys():
+                    profile_rot_paths = {
+                        "dir_path": os.path.join(data['project_path'], data['profile_rotations_path']),
+                        "filename_prefix": data['profile_rotations_filename_prefix']
+                    }
+            if 'calibration_matrix' in data.keys():
+                calibm = data['calibration_matrix']
+                calib_matrix_str = f"{calibm[0]}, {calibm[1]}, {calibm[2]},\n" \
+                                + f"{calibm[3]}, {calibm[4]}, {calibm[5]},\n" \
+                                + f"{calibm[6]}, {calibm[7]}, {calibm[8]}"
+            if 'far_plane' in data.keys():
+                far_plane = data['far_plane']
+            if 'distortion_parameters' in data.keys():
+                distp = data['distortion_parameters']
+                dist_params_str = f"{distp[0]}, {distp[1]}, {distp[2]}, {distp[3]}, {distp[4]}"
 
             return {"display": "none"}, {"display": "block"}, filename, \
                 united_pcd_path, divided_pcd_paths, pc_timestamps_path, \
@@ -144,8 +138,9 @@ def get_callbacks(app):
         else:
             # file deleted (or it is the initial call)
             return {"display": "block"}, {"display": "none"}, "", \
-                no_update, "", "", no_update, "", no_update, no_update, no_update, "", "", \
-                no_update, no_update, no_update
+                no_update, no_update, no_update, no_update, no_update, no_update, no_update, \
+                no_update, no_update, no_update, no_update, no_update, no_update
+    # end of callback upload_project_file
 
 
     # upload/delete file with united point cloud
@@ -189,6 +184,7 @@ def get_callbacks(app):
         else:
             # file deleted (or it is the initial call)
             return {"display": "block"}, {"display": "none"}, "", no_update, update_number+1
+    # end of callback upload_united_pc
 
     
     # upload/delete files with divided point cloud
@@ -247,6 +243,7 @@ def get_callbacks(app):
         else:
             # it is the initial call
             return {"display": "block"}, {"display": "none"}, "", no_update
+    # end of callback upload_divided_pc
 
 
     # upload/delete file with divided point cloud timestamps
@@ -401,7 +398,6 @@ def get_callbacks(app):
         Output('rotations-filename-div', 'children'),
         Output('rotations-euler-data', 'data'),
         Output('rotations-data', 'data'),
-        Output('rotations-inv-data', 'data'),
         Input('rotations-upload', 'contents'),
         Input('rotations-path-store', 'data'),
         State('rotations-upload', 'filename'),
@@ -415,34 +411,29 @@ def get_callbacks(app):
             # read the file
             rot_nparray_raw = load_csv_file_into_nparray(rotations_path)
             rot_nparray = []
-            rot_inv_nparray = []
             rot_euler_array = []
             for rot_raw in rot_nparray_raw:
                 rotation = load_rotation(rot_raw)
-                rot_nparray.append(rotation_to_matrix(rotation))
-                rot_inv_nparray.append(rotation_to_inv_matrix(rotation))
+                rot_nparray.append(rotation_to_inv_matrix(rotation))
                 rot_euler_array.append(rotation_to_euler(rotation))
             
             # save the data to the store
-            return {"display": "none"}, {"display": "block"}, new_filename, rot_euler_array, rot_nparray, rot_inv_nparray
+            return {"display": "none"}, {"display": "block"}, new_filename, rot_euler_array, rot_nparray
         elif file_content is not None:
             # new file uploaded
             content_type, content_string = file_content.split(',')
             decoded = base64.b64decode(content_string).decode("utf-8").split('\n')
             data = load_csv_into_nparray(decoded)
             rot_nparray = []
-            rot_inv_nparray = []
             rot_euler_array = []
             for rot_raw in data:
                 rotation = load_rotation(rot_raw)
-                rot_nparray.append(rotation_to_matrix(rotation))
-                rot_inv_nparray.append(rotation_to_inv_matrix(rotation))
+                rot_nparray.append(rotation_to_inv_matrix(rotation))
                 rot_euler_array.append(rotation_to_euler(rotation))
-            
-            return {"display": "none"}, {"display": "block"}, filename, rot_euler_array, rot_nparray, rot_inv_nparray
+            return {"display": "none"}, {"display": "block"}, filename, rot_euler_array, rot_nparray
         else:
             # file deleted (or it is the initial call)
-            return {"display": "block"}, {"display": "none"}, "", no_update, no_update, no_update
+            return {"display": "block"}, {"display": "none"}, "", no_update, no_update
 
     # upload/delete file with timestamps
     @app.callback(
@@ -527,6 +518,7 @@ def get_callbacks(app):
         else:
             # it is the initial call
             return {"display": "block"}, {"display": "none"}, "", no_update, no_update
+    # end of callback upload_profile_translations
         
     # upload/delete file with train profile rotations
     @app.callback(
@@ -575,6 +567,7 @@ def get_callbacks(app):
         else:
             # it is the initial call
             return {"display": "block"}, {"display": "none"}, "", no_update
+    # end of callback upload_profile_rotations
     
 
     # set a new video to the same time as the old video
@@ -781,7 +774,7 @@ def get_callbacks(app):
             return no_update
         return params
 
-    # pass new data from stores to visualization in deck.gl
+    # pass new data from stores to visualization in deck.gl (script visualization.js)
     app.clientside_callback(
         """
         function(data_dict) {
@@ -835,4 +828,44 @@ def get_callbacks(app):
         }
         """,
         Input('pcl-timestamps-data', 'data')
+    )
+    app.clientside_callback(
+        """
+        function(profile_transf_data) {
+            window.vis.profile_transf = profile_transf_data;
+            if (window.vis.initialized_deck) {
+                window.vis.updateDeck();
+            }
+            return dash_clientside.no_update;
+        }
+        """,
+        Output('profile-transf-data', 'id'),  # dummy output needed so that the initial call occurs
+        Input('profile-transf-data', 'data'),
+    )
+    app.clientside_callback(
+        """
+        function(translations_data) {
+            window.vis.translations = translations_data;
+            window.vis.updateDeck();
+        }
+        """,
+        Input('translations-data', 'data')
+    )
+    app.clientside_callback(
+        """
+        function(rotations_data) {
+            window.vis.rotations = rotations_data;
+            window.vis.updateDeck();
+        }
+        """,
+        Input('rotations-data', 'data')
+    )
+    app.clientside_callback(
+        """
+        function(rotations_euler_data) {
+            window.vis.rotations_euler = rotations_euler_data;
+            window.vis.updateDeck();
+        }
+        """,
+        Input('rotations-euler-data', 'data')
     )

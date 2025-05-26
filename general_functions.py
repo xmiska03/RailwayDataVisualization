@@ -64,31 +64,24 @@ def calculate_train_profile_transformation_matrix(trans_point, rot_mat_3x3):
     return trans_matrix @ rot_matrix
 
 
-## @brief Loads rotation from the format in the files (xzy, in degrees) into a Rotation object.
+## @brief Loads rotation from the format in the files (xzy, in degrees) into a scipy Rotation object.
 # (If translations are in order yzx instead of xyz, then rotations are in order xzy instead of zyx.)
 # @param rot_raw A rotation in euler angles, xzy format.
-# @return A Rotation object.
+# @return A scipy Rotation object.
 def load_rotation(rot_raw):
     return Rotation.from_euler("xzy", rot_raw, degrees=True)
 
 
-## @brief Converts a Rotation object to inverse euler angles (for the camera).
-# @param rotation A Rotation object.
+## @brief Converts a scipy Rotation object to inverse euler angles (for the camera).
+# @param rotation A scipy Rotation object.
 # @return A rotation in euler angles, zyx format.
 def rotation_to_euler(rotation):
     rotation_zyx = rotation.inv().as_euler("zyx", degrees=True)
     return [-rotation_zyx[0], rotation_zyx[1], -rotation_zyx[2]]
 
 
-## @brief Converts a Rotation object to a rotation matrix.
-# @param rotation A Rotation object.
-# @return A rotation matrix.
-def rotation_to_matrix(rotation):
-    return rotation.as_matrix()
-
-
-## @brief Converts a Rotation object to an inverted rotation matrix.
-# @param rotation A Rotation object.
+## @brief Converts a scipy Rotation object to an inverted rotation matrix.
+# @param rotation A scipy Rotation object.
 # @return An inverted rotation matrix.
 def rotation_to_inv_matrix(rotation):
     return rotation.inv().as_matrix()

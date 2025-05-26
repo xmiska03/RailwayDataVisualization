@@ -12,8 +12,9 @@ var searchData=
   ['camera_5fposition_5fyaw_5fwidget_9',['camera_position_yaw_widget',['../visualization__tab__components_8py.html#af51c2ba04b2022a27ab447cdf3631c5a',1,'visualization_tab_components']]],
   ['camera_5fposition_5fz_5fwidget_10',['camera_position_z_widget',['../visualization__tab__components_8py.html#a94dc1a45f5c6625c7754268fb2dcab1d',1,'visualization_tab_components']]],
   ['color_5fmode_5fswitch_11',['color_mode_switch',['../layout__components_8py.html#a71d4e6c22d377706209534421880a2b4',1,'layout_components']]],
-  ['color_5fscale_5fgraph_12',['color_scale_graph',['../visualization__tab__components_8py.html#a55bf2d80daf45bdfb4db4d1109e280b9',1,'visualization_tab_components']]],
-  ['color_5fscale_5finterval_5fwidget_13',['color_scale_interval_widget',['../visualization__tab__components_8py.html#a48e747dd687bdedc06a64d54840c94a1',1,'visualization_tab_components']]],
-  ['color_5fscale_5fwidget_14',['color_scale_widget',['../visualization__tab__components_8py.html#a8ec22dc2e00684e9e9ac42e07315bd1f',1,'visualization_tab_components']]],
-  ['current_5ftime_5fdiv_15',['current_time_div',['../animation__control__components_8py.html#a2ed5d8cb486a2ada3cbcf63402f6f60d',1,'animation_control_components']]]
+  ['color_5fscale_5fboundaries_12',['COLOR_SCALE_BOUNDARIES',['../params_8py.html#a6f807760ec1387078bce60c1ae03dc8b',1,'params']]],
+  ['color_5fscale_5fgraph_13',['color_scale_graph',['../visualization__tab__components_8py.html#a55bf2d80daf45bdfb4db4d1109e280b9',1,'visualization_tab_components']]],
+  ['color_5fscale_5finterval_5fwidget_14',['color_scale_interval_widget',['../visualization__tab__components_8py.html#a48e747dd687bdedc06a64d54840c94a1',1,'visualization_tab_components']]],
+  ['color_5fscale_5fwidget_15',['color_scale_widget',['../visualization__tab__components_8py.html#a8ec22dc2e00684e9e9ac42e07315bd1f',1,'visualization_tab_components']]],
+  ['current_5ftime_5fdiv_16',['current_time_div',['../animation__control__components_8py.html#a2ed5d8cb486a2ada3cbcf63402f6f60d',1,'animation_control_components']]]
 ];

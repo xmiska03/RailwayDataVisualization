@@ -132,6 +132,7 @@ def get_callbacks(app):
                     patched_figure["data"][0]["marker"]["color"][i] = '#{:02x}{:02x}{:02x}'.format(r, g, b)
 
         return patched_figure, [scale_from, scale_to]
+    # end of callback change_scale_graph
 
     # rewrite the change of the boundaries of the color scale to JavaScript so that the visualization updates
     app.clientside_callback(
@@ -284,7 +285,7 @@ def get_callbacks(app):
         """,
         Output('distortion-checkbox', 'id'),  # dummy output
         Input('distortion-params-store', 'data')
-    )
+    ) # end of callback to pre-calculate coordinates for distortion
 
     # distort the point cloud
     app.clientside_callback(
@@ -371,7 +372,7 @@ def get_callbacks(app):
         """,
         Input('distortion-checkbox', 'value'),
         prevent_initial_call=True
-    )
+    ) # end of callback to distort the point cloud
 
     # export workspace settings
     @app.callback(
@@ -463,6 +464,7 @@ def get_callbacks(app):
             '\n'
         )
         return dict(content=content, filename="workspace.toml")
+    # end of callback export_workspace
     
     # import workspace settings
     @app.callback(
@@ -553,5 +555,6 @@ def get_callbacks(app):
             data["profile_line_line_width"],
             data["profile_line_line_color"]
         )
+    # end of callback import_workspace
            
 

@@ -338,7 +338,7 @@ list&#160;</td><td class="memItemRight" valign="bottom"><b>visualization_tab_com
 <b>Initial value:</b><div class="fragment"><div class="line"><span class="lineno">    1</span>=  [</div>
 <div class="line"><span class="lineno">    2</span>    dbc.Col(html.Div(<span class="stringliteral">&quot;Od: &quot;</span>), width=1),</div>
 <div class="line"><span class="lineno">    3</span>    dbc.Col(dbc.Input(</div>
-<div class="line"><span class="lineno">    4</span>        value=0,</div>
+<div class="line"><span class="lineno">    4</span>        value=COLOR_SCALE_BOUNDARIES[0],</div>
 <div class="line"><span class="lineno">    5</span>        id=<span class="stringliteral">&quot;scale-from-input&quot;</span>,</div>
 <div class="line"><span class="lineno">    6</span>        type=<span class="stringliteral">&quot;number&quot;</span>,</div>
 <div class="line"><span class="lineno">    7</span>        min=0,</div>
@@ -347,7 +347,7 @@ list&#160;</td><td class="memItemRight" valign="bottom"><b>visualization_tab_com
 <div class="line"><span class="lineno">   10</span>    ), width=3),</div>
 <div class="line"><span class="lineno">   11</span>    dbc.Col(html.Div(<span class="stringliteral">&quot;Do: &quot;</span>), width=1),</div>
 <div class="line"><span class="lineno">   12</span>    dbc.Col(dbc.Input(</div>
-<div class="line"><span class="lineno">   13</span>        value=20,</div>
+<div class="line"><span class="lineno">   13</span>        value=COLOR_SCALE_BOUNDARIES[1],</div>
 <div class="line"><span class="lineno">   14</span>        id=<span class="stringliteral">&quot;scale-to-input&quot;</span>,</div>
 <div class="line"><span class="lineno">   15</span>        type=<span class="stringliteral">&quot;number&quot;</span>,</div>
 <div class="line"><span class="lineno">   16</span>        min=0,</div>
@@ -447,7 +447,7 @@ list&#160;</td><td class="memItemRight" valign="bottom"><b>visualization_tab_com
 <div class="line"><span class="lineno">    3</span>    dbc.Col(dbc.Input(</div>
 <div class="line"><span class="lineno">    4</span>        type=<span class="stringliteral">&quot;color&quot;</span>,</div>
 <div class="line"><span class="lineno">    5</span>        id=<span class="stringliteral">&quot;line-color-picker&quot;</span>,</div>
-<div class="line"><span class="lineno">    6</span>        value=<span class="stringliteral">&quot;#fa650f&quot;</span>,</div>
+<div class="line"><span class="lineno">    6</span>        value=PROFILE_COLOR[<span class="stringliteral">&quot;hex&quot;</span>],</div>
 <div class="line"><span class="lineno">    7</span>    ), width=6)</div>
 <div class="line"><span class="lineno">    8</span>]</div>
 </div><!-- fragment -->

@@ -123,10 +123,6 @@ list&#160;</td><td class="memItemRight" valign="bottom"><b>app.pc_nparray</b> = 
 list&#160;</td><td class="memItemRight" valign="bottom"><b>app.rot_nparray</b> = []</td></tr>
 <tr class="memdesc:a01eede4cd161728e76d231449baf5e96"><td class="mdescLeft">&#160;</td><td class="mdescRight">The camera rotations as matrices. <br /></td></tr>
 <tr class="separator:a01eede4cd161728e76d231449baf5e96"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:adb2502deeb726fe531c6176b5ef1f712" id="r_adb2502deeb726fe531c6176b5ef1f712"><td class="memItemLeft" align="right" valign="top"><a id="adb2502deeb726fe531c6176b5ef1f712" name="adb2502deeb726fe531c6176b5ef1f712"></a>
-list&#160;</td><td class="memItemRight" valign="bottom"><b>app.rot_inv_nparray</b> = []</td></tr>
-<tr class="memdesc:adb2502deeb726fe531c6176b5ef1f712"><td class="mdescLeft">&#160;</td><td class="mdescRight">The camera rotations as inverted matrices. <br /></td></tr>
-<tr class="separator:adb2502deeb726fe531c6176b5ef1f712"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:afa651572cad27aa2ecfafaae479a9239" id="r_afa651572cad27aa2ecfafaae479a9239"><td class="memItemLeft" align="right" valign="top"><a id="afa651572cad27aa2ecfafaae479a9239" name="afa651572cad27aa2ecfafaae479a9239"></a>
 list&#160;</td><td class="memItemRight" valign="bottom"><b>app.rot_euler_array</b> = []</td></tr>
 <tr class="memdesc:afa651572cad27aa2ecfafaae479a9239"><td class="mdescLeft">&#160;</td><td class="mdescRight">The camera rotations as zyx euler angles. <br /></td></tr>
@@ -195,9 +191,9 @@ list&#160;</td><td class="memItemRight" valign="bottom"><b>app.stores</b></td></
 <tr class="memitem:ab4a362027d4aa3246e0e0f57ebf177b0" id="r_ab4a362027d4aa3246e0e0f57ebf177b0"><td class="memItemLeft" align="right" valign="top"><a id="ab4a362027d4aa3246e0e0f57ebf177b0" name="ab4a362027d4aa3246e0e0f57ebf177b0"></a>
 &#160;</td><td class="memItemRight" valign="bottom"><b>app.debug</b></td></tr>
 <tr class="separator:ab4a362027d4aa3246e0e0f57ebf177b0"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a19c9c557a497d116b10b73eed353bb32" id="r_a19c9c557a497d116b10b73eed353bb32"><td class="memItemLeft" align="right" valign="top"><a id="a19c9c557a497d116b10b73eed353bb32" name="a19c9c557a497d116b10b73eed353bb32"></a>
-&#160;</td><td class="memItemRight" valign="bottom"><b>app.False</b></td></tr>
-<tr class="separator:a19c9c557a497d116b10b73eed353bb32"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4f14203a53500e8593c3e2fec9ace1e8" id="r_a4f14203a53500e8593c3e2fec9ace1e8"><td class="memItemLeft" align="right" valign="top"><a id="a4f14203a53500e8593c3e2fec9ace1e8" name="a4f14203a53500e8593c3e2fec9ace1e8"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>app.True</b></td></tr>
+<tr class="separator:a4f14203a53500e8593c3e2fec9ace1e8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a78001cabcdd2c0b489545ec2ad739a7f" id="r_a78001cabcdd2c0b489545ec2ad739a7f"><td class="memItemLeft" align="right" valign="top"><a id="a78001cabcdd2c0b489545ec2ad739a7f" name="a78001cabcdd2c0b489545ec2ad739a7f"></a>
 &#160;</td><td class="memItemRight" valign="bottom"><b>app.dev_tools_hot_reload</b></td></tr>
 <tr class="separator:a78001cabcdd2c0b489545ec2ad739a7f"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -264,15 +260,15 @@ list&#160;</td><td class="memItemRight" valign="bottom"><b>app.stores</b></td></
 </div><div class="memdoc">
 <b>Initial value:</b><div class="fragment"><div class="line"><span class="lineno">    1</span>=  app.clientside_callback(</div>
 <div class="line"><span class="lineno">    2</span>    ,</div>
-<div class="line"><span class="lineno">    3</span>    Output(<span class="stringliteral">&#39;visualization-data&#39;</span>, <span class="stringliteral">&#39;id&#39;</span>),  <span class="comment"># dummy output needed so that the initial call occurs</span></div>
-<div class="line"><span class="lineno">    4</span>    Input(<span class="stringliteral">&#39;visualization-data&#39;</span>, <span class="stringliteral">&#39;data&#39;</span>),</div>
-<div class="line"><span class="lineno">    5</span>    State(<span class="stringliteral">&#39;united-pc-data&#39;</span>, <span class="stringliteral">&#39;data&#39;</span>),</div>
-<div class="line"><span class="lineno">    6</span>    State(<span class="stringliteral">&#39;pcl-timestamps-data&#39;</span>, <span class="stringliteral">&#39;data&#39;</span>),</div>
-<div class="line"><span class="lineno">    7</span>    State(<span class="stringliteral">&#39;profile-line-data&#39;</span>, <span class="stringliteral">&#39;data&#39;</span>),</div>
-<div class="line"><span class="lineno">    8</span>    State(<span class="stringliteral">&#39;vector-data&#39;</span>, <span class="stringliteral">&#39;data&#39;</span>),</div>
-<div class="line"><span class="lineno">    9</span>    State(<span class="stringliteral">&#39;translations-data&#39;</span>, <span class="stringliteral">&#39;data&#39;</span>),</div>
-<div class="line"><span class="lineno">   10</span>    State(<span class="stringliteral">&#39;rotations-data&#39;</span>, <span class="stringliteral">&#39;data&#39;</span>),</div>
-<div class="line"><span class="lineno">   11</span>    State(<span class="stringliteral">&#39;rotations-inv-data&#39;</span>, <span class="stringliteral">&#39;data&#39;</span>),</div>
+<div class="line"><span class="lineno">    3</span>    Output(<span class="stringliteral">&#39;visualization-data&#39;</span>, <span class="stringliteral">&#39;id&#39;</span>),  <span class="comment"># dummy input and output needed so that the initial call occurs</span></div>
+<div class="line"><span class="lineno">    4</span>    Input(<span class="stringliteral">&#39;visualization-data&#39;</span>, <span class="stringliteral">&#39;id&#39;</span>),</div>
+<div class="line"><span class="lineno">    5</span>    State(<span class="stringliteral">&#39;visualization-data&#39;</span>, <span class="stringliteral">&#39;data&#39;</span>),</div>
+<div class="line"><span class="lineno">    6</span>    State(<span class="stringliteral">&#39;united-pc-data&#39;</span>, <span class="stringliteral">&#39;data&#39;</span>),</div>
+<div class="line"><span class="lineno">    7</span>    State(<span class="stringliteral">&#39;pcl-timestamps-data&#39;</span>, <span class="stringliteral">&#39;data&#39;</span>),</div>
+<div class="line"><span class="lineno">    8</span>    State(<span class="stringliteral">&#39;profile-line-data&#39;</span>, <span class="stringliteral">&#39;data&#39;</span>),</div>
+<div class="line"><span class="lineno">    9</span>    State(<span class="stringliteral">&#39;vector-data&#39;</span>, <span class="stringliteral">&#39;data&#39;</span>),</div>
+<div class="line"><span class="lineno">   10</span>    State(<span class="stringliteral">&#39;translations-data&#39;</span>, <span class="stringliteral">&#39;data&#39;</span>),</div>
+<div class="line"><span class="lineno">   11</span>    State(<span class="stringliteral">&#39;rotations-data&#39;</span>, <span class="stringliteral">&#39;data&#39;</span>),</div>
 <div class="line"><span class="lineno">   12</span>    State(<span class="stringliteral">&#39;rotations-euler-data&#39;</span>, <span class="stringliteral">&#39;data&#39;</span>),</div>
 <div class="line"><span class="lineno">   13</span>    State(<span class="stringliteral">&#39;camera-timestamps-data&#39;</span>, <span class="stringliteral">&#39;data&#39;</span>),</div>
 <div class="line"><span class="lineno">   14</span>)</div>
@@ -280,6 +276,7 @@ list&#160;</td><td class="memItemRight" valign="bottom"><b>app.stores</b></td></
 <p>Copies the default data to the window.vis object and initializes the Deck.gl visualization. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
+    <tr><td class="paramname">id</td><td>A dummy output needed so that the initial call occurs. </td></tr>
     <tr><td class="paramname">data_dict</td><td>A Dash-Deck-styled dictionary which basic data about the visualization. </td></tr>
     <tr><td class="paramname">united_pc_data</td><td>The postprocess point cloud. </td></tr>
     <tr><td class="paramname">pcl_timestamps</td><td>Timestamps of the real-time point cloud. </td></tr>
@@ -333,8 +330,8 @@ list&#160;</td><td class="memItemRight" valign="bottom"><b>app.stores</b></td></
 </div><div class="memdoc">
 <b>Initial value:</b><div class="fragment"><div class="line"><span class="lineno">    1</span>=  {</div>
 <div class="line"><span class="lineno">    2</span>    <span class="stringliteral">&quot;data&quot;</span>: profile_shape,</div>
-<div class="line"><span class="lineno">    3</span>    <span class="stringliteral">&quot;color&quot;</span>: [225, 80, 255],    <span class="comment"># #e250ff</span></div>
-<div class="line"><span class="lineno">    4</span>    <span class="stringliteral">&quot;width&quot;</span>: params.PROFILE_LINE_WIDTH,</div>
+<div class="line"><span class="lineno">    3</span>    <span class="stringliteral">&quot;color&quot;</span>: params.PROFILE_COLOR[<span class="stringliteral">&quot;rgb&quot;</span>],</div>
+<div class="line"><span class="lineno">    4</span>    <span class="stringliteral">&quot;width&quot;</span>: params.PROFILE_WIDTH,</div>
 <div class="line"><span class="lineno">    5</span>    <span class="stringliteral">&quot;visible&quot;</span>: <span class="keyword">True</span></div>
 <div class="line"><span class="lineno">    6</span>}</div>
 </div><!-- fragment -->
@@ -373,7 +370,7 @@ list&#160;</td><td class="memItemRight" valign="bottom"><b>app.stores</b></td></
 </div><div class="memdoc">
 <b>Initial value:</b><div class="fragment"><div class="line"><span class="lineno">    1</span>=  {</div>
 <div class="line"><span class="lineno">    2</span>    <span class="stringliteral">&quot;data&quot;</span>: [],   <span class="comment"># data for this layer is in the profile-line-data store</span></div>
-<div class="line"><span class="lineno">    3</span>    <span class="stringliteral">&quot;color&quot;</span>: [232, 175, 16],    <span class="comment"># #e8af10</span></div>
+<div class="line"><span class="lineno">    3</span>    <span class="stringliteral">&quot;color&quot;</span>: params.PROFILE_LINE_COLOR[<span class="stringliteral">&quot;rgb&quot;</span>],</div>
 <div class="line"><span class="lineno">    4</span>    <span class="stringliteral">&quot;width&quot;</span>: params.LINE_WIDTH,</div>
 <div class="line"><span class="lineno">    5</span>    <span class="stringliteral">&quot;visible&quot;</span>: <span class="keyword">True</span></div>
 <div class="line"><span class="lineno">    6</span>}</div>
@@ -415,7 +412,7 @@ list&#160;</td><td class="memItemRight" valign="bottom"><b>app.stores</b></td></
 </div><div class="memdoc">
 <b>Initial value:</b><div class="fragment"><div class="line"><span class="lineno">    1</span>=  {</div>
 <div class="line"><span class="lineno">    2</span>    <span class="stringliteral">&quot;data&quot;</span>: [],   <span class="comment"># data for this layer is in the vector-data store</span></div>
-<div class="line"><span class="lineno">    3</span>    <span class="stringliteral">&quot;color&quot;</span>: [250, 101, 15],    <span class="comment"># #fa650f</span></div>
+<div class="line"><span class="lineno">    3</span>    <span class="stringliteral">&quot;color&quot;</span>: params.LINE_COLOR[<span class="stringliteral">&quot;rgb&quot;</span>],    </div>
 <div class="line"><span class="lineno">    4</span>    <span class="stringliteral">&quot;width&quot;</span>: params.LINE_WIDTH,</div>
 <div class="line"><span class="lineno">    5</span>    <span class="stringliteral">&quot;visible&quot;</span>: <span class="keyword">True</span></div>
 <div class="line"><span class="lineno">    6</span>}</div>

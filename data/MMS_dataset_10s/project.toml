@@ -1,15 +1,15 @@
 # fill in absolute project path here
-project_path = "/home/zmiskanova/Plocha/MMS_dataset_1min/"
+project_path = "/home/zmiskanova/Plocha/BP/bakalarka/data/MMS_dataset_10s"
 
 # point cloud data
-postprocess_pcd_path = "scans.pcd"            # one file with the whole point cloud
+postprocess_pcd_path = "scans_10s.pcd"            # one file with the whole point cloud
 realtime_pcd_path = "joined_pcd_files"        # point cloud divided into multiple files
 realtime_pcd_filename_prefix = "pcd"
-realtime_pcd_files_cnt = 596
+realtime_pcd_files_cnt = 100
 realtime_pcd_timestamps_path = "joined_pcl_timestamps.txt"
 
 # video
-video_path = "video.mp4"
+#video_path = "video_10s.mp4"
 
 # vector data
 vector_data_path = "vector_data"              # all in one directory, filenames do not matter

@@ -5,7 +5,7 @@
 from dash import html, dcc
 import dash_bootstrap_components as dbc
 
-from params import PROFILE_LINE_WIDTH, LINE_WIDTH
+from params import PROFILE_WIDTH, LINE_WIDTH, PROFILE_COLOR, PROFILE_LINE_COLOR
 
 
 ## @brief An input allowing to select the distance of the train profile.
@@ -22,7 +22,7 @@ profile_distance_widget = [
 profile_width_widget = [
     dbc.Col(html.Div("Tloušťka čar: "), width=5),
     dbc.Col(dbc.Input(
-        value=f"{PROFILE_LINE_WIDTH}",
+        value=f"{PROFILE_WIDTH}",
         id="profile-width-input",
         type="number",
         min=1,
@@ -37,7 +37,7 @@ profile_color_widget = [
     dbc.Col(dbc.Input(
         type="color",
         id="profile-color-picker",
-        value="#e250ff",
+        value=PROFILE_COLOR["hex"],
     ), width=6)
 ]
 
@@ -60,7 +60,7 @@ profile_line_color_widget = [
     dbc.Col(dbc.Input(
         type="color",
         id="profile-line-color-picker",
-        value="#e8af10",
+        value=PROFILE_LINE_COLOR["hex"],
     ), width=6)
 ]
 
